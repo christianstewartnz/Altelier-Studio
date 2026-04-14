@@ -127,18 +127,21 @@ export default function Home() {
   const handleNext = () => {
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
   const handleGoToStep = (step: number) => {
     if (step >= 1 && step <= 4) {
       setCurrentStep(step)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -177,6 +180,7 @@ export default function Home() {
       clearInterval(messageInterval)
       setConcepts(data.concepts)
       setShowResults(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (error) {
       console.error("Generation failed:", error)
       clearInterval(messageInterval)
@@ -219,6 +223,7 @@ export default function Home() {
     setIsGenerating(false)
     setShowResults(false)
     setSelectedConcept(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   if (isGenerating) {
