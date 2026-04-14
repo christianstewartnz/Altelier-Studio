@@ -6,20 +6,15 @@ export function isLightColor(hex: string): boolean {
   const b = parseInt(cleaned.slice(4, 6), 16)
   const toLinear = (c: number) => {
     const s = c / 255
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
+    return s <= 0.03928
+      ? s / 12.92
+      : Math.pow((s + 0.055) / 1.055, 2.4)
   }
-  const luminance = 0.2126 * toLinear(r) + 
-    0.7152 * toLinear(g) + 
+  const luminance =
+    0.2126 * toLinear(r) +
+    0.7152 * toLinear(g) +
     0.0722 * toLinear(b)
   return luminance > 0.35
-}
-
-export function getWordmarkColor(
-  bgColor: string, 
-  colors: string[]
-): string {
-  // Always return maximum contrast — never a mid-tone
-  return isLightColor(bgColor) ? '#1A1A1A' : '#F8F4EF'
 }
 
 export function getContrastColor(bgColor: string): string {

@@ -224,14 +224,14 @@ export function ConceptDetail({
               Identity
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
-              {/* Primary Wordmark — colors[4] background */}
+              {/* Primary Wordmark — light background */}
               <div
                 className="flex flex-col items-center justify-center p-12 rounded-2xl min-h-[200px]"
-                style={{ backgroundColor: concept.colors[4] }}
+                style={{ backgroundColor: concept.colors[concept.colors.length - 1] }}
               >
                 <p
                   className="text-xs tracking-[0.2em] uppercase mb-8"
-                  style={{ color: getContrastColor(concept.colors[4]) }}
+                  style={{ color: getContrastColor(concept.colors[concept.colors.length - 1]) }}
                 >
                   Primary Wordmark
                 </p>
@@ -242,19 +242,19 @@ export function ConceptDetail({
                   <WordmarkSVG
                     composition={concept.logoComposition}
                     headingFont={headingFont}
-                    color={concept.colors[0]}
+                    color={getContrastColor(concept.colors[concept.colors.length - 1])}
                   />
                 </div>
               </div>
 
-              {/* Reversed Wordmark — colors[0] background */}
+              {/* Reversed Wordmark — dark background */}
               <div 
                 className="flex flex-col items-center justify-center p-12 rounded-2xl min-h-[200px]"
                 style={{ backgroundColor: concept.colors[0] }}
               >
                 <p 
                   className="text-xs tracking-[0.2em] uppercase mb-8 opacity-70"
-                  style={{ color: concept.colors[4] }}
+                  style={{ color: getContrastColor(concept.colors[0]) }}
                 >
                   Reversed
                 </p>
@@ -265,7 +265,7 @@ export function ConceptDetail({
                   <WordmarkSVG
                     composition={concept.logoComposition}
                     headingFont={headingFont}
-                    color={concept.colors[4]}
+                    color={getContrastColor(concept.colors[0])}
                   />
                 </div>
               </div>
@@ -323,7 +323,7 @@ export function ConceptDetail({
                   <div className="text-center">
                     <span 
                       className="text-4xl tracking-wide block mb-3"
-                      style={{ ...headingStyle, color: concept.colors[4] }}
+                      style={{ ...headingStyle, color: concept.colors[concept.colors.length - 1] }}
                     >
                       {concept.logoText}
                     </span>
@@ -345,24 +345,24 @@ export function ConceptDetail({
               <div className="group">
                 <div 
                   className="aspect-[3/4] rounded-2xl overflow-hidden transition-transform duration-300 group-hover:scale-[1.02] border border-border"
-                  style={{ backgroundColor: concept.colors[4] }}
+                  style={{ backgroundColor: concept.colors[concept.colors.length - 1] }}
                 >
                   {/* Nav */}
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
                     <span 
                       className="text-sm"
-                      style={{ ...headingStyle, color: concept.colors[0] }}
+                      style={{ ...headingStyle, color: getContrastColor(concept.colors[concept.colors.length - 1]) }}
                     >
                       {concept.logoText}
                     </span>
                     <div className="flex gap-3">
                       <div 
                         className="w-8 h-1 rounded-full opacity-40"
-                        style={{ backgroundColor: concept.colors[0] }}
+                        style={{ backgroundColor: getContrastColor(concept.colors[concept.colors.length - 1]) }}
                       />
                       <div 
                         className="w-8 h-1 rounded-full opacity-40"
-                        style={{ backgroundColor: concept.colors[0] }}
+                        style={{ backgroundColor: getContrastColor(concept.colors[concept.colors.length - 1]) }}
                       />
                     </div>
                   </div>
@@ -370,19 +370,19 @@ export function ConceptDetail({
                   <div className="p-6 pt-12">
                     <p 
                       className="text-xs tracking-[0.15em] uppercase opacity-50 mb-3"
-                      style={{ color: concept.colors[0] }}
+                      style={{ color: getContrastColor(concept.colors[concept.colors.length - 1]) }}
                     >
                       Now Selling
                     </p>
                     <p 
                       className="text-2xl tracking-tight mb-2"
-                      style={{ ...headingStyle, color: concept.colors[0] }}
+                      style={{ ...headingStyle, color: getContrastColor(concept.colors[concept.colors.length - 1]) }}
                     >
                       {concept.brandName}
                     </p>
                     <p 
                       className="text-xs opacity-60 mb-6"
-                      style={{ color: concept.colors[0] }}
+                      style={{ color: getContrastColor(concept.colors[concept.colors.length - 1]) }}
                     >
                       {concept.tagline}
                     </p>
@@ -390,7 +390,7 @@ export function ConceptDetail({
                       className="inline-block px-4 py-2 rounded-full text-xs"
                       style={{ 
                         backgroundColor: concept.colors[0],
-                        color: getContrastColor(concept.colors[0])
+                        color: concept.colors[concept.colors.length - 1]
                       }}
                     >
                       Register Interest

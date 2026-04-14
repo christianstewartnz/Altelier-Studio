@@ -90,7 +90,8 @@ export function ResultsOverview({ concepts, onViewConcept, onStartOver }: Result
 
           {/* Concept Cards */}
           <div className="grid gap-8 md:gap-10">
-            {concepts.map((concept, index) => (
+            {concepts.map((concept, index) => {
+              return (
               <article
                 key={concept.id}
                 className="group relative bg-card border border-border rounded-3xl p-8 md:p-12 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer animate-in fade-in slide-in-from-bottom-4"
@@ -181,7 +182,8 @@ export function ResultsOverview({ concepts, onViewConcept, onStartOver }: Result
                   </div>
                 </div>
               </article>
-            ))}
+              )
+            })}
           </div>
         </div>
       </main>
