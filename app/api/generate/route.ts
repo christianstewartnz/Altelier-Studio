@@ -363,9 +363,50 @@ COLOUR RULES:
 - Never produce 5 mid-tones with no contrast range
 - The visual territory assigned to you should guide the palette direction
 
-FONT RULES:
-Choose fonts that express this specific concept's emotional territory.
-Do not default to the same fonts used in other concepts.
+FONT RULES — CHOOSE FROM THE FULL LIBRARY:
+Select fonts that authentically express this concept's 
+specific emotional territory. Do not default to safe choices.
+Read the territory and name — then choose fonts that 
+feel like they belong to this brand world.
+
+REFINED SERIF — elegant, quiet, heritage:
+Cormorant Garamond, Playfair Display, DM Serif Display,
+Italiana, Bodoni Moda
+
+GEOMETRIC SANS — contemporary, architectural, precise:
+Montserrat, Raleway, Josefin Sans, Jost, Nunito Sans
+
+EDITORIAL HIGH CONTRAST — bold, dramatic, fashion:
+Bodoni Moda, Yeseva One, Rozha One, Abril Fatface,
+Oleo Script
+
+HUMANIST SANS — warm, approachable, community:
+Work Sans, Outfit, DM Sans, Nunito, Poppins, 
+Plus Jakarta Sans
+
+TRANSITIONAL SERIF — grounded, craft, timeless:
+Lora, Libre Baskerville, Merriweather, Spectral,
+Source Serif 4, Crimson Pro
+
+EXPRESSIVE DISPLAY — urban, energetic, industrial:
+Bebas Neue, Big Shoulders Display, Barlow Condensed,
+Oswald, Squada One
+
+CONDENSED — structured, space-efficient, strong:
+Barlow Condensed, IBM Plex Sans Condensed,
+Roboto Condensed, Encode Sans Condensed
+
+VARIABLE WEIGHT — contrast-capable, versatile:
+Inter, Plus Jakarta Sans, Source Sans 3, Nunito Sans
+
+PAIRING RULES:
+- Pair heading font with body font from a different category
+- Do not repeat any font across the 3 concepts in this session
+- For weight-contrast and mixed-weight-inline styles choose 
+  fonts with genuine light (200-300) and bold (700-800) 
+  weights — Inter, Montserrat, Raleway, Barlow work well
+- Return exact Google Fonts names as they appear on 
+  fonts.google.com
 
 Font personalities:
 - Refined serif (Cormorant Garamond, Playfair Display, DM Serif Display)
@@ -384,12 +425,88 @@ Font personalities:
 Pair heading font with body font from a different category.
 Return exact Google Fonts names.
 
-LOGO COMPOSITION RULES:
-Choose the composition that best suits the name structure and territory:
-- Single evocative word + premium = inline-ruled or inline-clean
-- Two balanced words + contemporary = stacked-ruled or stacked-punctuation
-- Bold single word + urban = stacked-weighted or offset-subtitle
-- Single word + warm = offset-subtitle or stacked-weighted
+LOGO COMPOSITION RULES — CREATIVE DIRECTOR JUDGEMENT:
+
+You have 10 composition styles available. These are your 
+toolkit. Read the brand name, the creative territory, and 
+the overall concept personality — then choose the style 
+that feels most true to this specific brand. There is no 
+formula. Use your judgement as a creative director.
+
+Here are the 10 styles and their visual character:
+
+inline-clean
+Single word. Clean. The font does all the work.
+Character: confident, pure, lets a strong name breathe.
+
+inline-ruled
+Single word with a thin rule beneath.
+Character: quiet, refined, adds structure without complexity.
+
+stacked-weighted
+Two words or lines stacked. Primary word large and bold, 
+secondary word small and light below.
+Character: hierarchy, one word dominates, the other qualifies.
+
+offset-subtitle
+Main word large and centred. Secondary word small, 
+anchored to the right below — asymmetric.
+Character: elegant tension, a name with a quiet descriptor.
+
+weight-contrast
+Two words inline. First word outlined/hairline stroke only. 
+Second word solid and bold.
+Character: contrast and tension, two equal parts with 
+different voices. Inspired by treatments where outline 
+and solid type coexist on the same baseline.
+
+scale-contrast
+Primary word large and left-aligned. Secondary word 
+tiny and right-aligned beneath — diagonal tension.
+Character: strong hierarchy, contemporary edge, 
+the small word earns its place.
+
+ultrawide
+Single word. Extreme letter spacing. Light weight.
+Character: architectural, minimal, precise. 
+Works best with shorter names (3-6 letters).
+
+oversized-crop
+Single word at massive scale — intentionally crops 
+at the viewBox edges.
+Character: bold, graphic, confident, magazine-cover energy. 
+The name fills the entire frame. Use when confidence 
+is the message.
+
+mixed-weight-inline
+Two words on one line. First word ultra-light/thin. 
+Second word ultra-bold. No other decoration.
+Character: the weight contrast IS the design. 
+Use when two words have natural tension between them.
+
+left-editorial
+Words stacked left-aligned. Thin vertical rule 
+on the left edge.
+Character: editorial, considered, craft or heritage territory. 
+Feels like a masthead or a considered publication.
+
+SELECTION GUIDANCE:
+- Single word names work with: inline-clean, inline-ruled, 
+  ultrawide, oversized-crop — or stacked/offset styles 
+  if you add a short descriptor as lines[1]
+- Two word names work with: weight-contrast, scale-contrast, 
+  mixed-weight-inline, left-editorial, stacked-weighted, 
+  offset-subtitle
+- tracking options: tight, normal, wide, ultrawide
+- weight options: light, regular, bold  
+- case options: upper, title, lower
+- lines[0] is always the primary word or full name
+- lines[1] is the second word, or a short descriptor, 
+  or empty string if not needed
+- Choose tracking and weight to reinforce the style — 
+  ultrawide style should use ultrawide tracking, 
+  oversized-crop should use tight tracking, 
+  inline-clean can be any weight depending on the font
 
 RATIONALE RULES:
 - 2-3 sentences of genuine strategic thinking

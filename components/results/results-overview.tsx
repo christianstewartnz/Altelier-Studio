@@ -8,12 +8,24 @@ import { getContrastColor } from "@/lib/color-utils"
 import { WordmarkSVG } from "./wordmark-svg"
 
 export type LogoComposition = {
-  style: "inline-clean" | "inline-ruled" | "stacked-ruled" | "stacked-punctuation" | "stacked-weighted" | "offset-subtitle"
+  style: 
+    | "inline-clean" 
+    | "inline-ruled" 
+    | "stacked-ruled"
+    | "stacked-punctuation" 
+    | "stacked-weighted" 
+    | "offset-subtitle"
+    | "weight-contrast"
+    | "scale-contrast"
+    | "ultrawide"
+    | "oversized-crop"
+    | "mixed-weight-inline"
+    | "left-editorial"
   lines: string[]
   punctuation: string
   punctuationPosition: "after-last-line-offset-right" | "between-lines" | "none"
   weight: "light" | "regular" | "bold"
-  tracking: "tight" | "normal" | "wide"
+  tracking: "tight" | "normal" | "wide" | "ultrawide"
   case: "upper" | "title" | "lower"
 }
 
