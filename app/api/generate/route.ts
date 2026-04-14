@@ -52,37 +52,25 @@ BRAND AMBITION
     const territories = JSON.parse(strategyContent.text) as Territory[]
 
     // --------------------------------------------------------
-    // STAGE 2 — THREE PARALLEL CREATIVE CALLS
-    // Each call develops one territory into a full concept
-    // Concepts are aware of each other's visual choices
-    // to guarantee variety
+    // STAGE 2 — THREE SEQUENTIAL CREATIVE CALLS
+    // Each call develops one territory into a full concept.
+    // Sequential execution lets us pass each concept's actual
+    // composition style to the next, guaranteeing variety.
     // --------------------------------------------------------
 
-    // We generate sequentially for the first two to gather
-    // visual choices, then all three are available
-    // Actually we run all three in parallel but pass territory
-    // info to ensure distinctness via the prompt itself
+    const concept1 = await generateConcept(
+      userBrief, territories[0], [], "A", []
+    )
 
-    const [concept1, concept2, concept3] = await Promise.all([
-      generateConcept(
-        userBrief,
-        territories[0],
-        [],
-        "A"
-      ),
-      generateConcept(
-        userBrief,
-        territories[1],
-        [territories[0]],
-        "B"
-      ),
-      generateConcept(
-        userBrief,
-        territories[2],
-        [territories[0], territories[1]],
-        "C"
-      )
-    ])
+    const concept2 = await generateConcept(
+      userBrief, territories[1], [territories[0]], "B",
+      [concept1.logoComposition.style]
+    )
+
+    const concept3 = await generateConcept(
+      userBrief, territories[2], [territories[0], territories[1]], "C",
+      [concept1.logoComposition.style, concept2.logoComposition.style]
+    )
 
     const concepts = [concept1, concept2, concept3].map((c, i) => ({
       ...c,
@@ -107,7 +95,8 @@ async function generateConcept(
   brief: string,
   territory: Territory,
   otherTerritories: Territory[],
-  slot: "A" | "B" | "C"
+  slot: "A" | "B" | "C",
+  usedStyles: string[]
 ): Promise<BrandConceptOutput> {
   const avoidanceInstructions = otherTerritories.length > 0
     ? `
@@ -121,6 +110,16 @@ Concept ${i + 1} visual territory: ${t.visualTerritory}
 
 Do not use similar colour families, font styles, or 
 composition approaches to any of the above.
+    `
+    : ""
+
+  const styleAvoidance = usedStyles.length > 0
+    ? `
+COMPOSITION STYLES ALREADY USED IN THIS SESSION:
+${usedStyles.join(", ")}
+
+You MUST choose a different composition style from all of the above.
+Using the same style as another concept is not acceptable.
     `
     : ""
 
@@ -144,6 +143,8 @@ NAMING DIRECTION: ${territory.namingDirection}
 VISUAL TERRITORY: ${territory.visualTerritory}
 
 ${avoidanceInstructions}
+
+${styleAvoidance}
 
 Develop this territory into a complete brand concept.
 Return only valid JSON, no markdown, no explanation.
@@ -507,6 +508,30 @@ SELECTION GUIDANCE:
   ultrawide style should use ultrawide tracking, 
   oversized-crop should use tight tracking, 
   inline-clean can be any weight depending on the font
+
+CRITICAL COMPOSITION VARIETY RULE:
+Each concept in a session must use a completely different 
+composition style. If you find yourself choosing inline-ruled 
+or inline-clean for more than one concept — stop and 
+reconsider. That is a failure of creative judgement.
+
+Before finalising your composition choice ask:
+- Have I chosen this style because it genuinely fits 
+  this name and territory?
+- Or have I chosen it because it feels safe?
+- If another concept in this session used a similar 
+  treatment, what completely different approach would 
+  serve this name equally well?
+
+Single word names have many valid options beyond inline styles:
+- ultrawide: architectural, precise, minimal
+- oversized-crop: bold, graphic, confident
+- offset-subtitle: elegant with a quiet descriptor
+- stacked-weighted: name large, a descriptor small below
+- left-editorial: considered, craft, heritage feel
+
+Do not default to inline-ruled for single word names.
+It is one option of many — not the default.
 
 RATIONALE RULES:
 - 2-3 sentences of genuine strategic thinking
