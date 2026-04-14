@@ -115,6 +115,7 @@ const initialBrandAmbition: BrandAmbitionData = {
 export default function Home() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [generatingMessage, setGeneratingMessage] = useState("Reading your brief...")
   const [showResults, setShowResults] = useState(false)
   const [selectedConcept, setSelectedConcept] = useState<BrandConcept | null>(null)
   const [concepts, setConcepts] = useState<BrandConcept[]>(sampleConcepts)
@@ -143,6 +144,25 @@ export default function Home() {
 
   const handleGenerate = async () => {
     setIsGenerating(true)
+
+    // Progress message sequence while API call runs
+    const messages = [
+      "Reading your brief...",
+      "Identifying creative territories...",
+      "Developing concept one...",
+      "Developing concept two...",
+      "Developing concept three...",
+      "Refining the details..."
+    ]
+
+    let messageIndex = 0
+    setGeneratingMessage(messages[0])
+
+    const messageInterval = setInterval(() => {
+      messageIndex = Math.min(messageIndex + 1, messages.length - 1)
+      setGeneratingMessage(messages[messageIndex])
+    }, 6000)
+
     try {
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -154,10 +174,12 @@ export default function Home() {
         })
       })
       const data = await response.json()
+      clearInterval(messageInterval)
       setConcepts(data.concepts)
       setShowResults(true)
     } catch (error) {
       console.error("Generation failed:", error)
+      clearInterval(messageInterval)
     } finally {
       setIsGenerating(false)
     }
@@ -200,7 +222,7 @@ export default function Home() {
   }
 
   if (isGenerating) {
-    return <GeneratingState />
+    return <GeneratingState message={generatingMessage} />
   }
 
   // Show concept detail if a concept is selected

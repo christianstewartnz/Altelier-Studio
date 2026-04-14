@@ -1,79 +1,56 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 
-const generationPhases = [
-  "Developing naming territories",
-  "Exploring brand concepts",
-  "Refining brand directions",
-  "Curating visual cues",
-  "Finalizing your brief"
-]
-
-export function GeneratingState() {
-  const [currentPhase, setCurrentPhase] = useState(0)
-  const [progress, setProgress] = useState(0)
-
-  useEffect(() => {
-    const phaseInterval = setInterval(() => {
-      setCurrentPhase((prev) => (prev + 1) % generationPhases.length)
-    }, 2000)
-
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => Math.min(prev + 1, 95))
-    }, 60)
-
-    return () => {
-      clearInterval(phaseInterval)
-      clearInterval(progressInterval)
-    }
-  }, [])
-
+export function GeneratingState({ message }: { message: string }) {
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
-      <div className="max-w-md w-full text-center animate-in fade-in duration-700">
-        {/* Logo */}
-        <div className="mb-16">
-          <span className="font-serif text-3xl tracking-tight text-foreground">Atelier</span>
+    <>
+    <style>{`
+      @keyframes wave {
+        0%, 100% { transform: translateY(0px); opacity: 0.4; }
+        50% { transform: translateY(-8px); opacity: 1; }
+      }
+    `}</style>
+    <div className="min-h-screen bg-background flex flex-col px-6">
+      {/* Logo — top-left, consistent with other screens */}
+      <div className="pt-8 pl-2">
+        <div className="flex flex-col">
+          <span className="font-serif text-2xl md:text-3xl tracking-tight text-[#1C1C1C]">{APP_NAME}</span>
+          <span className="text-[10px] tracking-[0.25em] uppercase text-[#6B6B6B] ml-6 -mt-0.5">{APP_SUBTITLE}</span>
         </div>
+      </div>
 
-        {/* Animated Dots */}
-        <div className="flex items-center justify-center gap-2 mb-12">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="size-2 rounded-full bg-primary animate-pulse"
-              style={{
-                animationDelay: `${i * 200}ms`,
-                animationDuration: "1.5s"
-              }}
+      {/* Centered content */}
+      <div className="flex-1 flex flex-col items-center justify-center text-center animate-in fade-in duration-700">
+        <div className="max-w-lg w-full">
+          {/* Message */}
+          <h1 className="font-serif text-4xl md:text-5xl text-foreground tracking-tight text-balance mb-10">
+            {message}
+          </h1>
+
+          {/* Wave dot animation */}
+          <div className="flex items-center justify-center gap-2 mt-6">
+            <span
+              className="block w-2 h-2 rounded-full bg-foreground"
+              style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0s" }}
             />
-          ))}
-        </div>
+            <span
+              className="block w-2 h-2 rounded-full bg-foreground"
+              style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.2s" }}
+            />
+            <span
+              className="block w-2 h-2 rounded-full bg-foreground"
+              style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.4s" }}
+            />
+          </div>
 
-        {/* Phase Text */}
-        <div className="h-8 mb-8">
-          <p 
-            key={currentPhase}
-            className="text-lg text-muted-foreground animate-in fade-in slide-in-from-bottom-2 duration-500"
-          >
-            {generationPhases[currentPhase]}
+          {/* Subline */}
+          <p className="text-sm text-muted-foreground">
+            Great work takes a moment.
           </p>
         </div>
-
-        {/* Progress Bar */}
-        <div className="w-full bg-secondary rounded-full h-1 overflow-hidden">
-          <div 
-            className="h-full bg-primary transition-all duration-300 ease-out rounded-full"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        {/* Subtext */}
-        <p className="mt-8 text-sm text-muted-foreground/60">
-          This typically takes about 30 seconds
-        </p>
       </div>
     </div>
+    </>
   )
 }
