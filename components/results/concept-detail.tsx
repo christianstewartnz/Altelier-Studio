@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { ArrowLeft, Check, RefreshCw, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
+import { getContrastColor } from "@/lib/color-utils"
 import type { BrandConcept } from "./results-overview"
 import { WordmarkSVG } from "./wordmark-svg"
 
@@ -118,8 +119,7 @@ export function ConceptDetail({
                 <WordmarkSVG
                   composition={concept.logoComposition}
                   headingFont={headingFont}
-                  color={concept.colors[4]}
-                  size="lg"
+                  color={getContrastColor(concept.colors[0])}
                 />
               </div>
             </div>
@@ -224,9 +224,15 @@ export function ConceptDetail({
               Identity
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
-              {/* Primary Wordmark — light background */}
-              <div className="flex flex-col items-center justify-center p-12 rounded-2xl border border-border bg-background min-h-[200px]">
-                <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-8">
+              {/* Primary Wordmark — colors[4] background */}
+              <div
+                className="flex flex-col items-center justify-center p-12 rounded-2xl min-h-[200px]"
+                style={{ backgroundColor: concept.colors[4] }}
+              >
+                <p
+                  className="text-xs tracking-[0.2em] uppercase mb-8"
+                  style={{ color: getContrastColor(concept.colors[4]) }}
+                >
                   Primary Wordmark
                 </p>
                 <div
@@ -237,12 +243,11 @@ export function ConceptDetail({
                     composition={concept.logoComposition}
                     headingFont={headingFont}
                     color={concept.colors[0]}
-                    size="lg"
                   />
                 </div>
               </div>
 
-              {/* Reversed Wordmark — dark background */}
+              {/* Reversed Wordmark — colors[0] background */}
               <div 
                 className="flex flex-col items-center justify-center p-12 rounded-2xl min-h-[200px]"
                 style={{ backgroundColor: concept.colors[0] }}
@@ -261,7 +266,6 @@ export function ConceptDetail({
                     composition={concept.logoComposition}
                     headingFont={headingFont}
                     color={concept.colors[4]}
-                    size="lg"
                   />
                 </div>
               </div>
@@ -288,7 +292,7 @@ export function ConceptDetail({
                   <div>
                     <p 
                       className="text-xs tracking-[0.2em] uppercase opacity-60 mb-2"
-                      style={{ color: concept.colors[concept.colors.length - 1] }}
+                      style={{ color: getContrastColor(concept.colors[0]) }}
                     >
                       {concept.conceptTitle}
                     </p>
@@ -296,13 +300,13 @@ export function ConceptDetail({
                   <div>
                     <p 
                       className="text-3xl tracking-tight mb-2"
-                      style={{ ...headingStyle, color: concept.colors[concept.colors.length - 1] }}
+                      style={{ ...headingStyle, color: getContrastColor(concept.colors[0]) }}
                     >
                       {concept.brandName}
                     </p>
                     <p 
                       className="text-sm italic opacity-70"
-                      style={{ color: concept.colors[concept.colors.length - 1] }}
+                      style={{ color: getContrastColor(concept.colors[0]) }}
                     >
                       {concept.tagline}
                     </p>
@@ -319,7 +323,7 @@ export function ConceptDetail({
                   <div className="text-center">
                     <span 
                       className="text-4xl tracking-wide block mb-3"
-                      style={{ ...headingStyle, color: concept.colors[concept.colors.length > 2 ? 2 : 0] }}
+                      style={{ ...headingStyle, color: concept.colors[4] }}
                     >
                       {concept.logoText}
                     </span>
@@ -341,7 +345,7 @@ export function ConceptDetail({
               <div className="group">
                 <div 
                   className="aspect-[3/4] rounded-2xl overflow-hidden transition-transform duration-300 group-hover:scale-[1.02] border border-border"
-                  style={{ backgroundColor: concept.colors[concept.colors.length - 1] }}
+                  style={{ backgroundColor: concept.colors[4] }}
                 >
                   {/* Nav */}
                   <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
@@ -386,7 +390,7 @@ export function ConceptDetail({
                       className="inline-block px-4 py-2 rounded-full text-xs"
                       style={{ 
                         backgroundColor: concept.colors[0],
-                        color: concept.colors[concept.colors.length - 1]
+                        color: getContrastColor(concept.colors[0])
                       }}
                     >
                       Register Interest

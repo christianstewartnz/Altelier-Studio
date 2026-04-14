@@ -92,6 +92,79 @@ Read every field in the brief carefully. Then answer these questions internally:
 - If this development were a person, what kind of person would it be?
 - If this development were a hotel, a restaurant, or a fashion brand — what would it be?
 
+WHAT SEPARATES GREAT PROPERTY NAMES FROM GENERIC ONES:
+
+A bad name describes something.
+A great name makes you feel something.
+
+Study these real examples and understand WHY they work:
+
+"Bankside" — not "Riverside" or "WaterEdge". Bankside is 
+specific — it references the industrial working bank of a 
+river, implying grit transformed into sophistication. 
+It has history and texture. You can picture it.
+
+"Schist" — not "Stone" or "Boulder". Schist is the actual 
+geological material of Queenstown. Using it says: we know 
+this place at a molecular level. It rewards people who 
+recognise it and intrigues people who don't.
+
+"Encore" — not "Perform" or "Stage". Encore is a moment — 
+the crowd demanding more. Applied to a Ponsonby apartment 
+it captures the energy of returning home to somewhere 
+worthy of celebration. It's a feeling compressed into 
+one word.
+
+"Suncroft" — not "Sunny" or "Sunshine". Croft is an old 
+word for a small enclosed field. Suncroft combines warmth 
+and shelter into something that feels like it has always 
+existed — like you discovered it rather than invented it.
+
+"TwentySeven" — not "27 Apartments" or "Thompson Street". 
+Writing the number as a word elevates an address into an 
+identity. It says: this address is so good it IS the brand.
+
+What these names have in common:
+- They are specific enough to be ownable
+- They reward curiosity — there is a story behind them
+- They feel inevitable in hindsight
+- They could not apply to any other development
+- None of them describe a feature — they evoke a world
+
+THE TEST FOR EVERY NAME YOU GENERATE:
+1. Could a generic developer have come up with this? 
+   If yes — it is not good enough
+2. Does it sound like a real brand that could appear on 
+   a billboard, a brochure, a website? 
+   If not — it is not good enough
+3. Is there a story behind it that a salesperson could 
+   tell in 10 seconds? 
+   If not — it is not good enough
+4. Would a designer be proud to put this on their portfolio?
+   If not — it is not good enough
+
+NAMES THAT WILL ALWAYS BE REJECTED:
+Any name that follows these patterns is automatically bad:
+- [Nature thing] + [place word]: PearTree, OakRidge, 
+  ElmGrove, CedarLane, WillowBank
+- [Adjective] + [generic noun]: BrightHomes, FreshLiving, 
+  NewHarbour, ClearView
+- [Location] + [generic suffix]: PonsonbyPlace, 
+  GreenlaneGardens, MiramarMews
+- Any word that appears in more than 3 existing NZ 
+  property development names
+- Any word that could be the name of a scented candle, 
+  a cafe, or a wellness retreat without feeling wrong
+
+WHAT TO DO INSTEAD:
+Mine the brief for tension, specificity, and surprise.
+Ask: what is the ONE thing about this project that no 
+other project in this city has? Name that thing — but 
+name it obliquely, poetically, with restraint.
+
+The best names feel like they were always there, waiting 
+to be found. Not invented — discovered.
+
 PHASE 2 — GENERATE EIGHT NAME CANDIDATES:
 Before committing to three concepts, generate eight possible names internally.
 These eight names must come from eight genuinely different creative starting points.
@@ -136,18 +209,32 @@ NAMING RULES:
   Green, Rise, Ridge, Terrace, Lane, Grove, Manor, Estate, Collection,
   Heights, Point, Road, Street, Valley, Hill, View, Beach
 
-COLOUR RULES:
-- Each palette must be tonal — one dominant colour world with considered variations
-- You may add ONE accent colour where it genuinely serves the brand territory
-- The accent must feel intentional — a warm note in a cool palette, 
-  a brass tone in an earthy palette — never decorative
-- Never pair two saturated colours of equal weight
-- All three palettes must occupy completely different parts of the colour spectrum
-- Do not default to navy/green/black as your three anchors every time
-- Consider: warm terracotta worlds, dusty rose worlds, deep burgundy worlds, 
-  warm sand worlds, charcoal and brass worlds, slate and copper worlds
-- Darkest colour must work as primary brand colour on white
-- Lightest two colours must work as backgrounds
+COLOUR RULES — STRICT CONTRAST REQUIREMENTS:
+- Every palette MUST contain at least one dark anchor colour 
+  with hex luminance below 0.15 (near-black, deep navy, dark 
+  forest, dark charcoal etc)
+- Every palette MUST contain at least one light colour with 
+  hex luminance above 0.80 (near-white, cream, pale stone etc)
+- This dark-to-light range is non-negotiable — it ensures 
+  the brand works in all applications
+- Structure your 5 colours as:
+  colors[0]: Dark anchor — the primary brand colour, 
+    must be dark enough for white text on top
+  colors[1]: Mid tone — a secondary supporting colour
+  colors[2]: Mid-light tone — a tertiary supporting colour  
+  colors[3]: Light — a near-background tone
+  colors[4]: Lightest — near-white, suitable as a background
+- You may introduce ONE warm or cool accent within this 
+  structure — typically at colors[1] or colors[2]
+- Never make colors[0] a mid-tone — it must be dark
+- Never make colors[4] a mid-tone — it must be near-white
+- Each of the 3 concepts must have completely different 
+  colour worlds — different hue families entirely
+- Good dark anchors: near-black (#1a1a1a), deep navy (#1a2744), 
+  dark forest (#1e3a2f), dark charcoal (#2c2c2c), deep 
+  burgundy (#3d1a1a), dark slate (#1e2832)
+- Good light colours: warm white (#f8f4ef), cool white 
+  (#f4f6f8), cream (#f5f0e8), pale stone (#ede8e0)
 
 FONT RULES:
 Choose fonts that express each concept's specific emotional territory.

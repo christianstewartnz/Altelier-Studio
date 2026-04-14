@@ -4,15 +4,8 @@ import { useEffect } from "react"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
+import { getContrastColor } from "@/lib/color-utils"
 import { WordmarkSVG } from "./wordmark-svg"
-
-function isLightColor(hex: string): boolean {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-  return luminance > 0.5
-}
 
 export type LogoComposition = {
   style: "inline-clean" | "inline-ruled" | "stacked-ruled" | "stacked-punctuation" | "stacked-weighted" | "offset-subtitle"
@@ -163,27 +156,19 @@ export function ResultsOverview({ concepts, onViewConcept, onStartOver }: Result
                     </div>
 
                     {/* Logo Preview */}
-                    {(() => {
-                      const bgColor = concept.colors[0]
-                      const wordmarkColor = isLightColor(bgColor) ? '#171717' : '#FFFFFF'
-                      return (
-                        <div
-                          className="rounded-xl overflow-hidden flex items-center justify-center p-4"
-                          style={{
-                            backgroundColor: bgColor,
-                            width: "160px",
-                            height: "80px",
-                          }}
-                        >
-                          <WordmarkSVG
-                            composition={concept.logoComposition}
-                            color={wordmarkColor}
-                            headingFont={concept.fonts.heading}
-                            size="sm"
-                          />
-                        </div>
-                      )
-                    })()}
+                    <div
+                      className="rounded-xl overflow-hidden flex items-center justify-center p-3"
+                      style={{
+                        backgroundColor: concept.colors[0],
+                        width: "180px"
+                      }}
+                    >
+                      <WordmarkSVG
+                        composition={concept.logoComposition}
+                        color={getContrastColor(concept.colors[0])}
+                        headingFont={concept.fonts.heading}
+                      />
+                    </div>
 
                     {/* CTA */}
                     <Button
