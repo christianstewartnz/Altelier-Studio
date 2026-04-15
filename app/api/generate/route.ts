@@ -3,6 +3,41 @@ import Anthropic from "@anthropic-ai/sdk"
 
 const client = new Anthropic()
 
+const BOLD_EXPRESSIVE = [
+  "oversized-crop",
+  "weight-contrast",
+  "mixed-weight-inline",
+  "scale-contrast"
+]
+
+const ARCHITECTURAL_STRUCTURED = [
+  "ultrawide",
+  "stacked-weighted",
+  "left-editorial",
+  "stacked-punctuation"
+]
+
+const REFINED_ELEGANT = [
+  "inline-clean",
+  "inline-ruled",
+  "offset-subtitle",
+  "stacked-ruled"
+]
+
+function pickSessionStyles(): {
+  bold: string
+  architectural: string
+  refined: string
+} {
+  const shuffle = (arr: string[]) =>
+    [...arr].sort(() => Math.random() - 0.5)
+  return {
+    bold: shuffle(BOLD_EXPRESSIVE)[0],
+    architectural: shuffle(ARCHITECTURAL_STRUCTURED)[0],
+    refined: shuffle(REFINED_ELEGANT)[0]
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { projectOverview, siteCharacter, brandAmbition } = await request.json()
@@ -32,6 +67,8 @@ BRAND AMBITION
     // STAGE 1 — STRATEGY CALL
     // Fast call to identify three distinct creative territories
     // --------------------------------------------------------
+    const sessionStyles = pickSessionStyles()
+
     const strategyResponse = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1000,
@@ -39,7 +76,7 @@ BRAND AMBITION
       messages: [
         {
           role: "user",
-          content: `Here is the project brief:\n\n${userBrief}\n\nIdentify three distinct creative territories. Return only valid JSON, no markdown, no explanation.`
+          content: `Here is the project brief:\n\n${userBrief}\n\nCOMPOSITION STYLES AVAILABLE THIS SESSION:\nYou have exactly three composition styles to work with across the three concepts. Assign one to each territory based on which fits best with that territory's character.\n\nBold/Expressive style available: ${sessionStyles.bold}\nArchitectural/Structured style available: ${sessionStyles.architectural}\nRefined/Elegant style available: ${sessionStyles.refined}\n\nEach territory must be assigned a different style from this list. All three must be used exactly once.\nInclude the assigned style in each territory object as the assignedStyle field.\n\nIdentify three distinct creative territories and assign one composition style to each. Return only valid JSON, no markdown, no explanation.`
         }
       ]
     })
@@ -142,6 +179,49 @@ TERRITORY RATIONALE: ${territory.rationale}
 NAMING DIRECTION: ${territory.namingDirection}
 VISUAL TERRITORY: ${territory.visualTerritory}
 
+ASSIGNED COMPOSITION STYLE: ${territory.assignedStyle}
+
+You must use this composition style. It has been 
+selected to ensure variety across the three concepts 
+in this session. Your creative job is to make it 
+feel completely true to this concept through your 
+choices of font, weight, tracking, and case.
+
+TYPOGRAPHIC CREATIVE DECISIONS:
+
+WEIGHT — do not default to light:
+- light: refined, editorial, quiet confidence
+- regular: balanced, accessible, considered
+- bold: confident, strong, makes a statement
+Choose based on the brand personality.
+
+TRACKING:
+- tight: bold, confident, words press together
+- normal: balanced, readable, considered
+- wide: refined, spacious, premium breathing room
+- ultrawide: architectural, minimal, graphic
+Do not default to wide or ultrawide every time.
+
+CASE:
+- upper: architectural, confident, graphic strength
+- title: considered, human, warm professionalism
+- lower: approachable, modern, quietly confident
+Do not always choose upper.
+
+LINES:
+For two-word styles (weight-contrast, mixed-weight-inline,
+scale-contrast, stacked-punctuation, stacked-ruled,
+stacked-weighted, left-editorial, offset-subtitle):
+- lines[0] = first word or full brand name
+- lines[1] = second word OR a short meaningful descriptor
+  such as suburb name, material word, or qualifier
+- NEVER split a single word across lines
+
+For single-word styles (inline-clean, inline-ruled,
+ultrawide, oversized-crop):
+- lines[0] = the brand name
+- lines[1] = empty string ""
+
 ${avoidanceInstructions}
 
 ${styleAvoidance}
@@ -169,6 +249,7 @@ type Territory = {
   rationale: string
   namingDirection: string
   visualTerritory: string
+  assignedStyle: string
 }
 
 type BrandConceptOutput = {
@@ -178,6 +259,7 @@ type BrandConceptOutput = {
   summary: string
   rationale: string
   colors: string[]
+  wordmarkColor: string
   colorRationale: string
   fonts: { heading: string; body: string }
   logoText: string
@@ -199,75 +281,107 @@ type BrandConceptOutput = {
 // Identifies three distinct creative territories from brief
 // --------------------------------------------------------
 const STRATEGY_PROMPT = `
-You are a senior creative strategist at a world-class property branding agency.
-Your job is to read a project brief and identify three genuinely distinct 
-creative territories that could each support a compelling brand identity.
+You are a senior creative strategist at a world-class 
+property branding agency. Your job is to read a project 
+brief and identify three genuinely distinct creative 
+territories that could each support a compelling brand 
+identity. You will also assign a composition style to 
+each territory.
 
-A creative territory is not a name — it is a strategic platform. 
-A lens through which the project's identity could be built.
+A creative territory is not a name — it is a strategic 
+platform. A lens through which the project's identity 
+could be built.
 
 WHAT MAKES A GOOD TERRITORY:
-- It is rooted in something specific and true about this project
-- It could not apply equally to any other development in this area
-- It creates a clear brief for a designer — you can picture what 
-  the brand would look, feel, and sound like
-- It connects the place, the product, and the buyer's aspiration 
-  in a single coherent idea
+- It is rooted in something specific and true about 
+  this project
+- It could not apply equally to any other development 
+  in this area
+- It creates a clear brief for a designer — you can 
+  picture what the brand would look, feel, and sound like
+- It connects the place, the product, and the buyer's 
+  aspiration in a single coherent idea
 
 THE THREE TERRITORIES MUST BE GENUINELY DIFFERENT:
-- Different creative starting points — not three variations of the same idea
-- Different emotional registers — one might be bold, one quiet, one warm
-- Different visual worlds — each should suggest a completely different 
-  colour, typography, and composition approach
-- Different naming approaches — one might suggest a single evocative word, 
-  another a cultural reference, another a physical truth
+- Different creative starting points — not three 
+  variations of the same idea
+- Different emotional registers — one might be bold, 
+  one quiet, one warm
+- Different visual worlds — each should suggest a 
+  completely different colour, typography, and 
+  composition approach
+- Different naming approaches — one might suggest a 
+  single evocative word, another a cultural reference, 
+  another a physical truth
 
 TERRITORY SOURCES TO CONSIDER:
-- A specific physical truth about this exact site 
-  (orientation, elevation, a view, a material, a boundary condition)
-- The emotional arc of the buyer 
-  (what they are leaving behind, what they are arriving at, 
-  what owning this home means for their life)
-- The cultural or historical context of the place 
-  (only when genuinely connected — not generic local colour)
-- The architectural or material character of the development
-- A tension or contrast that makes this project interesting
-  (urban location but nature-seeking buyer, modest scale but 
-  premium aspiration, new building on a site with deep history)
+- A specific physical truth about this exact site
+  (orientation, elevation, a view, a material, 
+  a boundary condition)
+- The emotional arc of the buyer
+  (what they are leaving behind, what they are 
+  arriving at, what owning this home means)
+- The cultural or historical context of the place
+  (only when genuinely connected — not generic 
+  local colour)
+- The architectural or material character
+- A tension or contrast that makes this project 
+  interesting (urban location but nature-seeking 
+  buyer, modest scale but premium aspiration)
 
 TE REO MĀORI NOTE:
-Te Reo may be suggested as a naming direction ONLY when there is 
-a specific, genuine, and direct connection between a Te Reo word 
-and a physical, historical, or cultural truth of this exact site.
-Not "this area has Māori heritage" — but "this specific site sits 
-on land historically used for X and the word Y captures that precisely."
+Te Reo may be suggested as a naming direction ONLY 
+when there is a specific, genuine, and direct 
+connection between a Te Reo word and a physical, 
+historical, or cultural truth of this exact site.
+Not "this area has Māori heritage" — but "this 
+specific site sits on land historically used for X 
+and the word Y captures that precisely."
 
-NAMING DIRECTION GUIDANCE:
-For each territory, suggest the type of name it might produce:
-- Single evocative word (Cliff, Schist, Encore)
-- Two-word compound (Suncroft, Bankside, Northpoint)
-- Cultural or historical reference (earned, not decorative)
-- Address-as-identity (when the address itself is the story)
-- Sensory or material reference (texture, light, weather, craft)
+COMPOSITION STYLE ASSIGNMENT:
+You will be given three composition styles — one 
+bold/expressive, one architectural/structured, one 
+refined/elegant. Assign one to each territory based 
+on which style best matches that territory's 
+emotional character and visual world.
+
+Assignment guidance:
+- Bold/expressive styles suit territories that are 
+  confident, urban, graphic, or make a strong 
+  singular statement
+- Architectural/structured styles suit territories 
+  that are precise, considered, minimal, or have 
+  a strong geometric or material character
+- Refined/elegant styles suit territories that are 
+  quiet, heritage-influenced, warm, or human in tone
+
+The assignment should feel like a natural creative 
+match. If none of the three styles feels perfect 
+for a territory, assign the closest fit and the 
+concept call will adapt it creatively.
 
 Return a JSON array of exactly 3 territory objects:
 
 [
   {
     "name": "Short territory name e.g. Material Heritage",
-    "rationale": "2-3 sentences explaining why this territory 
-      is the right creative angle for this specific project. 
-      Must reference specific details from the brief.",
-    "namingDirection": "The type of name this territory suggests 
-      and why — e.g. A single geological or material word that 
-      claims the site's physical character",
-    "visualTerritory": "One sentence describing the visual world 
-      this territory suggests — colour family, typographic 
-      personality, overall feeling"
+    "rationale": "2-3 sentences explaining why this 
+      territory is the right creative angle for this 
+      specific project. Must reference specific details 
+      from the brief.",
+    "namingDirection": "The type of name this territory 
+      suggests and why",
+    "visualTerritory": "One sentence describing the 
+      visual world this territory suggests — colour 
+      family, typographic personality, overall feeling",
+    "assignedStyle": "The composition style assigned 
+      to this territory from the three available 
+      session styles"
   }
 ]
 
-CRITICAL: Return only the raw JSON array. No markdown. No explanation.
+CRITICAL: Return only the raw JSON array. 
+No markdown. No explanation. No preamble.
 `
 
 // --------------------------------------------------------
@@ -355,14 +469,46 @@ NAMES THAT WILL ALWAYS BE REJECTED:
 - Any word that could be a scented candle, a cafe, or a wellness retreat
 - Any name a generic developer could have come up with without reading this brief
 
-COLOUR RULES:
-- Each palette must have a clear dominant colour world
-- Must include at least one dark anchor and one near-white
-- Think like an interior designer — palettes should feel like 
-  they belong in a considered home
-- One accent colour allowed where it genuinely serves the territory
-- Never produce 5 mid-tones with no contrast range
-- The visual territory assigned to you should guide the palette direction
+COLOUR RULES — FULL CREATIVE CONTROL:
+You have complete creative freedom with colour palettes.
+Think like an interior designer or a fashion house art director.
+The palette should feel like it belongs to this specific brand 
+world — not like it was generated by an algorithm.
+
+Some palettes will be dark and moody. Some will be light and airy. 
+Some will be warm and earthy. Some will be bold with a single strong 
+colour. Some will be near-monochrome. Some will use an unexpected 
+accent that makes the whole palette sing.
+
+The only question to ask is: does this palette feel true to this 
+concept's territory and emotional world?
+
+Do not default to near-black for colors[0] on every concept. 
+Variety across the three concepts is essential. Consider: deep 
+forest green, warm terracotta, dusty rose, pale stone, rich navy, 
+burnt sienna, warm cream, slate blue — any could be the right 
+anchor for the right concept.
+
+colors[0] will be used as the primary logo background in all 
+brand applications. It can be any colour — dark, light, or 
+mid-tone — but it must create a considered brand impression 
+when used as a background.
+
+You must also specify a wordmarkColor — the text colour that 
+sits on top of colors[0]. This must be readable but should be 
+a considered and intentional design decision, not just maximum 
+contrast. 
+
+Examples of considered wordmark colour choices:
+- Near-black background + warm gold text
+- Deep navy background + pale cream text
+- Terracotta background + off-white text
+- Pale stone background + dark charcoal text
+- Forest green background + warm brass text
+- Pure white background + deep charcoal text
+- Black background + burnt orange text
+
+The wordmark colour should reinforce the brand personality.
 
 FONT RULES — CHOOSE FROM THE FULL LIBRARY:
 Select fonts that authentically express this concept's 
@@ -426,112 +572,66 @@ Font personalities:
 Pair heading font with body font from a different category.
 Return exact Google Fonts names.
 
-LOGO COMPOSITION RULES — CREATIVE DIRECTOR JUDGEMENT:
+LOGO COMPOSITION RULES:
+Your composition style has been assigned above — 
+you must use it. Your creative job is everything 
+else: font, weight, tracking, case, and how you 
+apply the style to this specific name and territory.
 
-You have 10 composition styles available. These are your 
-toolkit. Read the brand name, the creative territory, and 
-the overall concept personality — then choose the style 
-that feels most true to this specific brand. There is no 
-formula. Use your judgement as a creative director.
-
-Here are the 10 styles and their visual character:
+Here are all 10 styles so you understand how to 
+execute yours well:
 
 inline-clean
-Single word. Clean. The font does all the work.
-Character: confident, pure, lets a strong name breathe.
+Single word. Font does all the work. No decoration.
+Character: confident, pure, the name is enough.
 
 inline-ruled
 Single word with a thin rule beneath.
-Character: quiet, refined, adds structure without complexity.
+Character: quiet, refined, structured restraint.
 
 stacked-weighted
-Two words or lines stacked. Primary word large and bold, 
-secondary word small and light below.
-Character: hierarchy, one word dominates, the other qualifies.
+Two lines stacked. Primary large and bold, 
+secondary smaller and lighter.
+lines[1] can be a descriptor if name is one word.
 
 offset-subtitle
-Main word large and centred. Secondary word small, 
-anchored to the right below — asymmetric.
-Character: elegant tension, a name with a quiet descriptor.
+Main word large centred, secondary small right below.
+Character: elegant asymmetric tension.
 
 weight-contrast
-Two words inline. First word outlined/hairline stroke only. 
-Second word solid and bold.
-Character: contrast and tension, two equal parts with 
-different voices. Inspired by treatments where outline 
-and solid type coexist on the same baseline.
+Two words inline. First outlined/hairline, second solid bold.
+Character: contrast between two elements.
+Requires two complete meaningful words.
 
 scale-contrast
-Primary word large and left-aligned. Secondary word 
-tiny and right-aligned beneath — diagonal tension.
-Character: strong hierarchy, contemporary edge, 
-the small word earns its place.
+Primary word large left-aligned, secondary tiny 
+right-aligned beneath.
+Character: strong hierarchy, contemporary edge.
 
 ultrawide
-Single word. Extreme letter spacing. Light weight.
-Character: architectural, minimal, precise. 
-Works best with shorter names (3-6 letters).
+Single word, extreme letter spacing.
+Character: architectural, minimal, graphic.
+Best with shorter names (3-7 letters).
 
 oversized-crop
-Single word at massive scale — intentionally crops 
-at the viewBox edges.
-Character: bold, graphic, confident, magazine-cover energy. 
-The name fills the entire frame. Use when confidence 
-is the message.
+Single word at massive scale, crops at edges.
+Character: bold, graphic, name fills the frame.
+Use bold weight and tight tracking.
 
 mixed-weight-inline
-Two words on one line. First word ultra-light/thin. 
-Second word ultra-bold. No other decoration.
-Character: the weight contrast IS the design. 
-Use when two words have natural tension between them.
+Two words on one line. First ultra-light, 
+second ultra-bold.
+Requires two complete meaningful words.
+NEVER split one word into syllables.
 
 left-editorial
-Words stacked left-aligned. Thin vertical rule 
-on the left edge.
-Character: editorial, considered, craft or heritage territory. 
-Feels like a masthead or a considered publication.
+Words stacked left-aligned with thin vertical 
+rule on left edge.
+Character: editorial, considered, craft heritage.
 
-SELECTION GUIDANCE:
-- Single word names work with: inline-clean, inline-ruled, 
-  ultrawide, oversized-crop — or stacked/offset styles 
-  if you add a short descriptor as lines[1]
-- Two word names work with: weight-contrast, scale-contrast, 
-  mixed-weight-inline, left-editorial, stacked-weighted, 
-  offset-subtitle
-- tracking options: tight, normal, wide, ultrawide
-- weight options: light, regular, bold  
-- case options: upper, title, lower
-- lines[0] is always the primary word or full name
-- lines[1] is the second word, or a short descriptor, 
-  or empty string if not needed
-- Choose tracking and weight to reinforce the style — 
-  ultrawide style should use ultrawide tracking, 
-  oversized-crop should use tight tracking, 
-  inline-clean can be any weight depending on the font
-
-CRITICAL COMPOSITION VARIETY RULE:
-Each concept in a session must use a completely different 
-composition style. If you find yourself choosing inline-ruled 
-or inline-clean for more than one concept — stop and 
-reconsider. That is a failure of creative judgement.
-
-Before finalising your composition choice ask:
-- Have I chosen this style because it genuinely fits 
-  this name and territory?
-- Or have I chosen it because it feels safe?
-- If another concept in this session used a similar 
-  treatment, what completely different approach would 
-  serve this name equally well?
-
-Single word names have many valid options beyond inline styles:
-- ultrawide: architectural, precise, minimal
-- oversized-crop: bold, graphic, confident
-- offset-subtitle: elegant with a quiet descriptor
-- stacked-weighted: name large, a descriptor small below
-- left-editorial: considered, craft, heritage feel
-
-Do not default to inline-ruled for single word names.
-It is one option of many — not the default.
+The combination of style + font + weight + tracking 
++ case should feel like a unique creative decision 
+made specifically for this brand — not a default.
 
 RATIONALE RULES:
 - 2-3 sentences of genuine strategic thinking
@@ -555,6 +655,7 @@ Return a single JSON object with this exact structure:
   "summary": "One sentence summary of the brand identity",
   "rationale": "2-3 sentences of strategic reasoning",
   "colors": ["#hex1", "#hex2", "#hex3", "#hex4", "#hex5"],
+  "wordmarkColor": "#hex — the colour to use for the wordmark text on colors[0] background. Must be readable but does not need to be pure white or pure black. Can be any colour from the palette or a complementary colour that creates the right brand impression.",
   "colorRationale": "One sentence explaining the palette direction",
   "fonts": {
     "heading": "Exact Google Font name",

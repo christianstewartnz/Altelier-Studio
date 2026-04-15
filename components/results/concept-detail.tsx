@@ -119,7 +119,7 @@ export function ConceptDetail({
                 <WordmarkSVG
                   composition={concept.logoComposition}
                   headingFont={headingFont}
-                  color={getContrastColor(concept.colors[0])}
+                  color={concept.wordmarkColor || getContrastColor(concept.colors[0])}
                 />
               </div>
             </div>
@@ -265,7 +265,7 @@ export function ConceptDetail({
                   <WordmarkSVG
                     composition={concept.logoComposition}
                     headingFont={headingFont}
-                    color={getContrastColor(concept.colors[0])}
+                    color={concept.wordmarkColor || getContrastColor(concept.colors[0])}
                   />
                 </div>
               </div>

@@ -43,6 +43,7 @@ export type BrandConcept = {
   colorRationale: string
   fonts: { heading: string; body: string }
   voiceSample: string
+  wordmarkColor: string
 }
 
 type ResultsOverviewProps = {
@@ -178,7 +179,7 @@ export function ResultsOverview({ concepts, onViewConcept, onStartOver }: Result
                     >
                       <WordmarkSVG
                         composition={concept.logoComposition}
-                        color={getContrastColor(concept.colors[0])}
+                        color={concept.wordmarkColor || getContrastColor(concept.colors[0])}
                         headingFont={concept.fonts.heading}
                       />
                     </div>
