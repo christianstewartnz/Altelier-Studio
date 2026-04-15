@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowLeft, Check, RefreshCw, Sparkles } from "lucide-react"
+import { ArrowLeft, Check, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 import { getContrastColor, getSortedColors } from "@/lib/color-utils"
 import type { BrandConcept } from "./results-overview"
 import { WordmarkSVG } from "./wordmark-svg"
+import { RefinementModal } from "./refinement-modal"
 
 type ConceptDetailProps = {
   concept: BrandConcept
@@ -545,43 +546,65 @@ export function ConceptDetail({
             <p className="text-muted-foreground mb-10">
               Select this concept to refine, or explore other options.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button
-                size="lg"
-                onClick={() => onSelect(currentConcept)}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8"
-              >
-                <Check className="mr-2 size-4" />
-                Select This Concept
-              </Button>
-              <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center gap-4">
                 <Button
                   size="lg"
-                  variant="outline"
-                  onClick={() => setShowRefinement(true)}
-                  disabled={refinementsRemaining === 0}
-                  className="rounded-full px-8"
+                  onClick={() => onSelect(currentConcept)}
+                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 h-14"
                 >
-                  <RefreshCw className="mr-2 size-4" />
-                  Refine This Direction
+                  <Check className="mr-2 size-4" />
+                  Select This Concept
                 </Button>
-                <p className="text-xs text-muted-foreground mt-2 text-center">
-                  {refinementsRemaining} refinement{refinementsRemaining !== 1 ? 's' : ''} remaining
-                </p>
+                <div className="flex flex-col items-center gap-1">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    onClick={() => setShowRefinement(true)}
+                    disabled={refinementsRemaining === 0}
+                    className="rounded-full px-8 h-14"
+                  >
+                    <RefreshCw className="mr-2 size-4" />
+                    Refine This Direction
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    {refinementsRemaining} refinement
+                    {refinementsRemaining !== 1 ? "s" : ""} remaining
+                  </p>
+                </div>
               </div>
-              <Button
-                size="lg"
-                variant="ghost"
-                onClick={() => onGenerateVariations(currentConcept)}
-                className="rounded-full px-8"
-              >
-                <Sparkles className="mr-2 size-4" />
-                Generate Variations
-              </Button>
             </div>
           </div>
         </section>
       </main>
+
+      {isApplying && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
+          <p className="font-serif text-3xl text-foreground tracking-tight mb-8 text-center">
+            Applying your refinements...
+          </p>
+          <style>{`
+            @keyframes wave {
+              0%, 100% { transform: translateY(0px); opacity: 0.4; }
+              50% { transform: translateY(-8px); opacity: 1; }
+            }
+          `}</style>
+          <div className="flex items-center justify-center gap-2">
+            <span className="block w-2 h-2 rounded-full bg-foreground" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0s" }} />
+            <span className="block w-2 h-2 rounded-full bg-foreground" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.2s" }} />
+            <span className="block w-2 h-2 rounded-full bg-foreground" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.4s" }} />
+          </div>
+        </div>
+      )}
+
+      {showRefinement && (
+        <RefinementModal
+          concept={currentConcept}
+          refinementsRemaining={refinementsRemaining}
+          onClose={() => setShowRefinement(false)}
+          onApplyRefinements={handleApplyRefinements}
+        />
+      )}
     </div>
   )
 }
