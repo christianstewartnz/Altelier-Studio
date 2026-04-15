@@ -188,12 +188,12 @@ export function ConceptDetail({
                 </p>
                 <p
                   className="text-4xl md:text-5xl text-foreground tracking-tight mb-4"
-                  style={headingStyle}
+                  style={{ fontFamily: `'${concept.fonts.heading}', serif` }}
                 >
-                  Elegant Living
+                  {concept.brandName}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {headingFont} — Light, Regular, Medium
+                  {concept.fonts.heading} — Light, Regular, Medium
                 </p>
               </div>
 
@@ -202,12 +202,14 @@ export function ConceptDetail({
                 <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-6">
                   Body
                 </p>
-                <p className="text-lg text-foreground leading-relaxed mb-4">
-                  Thoughtfully designed spaces that connect residents with nature, 
-                  light, and a sense of enduring quality.
+                <p
+                  className="text-lg text-foreground leading-relaxed mb-4"
+                  style={{ fontFamily: `'${concept.fonts.body}', sans-serif` }}
+                >
+                  {concept.tagline}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {bodyFont} — Regular, Medium
+                  {concept.fonts.body} — Regular, Medium
                 </p>
               </div>
             </div>
