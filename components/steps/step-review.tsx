@@ -92,7 +92,11 @@ export function StepReview({
               )}
               <div className="flex flex-col sm:flex-row sm:justify-between py-3 border-b border-border/50">
                 <dt className="text-sm text-muted-foreground mb-1 sm:mb-0">Target Market</dt>
-                <dd className="text-sm text-foreground font-medium">{projectOverview.targetMarket}</dd>
+                <dd className="text-sm text-foreground font-medium">
+                  {Array.isArray(projectOverview.targetMarket)
+                    ? projectOverview.targetMarket.join(", ")
+                    : projectOverview.targetMarket}
+                </dd>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between py-3">
                 <dt className="text-sm text-muted-foreground mb-1 sm:mb-0">Price Positioning</dt>

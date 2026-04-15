@@ -128,7 +128,9 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
             </Label>
             <Textarea
               id="siteContext"
-              placeholder="e.g. Elevated corner site with unobstructed harbour views. Adjacent to Weta Workshop film studios. Former Victorian-era brick warehouse. Suspended on a natural point above the valley. End of a quiet cul-de-sac backing directly onto native bush."
+              placeholder={`e.g. Corner site elevated above street level 
+with views to the harbour. Former orchard land. 
+Adjacent to a popular cycling trail.`}
               value={data.siteContext}
               onChange={(e) => onChange({ ...data, siteContext: e.target.value })}
               rows={3}

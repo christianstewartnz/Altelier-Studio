@@ -60,7 +60,7 @@ export type ProjectOverviewData = {
   location: string
   developmentType: string
   numberOfHomes: string
-  targetMarket: string
+  targetMarket: string | string[]
   pricePositioning: string
   additionalInfo: string
 }
@@ -91,7 +91,7 @@ const initialProjectOverview: ProjectOverviewData = {
   location: "",
   developmentType: "",
   numberOfHomes: "",
-  targetMarket: "",
+  targetMarket: [],
   pricePositioning: "",
   additionalInfo: ""
 }

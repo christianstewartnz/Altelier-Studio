@@ -47,7 +47,9 @@ PROJECT OVERVIEW
 - Location: ${projectOverview.location}
 - Development Type: ${projectOverview.developmentType}
 - Scale: ${projectOverview.numberOfHomes || "Not specified"}
-- Target Market: ${projectOverview.targetMarket}
+- Target Market: ${Array.isArray(projectOverview.targetMarket)
+  ? projectOverview.targetMarket.join(", ")
+  : projectOverview.targetMarket}
 - Price Positioning: ${projectOverview.pricePositioning}
 
 SITE CHARACTER

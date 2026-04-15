@@ -93,7 +93,8 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
                 id="pointOfDifference"
                 name="pointOfDifference"
                 type="text"
-                placeholder="e.g. Only development with direct river access. Boutique scale in a suburb of large complexes. Architecture that references the site's industrial history."
+                placeholder={`e.g. Only boutique development on this street.
+Larger section sizes than comparable projects nearby.`}
                 value={data.pointOfDifference}
                 onChange={(e) => onChange({ ...data, pointOfDifference: e.target.value })}
                 className="h-14 px-5 bg-card border-border rounded-2xl text-base placeholder:text-muted-foreground/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"

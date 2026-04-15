@@ -43,7 +43,13 @@ const pricePositionings = [
 ]
 
 export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverviewProps) {
-  const isValid = data.location && data.developmentType && data.targetMarket && data.pricePositioning
+  const isValid =
+    data.location &&
+    data.developmentType &&
+    (Array.isArray(data.targetMarket)
+      ? data.targetMarket.length > 0
+      : !!data.targetMarket) &&
+    data.pricePositioning
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -120,9 +126,22 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
                 <button
                   key={market}
                   type="button"
-                  onClick={() => onChange({ ...data, targetMarket: market })}
+                  onClick={() => {
+                    const current = Array.isArray(data.targetMarket)
+                      ? data.targetMarket
+                      : data.targetMarket
+                        ? [data.targetMarket]
+                        : []
+                    const updated = current.includes(market)
+                      ? current.filter((m) => m !== market)
+                      : [...current, market]
+                    onChange({ ...data, targetMarket: updated })
+                  }}
                   className={`px-5 py-4 rounded-2xl text-sm text-left transition-all duration-200 ${
-                    data.targetMarket === market
+                    (Array.isArray(data.targetMarket)
+                      ? data.targetMarket
+                      : [data.targetMarket]
+                    ).includes(market)
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "bg-card border border-border text-foreground hover:border-primary/40 hover:bg-secondary/50"
                   }`}
