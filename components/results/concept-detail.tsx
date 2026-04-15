@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { ArrowLeft, Check, RefreshCw, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
@@ -14,6 +14,8 @@ type ConceptDetailProps = {
   onSelect: (concept: BrandConcept) => void
   onRefine: (concept: BrandConcept) => void
   onGenerateVariations: (concept: BrandConcept) => void
+  refinementsRemaining: number
+  onRefinementUsed: () => void
 }
 
 export function ConceptDetail({ 
@@ -21,19 +23,35 @@ export function ConceptDetail({
   onBack, 
   onSelect, 
   onRefine, 
-  onGenerateVariations 
+  onGenerateVariations,
+  refinementsRemaining,
+  onRefinementUsed,
 }: ConceptDetailProps) {
-  const headingFont = concept.fonts.heading
-  const bodyFont = concept.fonts.body
+  const [currentConcept, setCurrentConcept] = useState(concept)
+  const [showRefinement, setShowRefinement] = useState(false)
+  const [isApplying, setIsApplying] = useState(false)
+
+  const headingFont = currentConcept.fonts.heading
+  const bodyFont = currentConcept.fonts.body
 
   const headingStyle: React.CSSProperties = { fontFamily: `'${headingFont}', serif` }
 
-  const sortedColors = getSortedColors(concept.colors)
+  const sortedColors = getSortedColors(currentConcept.colors)
   const darkestColor = sortedColors[0]
   const lightestColor = sortedColors[sortedColors.length - 1]
   const secondLightestColor = sortedColors[sortedColors.length - 2]
   const midColor = sortedColors[Math.floor(sortedColors.length / 2)]
   const APARTMENT_IMAGE = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80"
+
+  function handleApplyRefinements(updatedConcept: BrandConcept) {
+    setShowRefinement(false)
+    setIsApplying(true)
+    onRefinementUsed()
+    setTimeout(() => {
+      setCurrentConcept(updatedConcept)
+      setIsApplying(false)
+    }, 1500)
+  }
 
   useEffect(() => {
     const families = [headingFont, bodyFont]
@@ -92,12 +110,12 @@ export function ConceptDetail({
         <section className="relative py-24 md:py-32 overflow-hidden animate-in fade-in duration-700">
           <div 
             className="absolute inset-0 opacity-[0.03]"
-            style={{ backgroundColor: concept.colors[0] }}
+            style={{ backgroundColor: currentConcept.colors[0] }}
           />
           <div className="mx-auto max-w-5xl px-6 text-center relative">
             {/* Concept Title */}
             <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-8">
-              {concept.conceptTitle}
+              {currentConcept.conceptTitle}
             </p>
 
             {/* Brand Name */}
@@ -105,12 +123,12 @@ export function ConceptDetail({
               className="text-5xl md:text-7xl lg:text-8xl text-foreground tracking-tight mb-6"
               style={headingStyle}
             >
-              {concept.brandName}
+              {currentConcept.brandName}
             </h1>
 
             {/* Tagline */}
             <p className="text-xl md:text-2xl text-muted-foreground italic max-w-2xl mx-auto">
-              {concept.tagline}
+              {currentConcept.tagline}
             </p>
 
             {/* Logo Visual */}
@@ -118,15 +136,15 @@ export function ConceptDetail({
               <div
                 className="rounded-2xl overflow-hidden flex items-center justify-center p-4"
                 style={{
-                  backgroundColor: concept.colors[0],
+                  backgroundColor: currentConcept.colors[0],
                   width: "320px",
                   height: "120px",
                 }}
               >
                 <WordmarkSVG
-                  composition={concept.logoComposition}
+                  composition={currentConcept.logoComposition}
                   headingFont={headingFont}
-                  color={concept.wordmarkColor || getContrastColor(concept.colors[0])}
+                  color={currentConcept.wordmarkColor || getContrastColor(currentConcept.colors[0])}
                 />
               </div>
             </div>
@@ -143,10 +161,10 @@ export function ConceptDetail({
               The Rationale
             </h2>
             <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
-              <p>{concept.rationale}</p>
-              {concept.voiceSample?.trim() ? (
+              <p>{currentConcept.rationale}</p>
+              {currentConcept.voiceSample?.trim() ? (
                 <blockquote className="font-serif text-xl italic text-muted-foreground border-l-2 border-primary pl-6 mt-6">
-                  {concept.voiceSample}
+                  {currentConcept.voiceSample}
                 </blockquote>
               ) : null}
             </div>
@@ -163,7 +181,7 @@ export function ConceptDetail({
               Colour System
             </h2>
             <div className="flex flex-wrap justify-center gap-6 md:gap-10">
-              {concept.colors.map((color, index) => (
+              {currentConcept.colors.map((color, index) => (
                 <div key={index} className="flex flex-col items-center gap-4">
                   <div 
                     className="size-24 md:size-32 rounded-2xl shadow-lg border border-border/30"
@@ -195,12 +213,12 @@ export function ConceptDetail({
                 </p>
                 <p
                   className="text-4xl md:text-5xl text-foreground tracking-tight mb-4"
-                  style={{ fontFamily: `'${concept.fonts.heading}', serif` }}
+                  style={{ fontFamily: `'${currentConcept.fonts.heading}', serif` }}
                 >
-                  {concept.brandName}
+                  {currentConcept.brandName}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {concept.fonts.heading} — Light, Regular, Medium
+                  {currentConcept.fonts.heading} — Light, Regular, Medium
                 </p>
               </div>
 
@@ -211,12 +229,12 @@ export function ConceptDetail({
                 </p>
                 <p
                   className="text-lg text-foreground leading-relaxed mb-4"
-                  style={{ fontFamily: `'${concept.fonts.body}', sans-serif` }}
+                  style={{ fontFamily: `'${currentConcept.fonts.body}', sans-serif` }}
                 >
-                  {concept.tagline}
+                  {currentConcept.tagline}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {concept.fonts.body} — Regular, Medium
+                  {currentConcept.fonts.body} — Regular, Medium
                 </p>
               </div>
             </div>
@@ -236,11 +254,11 @@ export function ConceptDetail({
               {/* Primary Wordmark — light background */}
               <div
                 className="flex flex-col items-center justify-center p-12 rounded-2xl min-h-[200px]"
-                style={{ backgroundColor: concept.colors[0] }}
+                style={{ backgroundColor: currentConcept.colors[0] }}
               >
                 <p
                   className="text-xs tracking-[0.2em] uppercase mb-8"
-                  style={{ color: concept.wordmarkColor }}
+                  style={{ color: currentConcept.wordmarkColor }}
                 >
                   Primary Wordmark
                 </p>
@@ -249,9 +267,9 @@ export function ConceptDetail({
                   style={{ width: "240px", height: "100px" }}
                 >
                   <WordmarkSVG
-                    composition={concept.logoComposition}
+                    composition={currentConcept.logoComposition}
                     headingFont={headingFont}
-                    color={concept.wordmarkColor}
+                    color={currentConcept.wordmarkColor}
                   />
                 </div>
               </div>
@@ -259,11 +277,11 @@ export function ConceptDetail({
               {/* Reversed Wordmark — dark background */}
               <div 
                 className="flex flex-col items-center justify-center p-12 rounded-2xl min-h-[200px]"
-                style={{ backgroundColor: concept.wordmarkColor }}
+                style={{ backgroundColor: currentConcept.wordmarkColor }}
               >
                 <p 
                   className="text-xs tracking-[0.2em] uppercase mb-8"
-                  style={{ color: concept.colors[0] }}
+                  style={{ color: currentConcept.colors[0] }}
                 >
                   Reversed
                 </p>
@@ -272,9 +290,9 @@ export function ConceptDetail({
                   style={{ width: "240px", height: "100px" }}
                 >
                   <WordmarkSVG
-                    composition={concept.logoComposition}
+                    composition={currentConcept.logoComposition}
                     headingFont={headingFont}
-                    color={concept.colors[0]}
+                    color={currentConcept.colors[0]}
                   />
                 </div>
               </div>
@@ -301,9 +319,9 @@ export function ConceptDetail({
                   {/* Logo area - top third */}
                   <div className="flex items-center justify-center p-6 flex-shrink-0" style={{ height: '30%' }}>
                     <WordmarkSVG
-                      composition={concept.logoComposition}
+                      composition={currentConcept.logoComposition}
                       color={getContrastColor(lightestColor)}
-                      headingFont={concept.fonts.heading}
+                      headingFont={currentConcept.fonts.heading}
                     />
                   </div>
 
@@ -332,10 +350,10 @@ export function ConceptDetail({
                       className="text-sm text-center italic leading-snug"
                       style={{ 
                         color: getContrastColor(lightestColor),
-                        fontFamily: `'${concept.fonts.body}', sans-serif`
+                        fontFamily: `'${currentConcept.fonts.body}', sans-serif`
                       }}
                     >
-                      {concept.tagline}
+                      {currentConcept.tagline}
                     </p>
                   </div>
                 </div>
@@ -364,9 +382,9 @@ export function ConceptDetail({
                     </p>
                     <div style={{ width: '80%' }}>
                       <WordmarkSVG
-                        composition={concept.logoComposition}
+                        composition={currentConcept.logoComposition}
                         color={getContrastColor(darkestColor)}
-                        headingFont={concept.fonts.heading}
+                        headingFont={currentConcept.fonts.heading}
                       />
                     </div>
                   </div>
@@ -386,20 +404,20 @@ export function ConceptDetail({
                       className="text-base font-medium mb-1"
                       style={{ 
                         color: getContrastColor(darkestColor),
-                        fontFamily: `'${concept.fonts.heading}', serif`
+                        fontFamily: `'${currentConcept.fonts.heading}', serif`
                       }}
                     >
-                      {concept.brandName}
+                      {currentConcept.brandName}
                     </p>
                     <p 
                       className="text-xs italic"
                       style={{ 
                         color: getContrastColor(darkestColor),
-                        fontFamily: `'${concept.fonts.body}', sans-serif`,
+                        fontFamily: `'${currentConcept.fonts.body}', sans-serif`,
                         opacity: 0.8
                       }}
                     >
-                      {concept.tagline}
+                      {currentConcept.tagline}
                     </p>
                   </div>
                 </div>
@@ -424,9 +442,9 @@ export function ConceptDetail({
                   >
                     <div style={{ width: '45%' }}>
                       <WordmarkSVG
-                        composition={concept.logoComposition}
+                        composition={currentConcept.logoComposition}
                         color={getContrastColor(darkestColor)}
-                        headingFont={concept.fonts.heading}
+                        headingFont={currentConcept.fonts.heading}
                       />
                     </div>
                     <div className="flex gap-3">
@@ -468,20 +486,20 @@ export function ConceptDetail({
                       className="text-base font-medium mb-1"
                       style={{ 
                         color: getContrastColor(secondLightestColor),
-                        fontFamily: `'${concept.fonts.heading}', serif`
+                        fontFamily: `'${currentConcept.fonts.heading}', serif`
                       }}
                     >
-                      {concept.brandName}
+                      {currentConcept.brandName}
                     </p>
                     <p 
                       className="text-xs italic"
                       style={{ 
                         color: getContrastColor(secondLightestColor),
-                        fontFamily: `'${concept.fonts.body}', sans-serif`,
+                        fontFamily: `'${currentConcept.fonts.body}', sans-serif`,
                         opacity: 0.8
                       }}
                     >
-                      {concept.tagline}
+                      {currentConcept.tagline}
                     </p>
                   </div>
                 </div>
@@ -503,7 +521,7 @@ export function ConceptDetail({
               Brand Attributes
             </h2>
             <div className="flex flex-wrap justify-center gap-3">
-              {concept.attributes.map((attr) => (
+              {currentConcept.attributes.map((attr) => (
                 <span
                   key={attr}
                   className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-full text-sm"
@@ -530,25 +548,31 @@ export function ConceptDetail({
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button
                 size="lg"
-                onClick={() => onSelect(concept)}
+                onClick={() => onSelect(currentConcept)}
                 className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8"
               >
                 <Check className="mr-2 size-4" />
                 Select This Concept
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => onRefine(concept)}
-                className="rounded-full px-8"
-              >
-                <RefreshCw className="mr-2 size-4" />
-                Refine This Direction
-              </Button>
+              <div className="flex flex-col items-center">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => setShowRefinement(true)}
+                  disabled={refinementsRemaining === 0}
+                  className="rounded-full px-8"
+                >
+                  <RefreshCw className="mr-2 size-4" />
+                  Refine This Direction
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  {refinementsRemaining} refinement{refinementsRemaining !== 1 ? 's' : ''} remaining
+                </p>
+              </div>
               <Button
                 size="lg"
                 variant="ghost"
-                onClick={() => onGenerateVariations(concept)}
+                onClick={() => onGenerateVariations(currentConcept)}
                 className="rounded-full px-8"
               >
                 <Sparkles className="mr-2 size-4" />

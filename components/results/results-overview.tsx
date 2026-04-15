@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 import { getContrastColor } from "@/lib/color-utils"
 import { WordmarkSVG } from "./wordmark-svg"
+import { InstructionsOverlay } from "./instructions-overlay"
 
 export type LogoComposition = {
   style: 
@@ -50,9 +51,12 @@ type ResultsOverviewProps = {
   concepts: BrandConcept[]
   onViewConcept: (concept: BrandConcept) => void
   onStartOver: () => void
+  hasSeenInstructions: boolean
+  onDismissInstructions: () => void
 }
 
-export function ResultsOverview({ concepts, onViewConcept, onStartOver }: ResultsOverviewProps) {
+export function ResultsOverview({ concepts, onViewConcept, onStartOver, hasSeenInstructions, onDismissInstructions }: ResultsOverviewProps) {
+
   useEffect(() => {
     const allFonts = concepts.flatMap((c) => [c.fonts.heading, c.fonts.body])
     const uniqueFonts = [...new Set(allFonts)]
@@ -70,6 +74,11 @@ export function ResultsOverview({ concepts, onViewConcept, onStartOver }: Result
 
   return (
     <div className="min-h-screen bg-background">
+      {!hasSeenInstructions && (
+        <InstructionsOverlay 
+          onDismiss={onDismissInstructions} 
+        />
+      )}
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="mx-auto max-w-6xl px-6 py-5">

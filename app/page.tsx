@@ -123,6 +123,8 @@ export default function Home() {
   const [projectOverview, setProjectOverview] = useState<ProjectOverviewData>(initialProjectOverview)
   const [siteCharacter, setSiteCharacter] = useState<SiteCharacterData>(initialSiteCharacter)
   const [brandAmbition, setBrandAmbition] = useState<BrandAmbitionData>(initialBrandAmbition)
+  const [hasSeenInstructions, setHasSeenInstructions] = useState(false)
+  const [refinementsRemaining, setRefinementsRemaining] = useState(3)
 
   const handleNext = () => {
     if (currentStep < 4) {
@@ -223,6 +225,7 @@ export default function Home() {
     setIsGenerating(false)
     setShowResults(false)
     setSelectedConcept(null)
+    setRefinementsRemaining(3)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -239,6 +242,8 @@ export default function Home() {
         onSelect={handleSelectConcept}
         onRefine={handleRefineConcept}
         onGenerateVariations={handleGenerateVariations}
+        refinementsRemaining={refinementsRemaining}
+        onRefinementUsed={() => setRefinementsRemaining(prev => prev - 1)}
       />
     )
   }
@@ -250,6 +255,8 @@ export default function Home() {
         concepts={concepts}
         onViewConcept={handleViewConcept}
         onStartOver={handleStartOver}
+        hasSeenInstructions={hasSeenInstructions}
+        onDismissInstructions={() => setHasSeenInstructions(true)}
       />
     )
   }
