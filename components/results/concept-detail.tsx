@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { ArrowLeft, Check, RefreshCw, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
-import { getContrastColor } from "@/lib/color-utils"
+import { getContrastColor, getSortedColors } from "@/lib/color-utils"
 import type { BrandConcept } from "./results-overview"
 import { WordmarkSVG } from "./wordmark-svg"
 
@@ -27,6 +27,13 @@ export function ConceptDetail({
   const bodyFont = concept.fonts.body
 
   const headingStyle: React.CSSProperties = { fontFamily: `'${headingFont}', serif` }
+
+  const sortedColors = getSortedColors(concept.colors)
+  const darkestColor = sortedColors[0]
+  const lightestColor = sortedColors[sortedColors.length - 1]
+  const secondLightestColor = sortedColors[sortedColors.length - 2]
+  const midColor = sortedColors[Math.floor(sortedColors.length / 2)]
+  const APARTMENT_IMAGE = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80"
 
   useEffect(() => {
     const families = [headingFont, bodyFont]
@@ -288,118 +295,199 @@ export function ConceptDetail({
               {/* Brochure Cover */}
               <div className="group">
                 <div 
-                  className="aspect-[3/4] rounded-2xl p-8 flex flex-col justify-between transition-transform duration-300 group-hover:scale-[1.02]"
-                  style={{ backgroundColor: concept.colors[0] }}
+                  className="aspect-[3/4] rounded-2xl overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
+                  style={{ backgroundColor: lightestColor }}
                 >
-                  <div>
-                    <p 
-                      className="text-xs tracking-[0.2em] uppercase opacity-60 mb-2"
-                      style={{ color: getContrastColor(concept.colors[0]) }}
-                    >
-                      {concept.conceptTitle}
-                    </p>
+                  {/* Logo area - top third */}
+                  <div className="flex items-center justify-center p-6 flex-shrink-0" style={{ height: '30%' }}>
+                    <WordmarkSVG
+                      composition={concept.logoComposition}
+                      color={getContrastColor(lightestColor)}
+                      headingFont={concept.fonts.heading}
+                    />
                   </div>
-                  <div>
+
+                  {/* Apartment image - middle */}
+                  <div className="mx-4 rounded-xl overflow-hidden flex-shrink-0" style={{ height: '35%' }}>
+                    <img 
+                      src={APARTMENT_IMAGE}
+                      alt="Development preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Text area - bottom */}
+                  <div className="flex flex-col items-center justify-center p-4 flex-1">
                     <p 
-                      className="text-3xl tracking-tight mb-2"
-                      style={{ ...headingStyle, color: getContrastColor(concept.colors[0]) }}
+                      className="text-xs tracking-[0.2em] uppercase mb-2"
+                      style={{ 
+                        color: getContrastColor(lightestColor),
+                        fontFamily: 'Inter, sans-serif',
+                        opacity: 0.7
+                      }}
                     >
-                      {concept.brandName}
+                      For Sale
                     </p>
                     <p 
-                      className="text-sm italic opacity-70"
-                      style={{ color: getContrastColor(concept.colors[0]) }}
+                      className="text-sm text-center italic leading-snug"
+                      style={{ 
+                        color: getContrastColor(lightestColor),
+                        fontFamily: `'${concept.fonts.body}', sans-serif`
+                      }}
                     >
                       {concept.tagline}
                     </p>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mt-4 text-center">Brochure Cover</p>
+                <p className="text-sm text-muted-foreground mt-4 text-center">
+                  Brochure Cover
+                </p>
               </div>
 
               {/* Development Signage */}
               <div className="group">
                 <div 
-                  className="aspect-[3/4] rounded-2xl p-8 flex items-center justify-center bg-[#1C1C1C] transition-transform duration-300 group-hover:scale-[1.02]"
+                  className="aspect-[3/4] rounded-2xl overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
+                  style={{ backgroundColor: darkestColor }}
                 >
-                  <div className="text-center">
-                    <span 
-                      className="text-4xl tracking-wide block mb-3"
-                      style={{ ...headingStyle, color: concept.colors[concept.colors.length - 1] }}
+                  {/* Top section - NOW SELLING + Logo */}
+                  <div className="p-5 flex-shrink-0" style={{ height: '35%' }}>
+                    <p 
+                      className="text-xs tracking-[0.25em] uppercase mb-3"
+                      style={{ 
+                        color: getContrastColor(darkestColor),
+                        fontFamily: 'Inter, sans-serif',
+                        opacity: 0.7
+                      }}
                     >
-                      {concept.logoText}
-                    </span>
-                    <div className="flex justify-center gap-1.5 mt-4">
-                      {concept.colors.slice(0, 3).map((color, i) => (
-                        <div 
-                          key={i}
-                          className="size-2 rounded-full"
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
+                      Now Selling
+                    </p>
+                    <div style={{ width: '80%' }}>
+                      <WordmarkSVG
+                        composition={concept.logoComposition}
+                        color={getContrastColor(darkestColor)}
+                        headingFont={concept.fonts.heading}
+                      />
                     </div>
                   </div>
+
+                  {/* Apartment image - middle */}
+                  <div className="mx-4 rounded-xl overflow-hidden flex-shrink-0" style={{ height: '35%' }}>
+                    <img 
+                      src={APARTMENT_IMAGE}
+                      alt="Development preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Text area - bottom */}
+                  <div className="p-5 flex-1 flex flex-col justify-end">
+                    <p 
+                      className="text-base font-medium mb-1"
+                      style={{ 
+                        color: getContrastColor(darkestColor),
+                        fontFamily: `'${concept.fonts.heading}', serif`
+                      }}
+                    >
+                      {concept.brandName}
+                    </p>
+                    <p 
+                      className="text-xs italic"
+                      style={{ 
+                        color: getContrastColor(darkestColor),
+                        fontFamily: `'${concept.fonts.body}', sans-serif`,
+                        opacity: 0.8
+                      }}
+                    >
+                      {concept.tagline}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground mt-4 text-center">Development Signage</p>
+                <p className="text-sm text-muted-foreground mt-4 text-center">
+                  Development Signage
+                </p>
               </div>
 
               {/* Website Hero */}
               <div className="group">
                 <div 
-                  className="aspect-[3/4] rounded-2xl overflow-hidden transition-transform duration-300 group-hover:scale-[1.02] border border-border"
-                  style={{ backgroundColor: concept.colors[concept.colors.length - 1] }}
+                  className="aspect-[3/4] rounded-2xl overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
+                  style={{ backgroundColor: secondLightestColor }}
                 >
-                  {/* Nav */}
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-border/20">
-                    <span 
-                      className="text-sm"
-                      style={{ ...headingStyle, color: getContrastColor(concept.colors[concept.colors.length - 1]) }}
-                    >
-                      {concept.logoText}
-                    </span>
-                    <div className="flex gap-3">
-                      <div 
-                        className="w-8 h-1 rounded-full opacity-40"
-                        style={{ backgroundColor: getContrastColor(concept.colors[concept.colors.length - 1]) }}
-                      />
-                      <div 
-                        className="w-8 h-1 rounded-full opacity-40"
-                        style={{ backgroundColor: getContrastColor(concept.colors[concept.colors.length - 1]) }}
+                  {/* Nav bar */}
+                  <div 
+                    className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+                    style={{ 
+                      backgroundColor: darkestColor,
+                      borderBottom: `1px solid ${getContrastColor(darkestColor)}20`
+                    }}
+                  >
+                    <div style={{ width: '45%' }}>
+                      <WordmarkSVG
+                        composition={concept.logoComposition}
+                        color={getContrastColor(darkestColor)}
+                        headingFont={concept.fonts.heading}
                       />
                     </div>
+                    <div className="flex gap-3">
+                      <span 
+                        className="text-[9px] tracking-wide"
+                        style={{ 
+                          color: getContrastColor(darkestColor),
+                          fontFamily: 'Inter, sans-serif',
+                          opacity: 0.7
+                        }}
+                      >
+                        Floor Plans
+                      </span>
+                      <span 
+                        className="text-[9px] tracking-wide"
+                        style={{ 
+                          color: getContrastColor(darkestColor),
+                          fontFamily: 'Inter, sans-serif',
+                          opacity: 0.7
+                        }}
+                      >
+                        Price List
+                      </span>
+                    </div>
                   </div>
-                  {/* Hero */}
-                  <div className="p-6 pt-12">
+
+                  {/* Apartment image */}
+                  <div className="mx-4 mt-4 rounded-xl overflow-hidden flex-shrink-0" style={{ height: '40%' }}>
+                    <img 
+                      src={APARTMENT_IMAGE}
+                      alt="Development preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Content area */}
+                  <div className="p-4 flex-1 flex flex-col justify-center">
                     <p 
-                      className="text-xs tracking-[0.15em] uppercase opacity-50 mb-3"
-                      style={{ color: getContrastColor(concept.colors[concept.colors.length - 1]) }}
-                    >
-                      Now Selling
-                    </p>
-                    <p 
-                      className="text-2xl tracking-tight mb-2"
-                      style={{ ...headingStyle, color: getContrastColor(concept.colors[concept.colors.length - 1]) }}
+                      className="text-base font-medium mb-1"
+                      style={{ 
+                        color: getContrastColor(secondLightestColor),
+                        fontFamily: `'${concept.fonts.heading}', serif`
+                      }}
                     >
                       {concept.brandName}
                     </p>
                     <p 
-                      className="text-xs opacity-60 mb-6"
-                      style={{ color: getContrastColor(concept.colors[concept.colors.length - 1]) }}
+                      className="text-xs italic"
+                      style={{ 
+                        color: getContrastColor(secondLightestColor),
+                        fontFamily: `'${concept.fonts.body}', sans-serif`,
+                        opacity: 0.8
+                      }}
                     >
                       {concept.tagline}
                     </p>
-                    <div 
-                      className="inline-block px-4 py-2 rounded-full text-xs"
-                      style={{ 
-                        backgroundColor: concept.colors[0],
-                        color: concept.colors[concept.colors.length - 1]
-                      }}
-                    >
-                      Register Interest
-                    </div>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mt-4 text-center">Website Hero</p>
+                <p className="text-sm text-muted-foreground mt-4 text-center">
+                  Website Hero
+                </p>
               </div>
             </div>
           </div>
