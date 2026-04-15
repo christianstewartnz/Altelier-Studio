@@ -128,9 +128,9 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
     const startX = (400 - totalWidth) / 2
 
     return (
-      <svg {...svgProps} viewBox="0 0 400 130">
+      <svg {...svgProps} viewBox="0 0 400 120">
         <text
-          x="200" y="50"
+          x="200" y="45"
           textAnchor="middle"
           fontSize="42"
           fontFamily={fontFamily}
@@ -141,7 +141,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
         </text>
         <text
           x={startX}
-          y="95"
+          y="88"
           textAnchor="start"
           fontSize="42"
           fontFamily={fontFamily}
@@ -228,7 +228,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
     return (
       <svg {...svgProps}>
         <text
-          x="200" y="52"
+          x="200" y="55"
           textAnchor="middle"
           fontSize="50"
           fontWeight="800"
@@ -239,7 +239,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           {line0}
         </text>
         <text
-          x="200" y="90"
+          x="200" y="95"
           textAnchor="middle"
           fontSize="38"
           fontWeight="200"

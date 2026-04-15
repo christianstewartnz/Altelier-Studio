@@ -225,6 +225,7 @@ export default function Home() {
     setIsGenerating(false)
     setShowResults(false)
     setSelectedConcept(null)
+    setHasSeenInstructions(false)
     setRefinementsRemaining(3)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }

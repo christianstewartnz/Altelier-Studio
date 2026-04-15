@@ -454,13 +454,25 @@ export function RefinementModal({
               {/* LOGO COMPOSITION OPTIONS */}
               {refinementResults.logoCompositions && (
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground">
-                      Logo Composition
-                    </span>
-                    <span className="text-xs text-muted-foreground italic">
-                      Current: {concept.logoComposition.style}
-                    </span>
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs tracking-[0.2em] uppercase text-muted-foreground">
+                        Logo Composition
+                      </span>
+                      <span className="text-xs text-muted-foreground italic">
+                        Current
+                      </span>
+                    </div>
+                    <div
+                      className="rounded-xl px-4 py-3 flex items-center justify-center mb-3"
+                      style={{ backgroundColor: concept.colors[0] }}
+                    >
+                      <WordmarkSVG
+                        composition={concept.logoComposition}
+                        color={concept.wordmarkColor}
+                        headingFont={concept.fonts.heading}
+                      />
+                    </div>
                   </div>
                   <div className="grid gap-3">
                     {refinementResults.logoCompositions.map((comp, i) => (
@@ -486,9 +498,6 @@ export function RefinementModal({
                             headingFont={concept.fonts.heading}
                           />
                         </div>
-                        <p className="text-xs text-muted-foreground mt-2 text-center">
-                          {comp.style}
-                        </p>
                       </div>
                     ))}
                   </div>
