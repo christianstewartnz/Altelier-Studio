@@ -117,55 +117,47 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
 
   // ── 4. stacked-punctuation ───────────────────────────────────────────────────
   if (style === "stacked-punctuation") {
-    const showBetween = punctuationPosition === "between-lines"
+    const fontSize = 42
+    const charWidth = fontSize * 0.6
+    const trackingPx = tracking === "tight" ? -2 :
+      tracking === "wide" ? 8 :
+      tracking === "ultrawide" ? 20 : 2
+    const textWidth = line1.length * (charWidth + trackingPx)
+    const punctWidth = 24 * 0.6
+    const totalWidth = textWidth + 8 + punctWidth
+    const startX = (400 - totalWidth) / 2
+
     return (
-      <svg {...svgProps}>
+      <svg {...svgProps} viewBox="0 0 400 130">
         <text
-          x="200" y="45"
+          x="200" y="50"
           textAnchor="middle"
-          fontSize="40"
+          fontSize="42"
           fontFamily={fontFamily}
-          fontWeight={fontWeight}
           fill={fill}
           letterSpacing={letterSpacing}
         >
           {line0}
         </text>
-        {showBetween && (
-          <text
-            x="200" y="68"
-            textAnchor="middle"
-            fontSize="16"
-            fontFamily={fontFamily}
-            fill={fill}
-            letterSpacing="0.3em"
-          >
-            {punct}
-          </text>
-        )}
         <text
-          x={showBetween ? "200" : "185"}
+          x={startX}
           y="95"
-          textAnchor="middle"
-          fontSize="40"
+          textAnchor="start"
+          fontSize="42"
           fontFamily={fontFamily}
-          fontWeight={fontWeight}
           fill={fill}
           letterSpacing={letterSpacing}
         >
           {line1}
-        </text>
-        {!showBetween && punctuationPosition !== "none" && (
-          <text
-            x="348" y="95"
-            textAnchor="end"
-            fontSize="40"
-            fontFamily={fontFamily}
-            fill={fill}
+          <tspan
+            fontSize="24"
+            dy="12"
+            dx="8"
+            letterSpacing="0"
           >
             {punct}
-          </text>
-        )}
+          </tspan>
+        </text>
       </svg>
     )
   }
