@@ -229,11 +229,11 @@ export function ConceptDetail({
               {/* Primary Wordmark — light background */}
               <div
                 className="flex flex-col items-center justify-center p-12 rounded-2xl min-h-[200px]"
-                style={{ backgroundColor: concept.colors[concept.colors.length - 1] }}
+                style={{ backgroundColor: concept.colors[0] }}
               >
                 <p
                   className="text-xs tracking-[0.2em] uppercase mb-8"
-                  style={{ color: getContrastColor(concept.colors[concept.colors.length - 1]) }}
+                  style={{ color: concept.wordmarkColor }}
                 >
                   Primary Wordmark
                 </p>
@@ -244,7 +244,7 @@ export function ConceptDetail({
                   <WordmarkSVG
                     composition={concept.logoComposition}
                     headingFont={headingFont}
-                    color={getContrastColor(concept.colors[concept.colors.length - 1])}
+                    color={concept.wordmarkColor}
                   />
                 </div>
               </div>
@@ -252,11 +252,11 @@ export function ConceptDetail({
               {/* Reversed Wordmark — dark background */}
               <div 
                 className="flex flex-col items-center justify-center p-12 rounded-2xl min-h-[200px]"
-                style={{ backgroundColor: concept.colors[0] }}
+                style={{ backgroundColor: concept.wordmarkColor }}
               >
                 <p 
-                  className="text-xs tracking-[0.2em] uppercase mb-8 opacity-70"
-                  style={{ color: getContrastColor(concept.colors[0]) }}
+                  className="text-xs tracking-[0.2em] uppercase mb-8"
+                  style={{ color: concept.colors[0] }}
                 >
                   Reversed
                 </p>
@@ -267,7 +267,7 @@ export function ConceptDetail({
                   <WordmarkSVG
                     composition={concept.logoComposition}
                     headingFont={headingFont}
-                    color={concept.wordmarkColor || getContrastColor(concept.colors[0])}
+                    color={concept.colors[0]}
                   />
                 </div>
               </div>
