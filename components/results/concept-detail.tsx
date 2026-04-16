@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowLeft, Check, RefreshCw } from "lucide-react"
+import { ArrowLeft, Check, Download, RefreshCw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 import { getContrastColor, getSortedColors } from "@/lib/color-utils"
@@ -17,6 +17,7 @@ type ConceptDetailProps = {
   onGenerateVariations: (concept: BrandConcept) => void
   refinementsRemaining: number
   onRefinementUsed: () => void
+  defaultIsSelected?: boolean
 }
 
 export function ConceptDetail({ 
@@ -27,10 +28,15 @@ export function ConceptDetail({
   onGenerateVariations,
   refinementsRemaining,
   onRefinementUsed,
+  defaultIsSelected,
 }: ConceptDetailProps) {
   const [currentConcept, setCurrentConcept] = useState(concept)
   const [showRefinement, setShowRefinement] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
+  const [showConfirmSelection, setShowConfirmSelection] = useState(false)
+  const [confirmChecked, setConfirmChecked] = useState(false)
+  const [showCongratulations, setShowCongratulations] = useState(false)
+  const [isSelected, setIsSelected] = useState(defaultIsSelected || false)
 
   const headingFont = currentConcept.fonts.heading
   const bodyFont = currentConcept.fonts.body
@@ -80,13 +86,28 @@ export function ConceptDetail({
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="mx-auto max-w-6xl px-6 py-5">
           <div className="flex items-center justify-between">
-            <button 
-              onClick={onBack}
-              className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="size-4" />
-              <span className="text-sm">Back to concepts</span>
-            </button>
+            {!isSelected && (
+              <button 
+                onClick={onBack}
+                className="flex items-center gap-2 text-sm 
+                text-muted-foreground hover:text-foreground 
+                transition-colors"
+              >
+                <ArrowLeft className="size-4" />
+                <span className="text-sm">Back to concepts</span>
+              </button>
+            )}
+            {isSelected && (
+              <button
+                onClick={() => window.location.href = "/dashboard"}
+                className="flex items-center gap-2 text-sm 
+                text-muted-foreground hover:text-foreground 
+                transition-colors"
+              >
+                <ArrowLeft className="size-4" />
+                <span className="text-sm">Dashboard</span>
+              </button>
+            )}
             <div className="flex flex-col items-center">
               <span
                 className="text-xl tracking-tight text-[#1C1C1C]"
@@ -101,12 +122,7 @@ export function ConceptDetail({
                 {APP_SUBTITLE}
               </span>
             </div>
-            <button
-              onClick={() => window.location.href = "/dashboard"}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Dashboard
-            </button>
+            <div className="w-[100px]" />
           </div>
         </div>
       </header>
@@ -551,34 +567,49 @@ export function ConceptDetail({
             <p className="text-muted-foreground mb-10">
               Select this concept to refine, or explore other options.
             </p>
-            <div className="flex flex-col items-center gap-4">
-              <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center gap-4">
-                <Button
-                  size="lg"
-                  onClick={() => onSelect(currentConcept)}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 h-14"
+            {isSelected ? (
+              <div className="flex flex-col items-center gap-4">
+                <button
+                  onClick={() => alert("Export coming soon — Phase 2")}
+                  className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
                 >
-                  <Check className="mr-2 size-4" />
-                  Select This Concept
-                </Button>
-                <div className="flex flex-col items-center gap-1">
+                  <Download className="size-5" />
+                  Download Brand Package
+                </button>
+                <p className="text-sm text-muted-foreground">
+                  Your brand concept has been saved to your dashboard
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center gap-4">
                   <Button
                     size="lg"
-                    variant="outline"
-                    onClick={() => setShowRefinement(true)}
-                    disabled={refinementsRemaining === 0}
-                    className="rounded-full px-8 h-14"
+                    onClick={() => setShowConfirmSelection(true)}
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 h-14"
                   >
-                    <RefreshCw className="mr-2 size-4" />
-                    Refine This Direction
+                    <Check className="mr-2 size-4" />
+                    Select This Concept
                   </Button>
-                  <p className="text-xs text-muted-foreground">
-                    {refinementsRemaining} refinement
-                    {refinementsRemaining !== 1 ? "s" : ""} remaining
-                  </p>
+                  <div className="flex flex-col items-center gap-1">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onClick={() => setShowRefinement(true)}
+                      disabled={refinementsRemaining === 0}
+                      className="rounded-full px-8 h-14"
+                    >
+                      <RefreshCw className="mr-2 size-4" />
+                      Refine This Direction
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      {refinementsRemaining} refinement
+                      {refinementsRemaining !== 1 ? "s" : ""} remaining
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </section>
       </main>
@@ -609,6 +640,144 @@ export function ConceptDetail({
           onClose={() => setShowRefinement(false)}
           onApplyRefinements={handleApplyRefinements}
         />
+      )}
+
+      {showConfirmSelection && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{
+            backgroundColor: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          <div className="bg-card rounded-3xl p-8 w-full max-w-md border border-border shadow-2xl">
+            <h2 className="font-serif text-2xl text-foreground tracking-tight mb-3">
+              Ready to commit?
+            </h2>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+              Once you select this concept you will no longer be able to refine
+              it or view the other concept options. Make sure you are happy with
+              your chosen direction before proceeding.
+            </p>
+            <div
+              className="flex items-start gap-3 p-4 bg-secondary rounded-2xl mb-6 cursor-pointer"
+              onClick={() => setConfirmChecked(!confirmChecked)}
+            >
+              <div
+                className={`size-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                  confirmChecked
+                    ? "border-foreground bg-foreground"
+                    : "border-border"
+                }`}
+              >
+                {confirmChecked && (
+                  <svg
+                    className="size-3 text-background"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={3}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                )}
+              </div>
+              <p className="text-sm text-foreground">
+                I understand this selection is final and I am ready to proceed
+                with this brand concept.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowConfirmSelection(false)
+                  setConfirmChecked(false)
+                }}
+                className="flex-1 h-14 rounded-2xl text-sm font-medium border border-border hover:bg-secondary transition-all"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirmSelection(false)
+                  setShowCongratulations(true)
+                  setIsSelected(true)
+                  onSelect(currentConcept)
+                }}
+                disabled={!confirmChecked}
+                className="flex-1 h-14 rounded-2xl text-sm font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 transition-all"
+              >
+                Confirm Selection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCongratulations && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-6"
+          style={{
+            backgroundColor: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(4px)",
+          }}
+        >
+          <div className="bg-card rounded-3xl p-8 w-full max-w-md border border-border shadow-2xl relative">
+            <button
+              onClick={() => setShowCongratulations(false)}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="size-5" />
+            </button>
+
+            <div className="text-center mb-6">
+              <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-4">
+                Brand Selected
+              </p>
+              <h2 className="font-serif text-3xl text-foreground tracking-tight mb-2">
+                Congratulations
+              </h2>
+              <p className="text-muted-foreground text-sm leading-relaxed">
+                Your brand concept is confirmed. Download your complete brand
+                package below.
+              </p>
+            </div>
+
+            <div
+              className="rounded-2xl p-6 flex items-center justify-center mb-6"
+              style={{ backgroundColor: currentConcept.colors[0] }}
+            >
+              <div style={{ width: "80%" }}>
+                <WordmarkSVG
+                  composition={currentConcept.logoComposition}
+                  color={currentConcept.wordmarkColor}
+                  headingFont={currentConcept.fonts.heading}
+                />
+              </div>
+            </div>
+
+            <p
+              className="text-center text-lg italic text-muted-foreground mb-6"
+              style={{
+                fontFamily: `'${currentConcept.fonts.body}', sans-serif`,
+              }}
+            >
+              {currentConcept.tagline}
+            </p>
+
+            <button
+              onClick={() => alert("Export coming soon — Phase 2")}
+              className="w-full h-14 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
+            >
+              <Download className="size-5" />
+              Download Brand Package
+            </button>
+          </div>
+        </div>
       )}
     </div>
   )

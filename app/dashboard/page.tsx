@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
-import { Plus } from "lucide-react"
+import { Plus, Download } from "lucide-react"
 
 type Project = {
   id: string
@@ -12,6 +12,7 @@ type Project = {
   address: string
   status: "draft" | "in_progress" | "completed"
   selected_concept?: {
+    id: string
     brand_name: string
     colors: string[]
     wordmark_color: string
@@ -280,12 +281,23 @@ export default function DashboardPage() {
 
                   {/* Action button */}
                   {project.status === "completed" && (
-                    <button
-                      onClick={() => router.push(`/project/${project.id}/concept`)}
-                      className="w-full h-12 rounded-2xl text-sm font-medium bg-foreground text-background hover:bg-foreground/90 transition-all"
-                    >
-                      View Brand Concept
-                    </button>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => router.push(
+                          `/project/${project.id}/concept/${project.selected_concept?.id}`
+                        )}
+                        className="w-full h-12 rounded-2xl text-sm font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200"
+                      >
+                        View Brand Concept
+                      </button>
+                      <button
+                        onClick={() => alert("Export coming soon — Phase 2")}
+                        className="w-full h-12 rounded-2xl text-sm font-medium border border-border text-foreground hover:bg-secondary transition-all duration-200 flex items-center justify-center gap-2"
+                      >
+                        <Download className="size-4" />
+                        Download Brand Package
+                      </button>
+                    </div>
                   )}
                   {project.status === "in_progress" && (
                     <button

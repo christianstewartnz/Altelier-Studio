@@ -307,8 +307,6 @@ export default function ProjectPage() {
       .from("projects")
       .update({ status: "completed" })
       .eq("id", projectId)
-
-    router.push("/dashboard")
   }
 
   const handleStartOver = () => {
@@ -421,6 +419,39 @@ export default function ProjectPage() {
           )}
         </div>
       </main>
+
+      {!isGenerating && !showResults && !selectedConcept && (
+        <button
+          onClick={async () => {
+            setProjectOverview({
+              location: "Ponsonby, Auckland, New Zealand",
+              developmentType: "Residential Apartments",
+              numberOfHomes: "12 boutique apartments",
+              targetMarket: ["Young Professionals", "Investors"],
+              pricePositioning: "Premium",
+              additionalInfo: ""
+            })
+            setSiteCharacter({
+              qualities: ["views", "urban", "architectural"],
+              desiredTone: "Bold and contemporary",
+              siteContext: "Corner site on Ponsonby Road with elevated views over the city. Ground floor retail tenancy creating activation at street level.",
+              attachments: [],
+              additionalInfo: ""
+            })
+            setBrandAmbition({
+              buyerFeeling: "Arrived. Like they own the best address in Auckland.",
+              pointOfDifference: "Only boutique development on Ponsonby Road with ground floor cafe. Architectural design by award winning firm.",
+              direction: "bold-contemporary",
+              wordsToAvoid: "luxury, exclusive, premium",
+              additionalInfo: ""
+            })
+            await handleGenerate()
+          }}
+          className="fixed bottom-6 right-6 z-50 bg-red-500 text-white text-xs px-4 py-2 rounded-full shadow-lg hover:bg-red-600 transition-all opacity-70 hover:opacity-100"
+        >
+          DEV: Quick Generate
+        </button>
+      )}
     </div>
   )
 }
