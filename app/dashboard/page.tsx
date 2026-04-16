@@ -142,15 +142,6 @@ export default function DashboardPage() {
               <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground ml-6 -mt-0.5">{APP_SUBTITLE}</span>
             </div>
             <div className="flex items-center gap-4">
-              {projects.length > 0 && (
-                <button
-                  onClick={() => setShowNewProject(true)}
-                  className="flex items-center gap-2 h-10 px-4 rounded-full border border-border text-sm text-foreground hover:bg-secondary transition-all"
-                >
-                  <Plus className="size-4" />
-                  New Project
-                </button>
-              )}
               <button
                 onClick={handleLogout}
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -162,29 +153,40 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-16">
+      <main className="mx-auto max-w-6xl px-6 py-12">
 
         {/* Empty state */}
         {projects.length === 0 && (
-          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-            <h1 className="font-serif text-4xl md:text-5xl text-foreground tracking-tight mb-4">
-              Welcome to Atelier Studio
-            </h1>
-            <p className="text-muted-foreground text-lg max-w-md mb-12 leading-relaxed">
-              Create your first project to start generating brand concepts.
-            </p>
-            <button
-              onClick={() => setShowNewProject(true)}
-              className="h-16 px-12 rounded-2xl text-lg font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200"
-            >
-              Create Your First Project
-            </button>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="mx-auto max-w-2xl px-6 py-16 md:py-24 text-center">
+              <h1 className="font-serif text-4xl md:text-5xl text-foreground tracking-tight mb-5 text-balance">
+                Welcome to Atelier Studio
+              </h1>
+              <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed mb-12">
+                Create your first project to start generating distinctive brand concepts for your development.
+              </p>
+              <button
+                onClick={() => setShowNewProject(true)}
+                className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              >
+                Create Your First Project
+              </button>
+            </div>
           </div>
         )}
 
         {/* Projects grid */}
         {projects.length > 0 && (
           <div>
+            <div className="flex justify-end mb-6">
+              <button
+                onClick={() => setShowNewProject(true)}
+                className="flex items-center gap-2 h-10 px-4 rounded-full border border-border text-sm text-foreground hover:bg-background transition-all"
+              >
+                <Plus className="size-4" />
+                New Project
+              </button>
+            </div>
             <h1 className="font-serif text-3xl text-foreground tracking-tight mb-10">
               Your Projects
             </h1>
@@ -192,7 +194,7 @@ export default function DashboardPage() {
               {projects.map(project => (
                 <div
                   key={project.id}
-                  className="bg-card border border-border rounded-3xl p-6 flex flex-col gap-4"
+                  className="bg-background border border-border rounded-3xl p-6 flex flex-col gap-4"
                 >
                   {/* Logo preview or placeholder */}
                   <div
