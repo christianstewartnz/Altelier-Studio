@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect } from "react"
-import { ArrowRight } from "lucide-react"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 import { getContrastColor } from "@/lib/color-utils"
@@ -87,13 +87,13 @@ export function ResultsOverview({ concepts, onViewConcept, onStartOver, hasSeenI
               <span className="font-serif text-2xl md:text-3xl tracking-tight text-[#1C1C1C]">{APP_NAME}</span>
               <span className="text-[10px] tracking-[0.25em] uppercase text-[#6B6B6B] ml-6 -mt-0.5">{APP_SUBTITLE}</span>
             </div>
-            <Button 
-              variant="ghost" 
+            <button
               onClick={onStartOver}
-              className="text-muted-foreground hover:text-foreground"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              Start New Project
-            </Button>
+              <ArrowLeft className="size-4" />
+              Dashboard
+            </button>
           </div>
         </div>
       </header>

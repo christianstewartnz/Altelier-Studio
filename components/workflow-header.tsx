@@ -1,6 +1,6 @@
 "use client"
 
-import { RotateCcw } from "lucide-react"
+import { ArrowLeft, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type WorkflowHeaderProps = {
@@ -22,6 +22,15 @@ export function WorkflowHeader({ currentStep, onGoToStep, onStartOver, onLogout 
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="mx-auto max-w-5xl px-6 py-5">
         <div className="flex items-center justify-between">
+          {/* Dashboard Link */}
+          <button
+            onClick={onStartOver}
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="size-4" />
+            Dashboard
+          </button>
+
           {/* Logo - Asymmetrical composition */}
           <div className="flex flex-col">
             <span className="font-serif text-2xl md:text-3xl tracking-tight text-[#1C1C1C]">Atelier</span>

@@ -101,7 +101,12 @@ export function ConceptDetail({
                 {APP_SUBTITLE}
               </span>
             </div>
-            <div className="w-[100px]" />
+            <button
+              onClick={() => window.location.href = "/dashboard"}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Dashboard
+            </button>
           </div>
         </div>
       </header>

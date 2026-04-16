@@ -27,6 +27,7 @@ export default function DashboardPage() {
   const [showNewProject, setShowNewProject] = useState(false)
   const [projectName, setProjectName] = useState("")
   const [address, setAddress] = useState("")
+  const [suburbCity, setSuburbCity] = useState("")
   const [creating, setCreating] = useState(false)
   const [user, setUser] = useState<any>(null)
   const router = useRouter()
@@ -41,11 +42,7 @@ export default function DashboardPage() {
       const { data: projects } = await supabase
         .from("projects")
         .select(`
-          id,
-          project_name,
-          address,
-          status,
-          created_at,
+          *,
           concepts (
             id,
             brand_name,
@@ -78,7 +75,8 @@ export default function DashboardPage() {
   }
 
   async function handleCreateProject() {
-    if (!projectName.trim() || !address.trim()) return
+    if (!projectName.trim() || !address.trim() || 
+      !suburbCity.trim()) return
     setCreating(true)
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -90,6 +88,9 @@ export default function DashboardPage() {
         user_id: user.id,
         project_name: projectName.trim(),
         address: address.trim(),
+        street_address: address.trim(),
+        suburb_city: suburbCity.trim(),
+        location: suburbCity.trim(),
         status: "draft"
       })
       .select()
@@ -101,7 +102,40 @@ export default function DashboardPage() {
       return
     }
 
-    router.push(`/project/${project.id}`)
+    // Reset modal state before redirecting
+    setCreating(false)
+    setShowNewProject(false)
+    setProjectName("")
+    setAddress("")
+    setSuburbCity("")
+    
+    // Refresh projects list instead of redirecting
+    const { data: updatedProjects } = await supabase
+      .from("projects")
+      .select(`
+        *,
+        concepts (
+          id,
+          brand_name,
+          colors,
+          wordmark_color,
+          logo_composition,
+          fonts,
+          is_selected
+        )
+      `)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+
+    if (updatedProjects) {
+      const mapped = updatedProjects.map((p: any) => ({
+        ...p,
+        selected_concept: p.concepts?.find(
+          (c: any) => c.is_selected
+        ) || null
+      }))
+      setProjects(mapped)
+    }
   }
 
   async function handleLogout() {
@@ -230,7 +264,10 @@ export default function DashboardPage() {
                       {project.project_name}
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {project.address}
+                      {project.street_address || project.address}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {project.suburb_city || project.location}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       {new Date(project.created_at).toLocaleDateString("en-NZ", {
@@ -255,15 +292,21 @@ export default function DashboardPage() {
                       onClick={() => router.push(`/project/${project.id}`)}
                       className="w-full h-12 rounded-2xl text-sm font-medium border border-border hover:bg-secondary transition-all"
                     >
-                      Continue
+                      Continue Brief
                     </button>
                   )}
                   {project.status === "draft" && (
                     <button
-                      onClick={() => router.push(`/project/${project.id}`)}
+                      onClick={async () => {
+                        await supabase
+                          .from("projects")
+                          .update({ status: "in_progress" })
+                          .eq("id", project.id)
+                        router.push(`/project/${project.id}`)
+                      }}
                       className="w-full h-12 rounded-2xl text-sm font-medium border border-border hover:bg-secondary transition-all"
                     >
-                      Generate Brand Concept
+                      Create Brand Concept
                     </button>
                   )}
                 </div>
@@ -303,18 +346,28 @@ export default function DashboardPage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-foreground">
-                  Project Address
+                  Street Address
                 </label>
                 <input
                   type="text"
                   value={address}
                   onChange={e => setAddress(e.target.value)}
-                  placeholder="e.g. 1 Manuka Street, Miramar, Wellington"
+                  placeholder="e.g. 1 Manuka Street"
                   className="w-full h-14 px-5 bg-background border border-border rounded-2xl text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Enter the full street address including suburb and city
-                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-foreground">
+                  Suburb & City
+                </label>
+                <input
+                  type="text"
+                  value={suburbCity}
+                  onChange={e => setSuburbCity(e.target.value)}
+                  placeholder="e.g. Miramar, Wellington, New Zealand"
+                  className="w-full h-14 px-5 bg-background border border-border rounded-2xl text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                />
               </div>
             </div>
 
@@ -324,6 +377,7 @@ export default function DashboardPage() {
                   setShowNewProject(false)
                   setProjectName("")
                   setAddress("")
+                  setSuburbCity("")
                 }}
                 className="flex-1 h-14 rounded-2xl text-sm font-medium border border-border hover:bg-secondary transition-all"
               >
@@ -331,7 +385,7 @@ export default function DashboardPage() {
               </button>
               <button
                 onClick={handleCreateProject}
-                disabled={!projectName.trim() || !address.trim() || creating}
+                disabled={!projectName.trim() || !address.trim() || !suburbCity.trim() || creating}
                 className="flex-1 h-14 rounded-2xl text-sm font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 transition-all"
               >
                 {creating ? "Creating..." : "Create Project"}
