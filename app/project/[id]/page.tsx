@@ -272,9 +272,12 @@ export default function ProjectPage() {
 
       setShowResults(true)
       window.scrollTo({ top: 0, behavior: "smooth" })
-    } catch (error) {
+    } catch (error: any) {
       console.error("Generation failed:", error)
       clearInterval(messageInterval)
+      if (error?.status === 429) {
+        alert("You have reached your daily generation limit. Please try again tomorrow.")
+      }
     } finally {
       setIsGenerating(false)
     }

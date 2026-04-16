@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
+// // import { refineRatelimit } from "@/lib/ratelimit"
+import { createClient } from "@/lib/supabase/server"
 
 const client = new Anthropic()
 
@@ -85,6 +87,31 @@ No explanation. No preamble.
 `
 
 export async function POST(request: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json(
+      { error: "Unauthorised" },
+      { status: 401 }
+    )
+  }
+
+  // const { success, limit, reset, remaining } =
+  //   await refineRatelimit.limit(user.id)
+
+  // if (!success) {
+  //   return NextResponse.json(
+  //     {
+  //       error: "Daily refinement limit reached. You can refine again tomorrow.",
+  //       limit,
+  //       reset,
+  //       remaining
+  //     },
+  //     { status: 429 }
+  //   )
+  // }
+
   try {
     const { concept, selectedItems, contextInputs } =
       await request.json()

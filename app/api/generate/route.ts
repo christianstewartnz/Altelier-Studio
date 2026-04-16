@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
+// import { generateRatelimit } from "@/lib/ratelimit"
+import { createClient } from "@/lib/supabase/server"
 
 const client = new Anthropic()
 
@@ -39,6 +41,30 @@ function pickSessionStyles(): {
 }
 
 export async function POST(request: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json(
+      { error: "Unauthorised" },
+      { status: 401 }
+    )
+  }
+
+  // const { success, limit, reset, remaining } = await generateRatelimit.limit(user.id)
+
+  // if (!success) {
+  //   return NextResponse.json(
+  //     {
+  //       error: "Daily generation limit reached. You can generate again tomorrow.",
+  //       limit,
+  //       reset,
+  //       remaining
+  //     },
+  //     { status: 429 }
+  //   )
+  // }
+
   try {
     const { projectOverview, siteCharacter, brandAmbition } = await request.json()
 
