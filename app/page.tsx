@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { StepProjectOverview } from "@/components/steps/step-project-overview"
 import { StepSiteCharacter } from "@/components/steps/step-site-character"
 import { StepBrandAmbition } from "@/components/steps/step-brand-ambition"
@@ -125,6 +126,13 @@ export default function Home() {
   const [brandAmbition, setBrandAmbition] = useState<BrandAmbitionData>(initialBrandAmbition)
   const [hasSeenInstructions, setHasSeenInstructions] = useState(false)
   const [refinementsRemaining, setRefinementsRemaining] = useState(3)
+
+  const supabase = createClient()
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    window.location.href = "/login"
+  }
 
   const handleNext = () => {
     if (currentStep < 4) {
@@ -268,6 +276,7 @@ export default function Home() {
         currentStep={currentStep}
         onGoToStep={handleGoToStep}
         onStartOver={handleStartOver}
+        onLogout={handleLogout}
       />
       <main className="pb-24">
         <div className="relative">

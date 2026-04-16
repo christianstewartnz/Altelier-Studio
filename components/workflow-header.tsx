@@ -7,6 +7,7 @@ type WorkflowHeaderProps = {
   currentStep: number
   onGoToStep: (step: number) => void
   onStartOver: () => void
+  onLogout: () => void
 }
 
 const steps = [
@@ -16,7 +17,7 @@ const steps = [
   { number: 4, label: "Review" }
 ]
 
-export function WorkflowHeader({ currentStep, onGoToStep, onStartOver }: WorkflowHeaderProps) {
+export function WorkflowHeader({ currentStep, onGoToStep, onStartOver, onLogout }: WorkflowHeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="mx-auto max-w-5xl px-6 py-5">
@@ -75,19 +76,26 @@ export function WorkflowHeader({ currentStep, onGoToStep, onStartOver }: Workflo
             <span>4</span>
           </div>
 
-          {/* Start Over */}
-          {currentStep > 1 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onStartOver}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+          {/* Actions */}
+          <div className="flex items-center gap-2">
+            {currentStep > 1 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onStartOver}
+                className="text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RotateCcw className="size-4 mr-2" />
+                <span className="hidden sm:inline">Start Over</span>
+              </Button>
+            )}
+            <button
+              onClick={onLogout}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <RotateCcw className="size-4 mr-2" />
-              <span className="hidden sm:inline">Start Over</span>
-            </Button>
-          )}
-          {currentStep === 1 && <div className="w-[100px]" />}
+              Sign out
+            </button>
+          </div>
         </div>
 
         {/* Mobile Progress Bar */}
