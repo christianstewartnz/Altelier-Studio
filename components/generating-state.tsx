@@ -15,8 +15,8 @@ export function GeneratingState({ message }: { message: string }) {
       {/* Logo — top-left, consistent with other screens */}
       <div className="pt-8 pl-2">
         <div className="flex flex-col">
-          <span className="font-serif text-2xl md:text-3xl tracking-tight text-[#1C1C1C]">{APP_NAME}</span>
-          <span className="text-[10px] tracking-[0.25em] uppercase text-[#6B6B6B] ml-6 -mt-0.5">{APP_SUBTITLE}</span>
+          <span className="font-serif text-2xl md:text-3xl tracking-tight text-foreground">{APP_NAME}</span>
+          <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground ml-6 -mt-0.5">{APP_SUBTITLE}</span>
         </div>
       </div>
 

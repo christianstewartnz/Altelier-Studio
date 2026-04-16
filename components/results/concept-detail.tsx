@@ -78,56 +78,43 @@ export function ConceptDetail({
   }, [headingFont, bodyFont])
 
   return (
-    <div
-      className="min-h-screen bg-background"
-      style={{ fontFamily: `'${bodyFont}', sans-serif` }}
-    >
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
         <div className="mx-auto max-w-6xl px-6 py-5">
           <div className="flex items-center justify-between">
-            {!isSelected && (
-              <button 
-                onClick={onBack}
-                className="flex items-center gap-2 text-sm 
-                text-muted-foreground hover:text-foreground 
-                transition-colors"
-              >
-                <ArrowLeft className="size-4" />
-                <span className="text-sm">Back to concepts</span>
-              </button>
-            )}
-            {isSelected && (
-              <button
-                onClick={() => window.location.href = "/dashboard"}
-                className="flex items-center gap-2 text-sm 
-                text-muted-foreground hover:text-foreground 
-                transition-colors"
-              >
-                <ArrowLeft className="size-4" />
-                <span className="text-sm">Dashboard</span>
-              </button>
-            )}
-            <div className="flex flex-col items-center">
-              <span
-                className="text-xl tracking-tight text-[#1C1C1C]"
-                style={{ fontFamily: "Georgia, serif" }}
-              >
+            <div className="flex flex-col">
+              <span className="font-serif text-2xl md:text-3xl tracking-tight text-foreground">
                 {APP_NAME}
               </span>
-              <span
-                className="text-[8px] tracking-[0.25em] uppercase text-[#6B6B6B] ml-4 -mt-0.5"
-                style={{ fontFamily: "Arial, sans-serif" }}
-              >
+              <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground ml-6 -mt-0.5">
                 {APP_SUBTITLE}
               </span>
             </div>
-            <div className="w-[100px]" />
+            {/* TEMP HIDDEN FOR SCREENSHOT
+            {!isSelected ? (
+              <button
+                onClick={onBack}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="size-4" />
+                Concepts
+              </button>
+            ) : (
+              <button
+                onClick={() => { window.location.href = "/dashboard" }}
+                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="size-4" />
+                Dashboard
+              </button>
+            )}
+            */}
           </div>
         </div>
       </header>
 
-      <main className="pb-24">
+      <main className="pb-24" style={{ fontFamily: `'${bodyFont}', sans-serif` }}>
         {/* SECTION 1 — HERO */}
         <section className="relative py-24 md:py-32 overflow-hidden animate-in fade-in duration-700">
           <div 

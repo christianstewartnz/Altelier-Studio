@@ -11,8 +11,8 @@ export default function TermsPage() {
             <Link href="/dashboard" className="flex flex-col">
               <span className="font-serif text-xl tracking-tight 
               text-foreground">{APP_NAME}</span>
-              <span className="text-[8px] tracking-[0.25em] uppercase 
-              text-muted-foreground ml-4 -mt-0.5">Studio</span>
+              <span className="text-[10px] tracking-[0.25em] uppercase 
+              text-muted-foreground ml-6 -mt-0.5">Studio</span>
             </Link>
             <Link 
               href="/dashboard"

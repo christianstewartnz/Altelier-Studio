@@ -33,8 +33,8 @@ export function WorkflowHeader({ currentStep, onGoToStep, onStartOver, onLogout 
 
           {/* Logo - Asymmetrical composition */}
           <div className="flex flex-col">
-            <span className="font-serif text-2xl md:text-3xl tracking-tight text-[#1C1C1C]">Atelier</span>
-            <span className="text-[10px] tracking-[0.25em] uppercase text-[#6B6B6B] ml-6 -mt-0.5">Studio</span>
+            <span className="font-serif text-2xl md:text-3xl tracking-tight text-foreground">Atelier</span>
+            <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground ml-6 -mt-0.5">Studio</span>
           </div>
 
           {/* Progress Steps - Desktop */}

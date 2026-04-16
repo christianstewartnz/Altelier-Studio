@@ -84,8 +84,8 @@ export function ResultsOverview({ concepts, onViewConcept, onStartOver, hasSeenI
         <div className="mx-auto max-w-6xl px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="font-serif text-2xl md:text-3xl tracking-tight text-[#1C1C1C]">{APP_NAME}</span>
-              <span className="text-[10px] tracking-[0.25em] uppercase text-[#6B6B6B] ml-6 -mt-0.5">{APP_SUBTITLE}</span>
+              <span className="font-serif text-2xl md:text-3xl tracking-tight text-foreground">{APP_NAME}</span>
+              <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground ml-6 -mt-0.5">{APP_SUBTITLE}</span>
             </div>
             <button
               onClick={onStartOver}
