@@ -14,9 +14,13 @@ export default function ConceptDetailPage() {
   const [concept, setConcept] = useState<BrandConcept | null>(null)
   const [loading, setLoading] = useState(true)
   const [refinementsRemaining, setRefinementsRemaining] = useState(3)
+  const [userId, setUserId] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadConcept() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) setUserId(user.id)
+
       const { data, error } = await supabase
         .from("concepts")
         .select("*")
@@ -79,6 +83,8 @@ export default function ConceptDetailPage() {
   return (
     <ConceptDetail
       concept={concept}
+      projectId={params.id as string}
+      userId={userId ?? undefined}
       onBack={() => router.push("/dashboard")}
       onSelect={() => router.push("/dashboard")}
       onRefine={() => {}}

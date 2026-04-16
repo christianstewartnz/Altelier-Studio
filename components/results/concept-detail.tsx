@@ -1,16 +1,18 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowLeft, Check, Download, RefreshCw, X } from "lucide-react"
+import { ArrowLeft, Check, RefreshCw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 import { getContrastColor, getSortedColors } from "@/lib/color-utils"
 import type { BrandConcept } from "./results-overview"
 import { WordmarkSVG } from "./wordmark-svg"
 import { RefinementModal } from "./refinement-modal"
+import { ExportButton } from "@/components/export-button"
 
 type ConceptDetailProps = {
   concept: BrandConcept
+  projectId: string
   onBack: () => void
   onSelect: (concept: BrandConcept) => void
   onRefine: (concept: BrandConcept) => void
@@ -18,10 +20,12 @@ type ConceptDetailProps = {
   refinementsRemaining: number
   onRefinementUsed: () => void
   defaultIsSelected?: boolean
+  userId?: string
 }
 
 export function ConceptDetail({ 
   concept, 
+  projectId,
   onBack, 
   onSelect, 
   onRefine, 
@@ -29,6 +33,7 @@ export function ConceptDetail({
   refinementsRemaining,
   onRefinementUsed,
   defaultIsSelected,
+  userId,
 }: ConceptDetailProps) {
   const [currentConcept, setCurrentConcept] = useState(concept)
   const [showRefinement, setShowRefinement] = useState(false)
@@ -91,7 +96,6 @@ export function ConceptDetail({
                 {APP_SUBTITLE}
               </span>
             </div>
-            {/* TEMP HIDDEN FOR SCREENSHOT
             {!isSelected ? (
               <button
                 onClick={onBack}
@@ -109,7 +113,6 @@ export function ConceptDetail({
                 Dashboard
               </button>
             )}
-            */}
           </div>
         </div>
       </header>
@@ -556,13 +559,7 @@ export function ConceptDetail({
             </p>
             {isSelected ? (
               <div className="flex flex-col items-center gap-4">
-                <button
-                  onClick={() => alert("Export coming soon — Phase 2")}
-                  className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
-                >
-                  <Download className="size-5" />
-                  Download Brand Package
-                </button>
+                <ExportButton conceptId={concept.id} projectId={projectId} userId={userId} />
                 <p className="text-sm text-muted-foreground">
                   Your brand concept has been saved to your dashboard
                 </p>
@@ -756,13 +753,7 @@ export function ConceptDetail({
               {currentConcept.tagline}
             </p>
 
-            <button
-              onClick={() => alert("Export coming soon — Phase 2")}
-              className="w-full h-14 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
-            >
-              <Download className="size-5" />
-              Download Brand Package
-            </button>
+            <ExportButton conceptId={concept.id} projectId={projectId} userId={userId} />
           </div>
         </div>
       )}

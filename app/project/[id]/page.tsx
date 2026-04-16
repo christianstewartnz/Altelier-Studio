@@ -33,6 +33,7 @@ export default function ProjectPage() {
   const [refinementsRemaining, setRefinementsRemaining] = useState(3)
   const [loading, setLoading] = useState(true)
   const [projectName, setProjectName] = useState("")
+  const [userId, setUserId] = useState<string | null>(null)
 
   const [projectOverview, setProjectOverview] = useState<ProjectOverviewData>({
     location: "",
@@ -61,6 +62,9 @@ export default function ProjectPage() {
 
   useEffect(() => {
     async function loadProject() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) setUserId(user.id)
+
       const { data: project, error } = await supabase
         .from("projects")
         .select("*")
@@ -349,6 +353,8 @@ export default function ProjectPage() {
     return (
       <ConceptDetail
         concept={selectedConcept}
+        projectId={projectId}
+        userId={userId ?? undefined}
         onBack={handleBackToResults}
         onSelect={handleSelectConcept}
         onRefine={() => {}}
