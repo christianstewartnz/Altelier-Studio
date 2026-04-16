@@ -12,6 +12,7 @@ export default function SignupPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -144,9 +145,46 @@ export default function SignupPage() {
             <p className="text-sm text-destructive">{error}</p>
           )}
 
+          <div
+            className="flex items-start gap-3 cursor-pointer"
+            onClick={() => setAgreedToTerms(!agreedToTerms)}
+          >
+            <div className={`size-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+              agreedToTerms
+                ? "border-foreground bg-foreground"
+                : "border-border"
+            }`}>
+              {agreedToTerms && (
+                <svg className="size-3 text-background" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              I agree to the{" "}
+              <a
+                href="/terms"
+                target="_blank"
+                onClick={e => e.stopPropagation()}
+                className="text-foreground underline underline-offset-4 hover:text-foreground/80"
+              >
+                Terms of Service
+              </a>
+              {" "}and{" "}
+              <a
+                href="/privacy"
+                target="_blank"
+                onClick={e => e.stopPropagation()}
+                className="text-foreground underline underline-offset-4 hover:text-foreground/80"
+              >
+                Privacy Policy
+              </a>
+            </p>
+          </div>
+
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !agreedToTerms}
             className="w-full h-14 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 transition-all duration-200 mt-4"
           >
             {loading ? "Creating account..." : "Create Account"}
