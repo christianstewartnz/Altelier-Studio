@@ -50,8 +50,6 @@ export async function POST(request: Request) {
             user_id: userId,
             project_id: projectId,
             payment_id: paymentId,
-            downloaded_at: null,
-            file_url: null,
           },
           { onConflict: "concept_id" }
         )
