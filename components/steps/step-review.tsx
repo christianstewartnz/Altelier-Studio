@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import Script from "next/script"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Pencil, Sparkles } from "lucide-react"
@@ -64,6 +65,17 @@ export function StepReview({
   userId,
   isPaid
 }: StepReviewProps) {
+  useEffect(() => {
+    const handleCheckoutComplete = () => {
+      window.location.href = `/project/${projectId}?payment=success`
+    }
+
+    document.addEventListener("fungies:checkout:complete", handleCheckoutComplete)
+    return () => {
+      document.removeEventListener("fungies:checkout:complete", handleCheckoutComplete)
+    }
+  }, [projectId])
+
   const checkoutBaseUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
   const successUrl =
     typeof window !== "undefined"
