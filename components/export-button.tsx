@@ -1,11 +1,13 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Script from "next/script"
 import { Download, Loader2 } from "lucide-react"
 
 declare global {
   interface Window {
     Fungies?: {
+      Initialize: (options: { enableDataAttributes: boolean }) => void
       ScanDOM: () => void
     }
   }
@@ -74,50 +76,6 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
     checkPurchase()
   }, [conceptId, projectId])
 
-  // Load the Fungies script on mount
-  useEffect(() => {
-    const scriptSrc = "https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
-    const existingScript = document.querySelector<HTMLScriptElement>(
-      `script[src="${scriptSrc}"]`
-    )
-
-    if (existingScript) {
-      return
-    }
-
-    const script = document.createElement("script")
-    script.src = scriptSrc
-    script.defer = true
-    script.setAttribute("data-auto-init", "")
-    document.body.appendChild(script)
-  }, [])
-
-  // Call ScanDOM once the purchase check is done and the button is in the DOM
-  useEffect(() => {
-    if (checking) return
-    if (alreadyPurchased) return
-    if (!checkoutUrl) return
-
-    let attempts = 0
-    const maxAttempts = 50
-
-    const interval = setInterval(() => {
-      attempts++
-      console.log(`Attempt ${attempts}: window.Fungies =`, window.Fungies)
-      if (window.Fungies?.ScanDOM) {
-        clearInterval(interval)
-        console.log("Calling ScanDOM")
-        window.Fungies.ScanDOM()
-        console.log("ScanDOM called")
-      } else if (attempts >= maxAttempts) {
-        clearInterval(interval)
-        console.log("ScanDOM never found after 50 attempts")
-      }
-    }, 100)
-
-    return () => clearInterval(interval)
-  }, [checking, alreadyPurchased, checkoutUrl])
-
   if (checking) {
     return (
       <div className="flex flex-col items-center gap-2">
@@ -151,6 +109,14 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
 
   return (
     <div className="flex flex-col items-center gap-2">
+      <Script
+        src="https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
+        strategy="afterInteractive"
+        onLoad={() => {
+          window.Fungies?.Initialize({ enableDataAttributes: true })
+          window.Fungies?.ScanDOM()
+        }}
+      />
       <button
         data-fungies-checkout-url={checkoutUrl}
         data-fungies-mode="overlay"
