@@ -94,10 +94,24 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
   useEffect(() => {
     if (!readyForOverlayCheckout) return
     if (!checkoutUrl) return
-    if (!window.Fungies?.ScanDOM) return
 
-    window.Fungies.ScanDOM()
-  }, [readyForOverlayCheckout, checkoutUrl, customFields])
+    let attempts = 0
+    const maxAttempts = 50
+
+    const interval = setInterval(() => {
+      attempts++
+      if (window.Fungies?.ScanDOM) {
+        clearInterval(interval)
+        window.Fungies.ScanDOM()
+      } else if (attempts >= maxAttempts) {
+        clearInterval(interval)
+        // Fallback to new tab if SDK never loads
+        window.open(checkoutUrl, "_blank")
+      }
+    }, 100)
+
+    return () => clearInterval(interval)
+  }, [readyForOverlayCheckout, checkoutUrl])
 
   async function handleInitialClick() {
     setLoading(true)
