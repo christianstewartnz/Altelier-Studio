@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Download, Loader2 } from "lucide-react"
 
 type ExportButtonProps = {
@@ -12,21 +12,39 @@ type ExportButtonProps = {
 export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps) {
   const [loading, setLoading] = useState(false)
   const [alreadyPurchased, setAlreadyPurchased] = useState(false)
-  const [error, setError] = useState("")
   const [proceed, setProceed] = useState(false)
+  const [error, setError] = useState("")
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
-  // Load Fungies script via CDN using data attributes approach
+  // Load Fungies SDK script
   useEffect(() => {
-    const existing = document.getElementById("fungies-checkout-script")
+    const existing = document.getElementById("fungies-sdk")
     if (!existing) {
       const script = document.createElement("script")
-      script.id = "fungies-checkout-script"
-      script.src = "https://cdn.jsdelivr.net/npm/@fungies/fungies-js@2.0.0"
+      script.id = "fungies-sdk"
+      script.src = "https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
       script.defer = true
-      script.dataset.autoInit = ""
+      script.setAttribute("data-auto-init", "")
       document.body.appendChild(script)
     }
+
+    // Listen for checkout completion
+    const handleComplete = () => setAlreadyPurchased(true)
+    document.addEventListener("fungies:checkout:complete", handleComplete)
+    return () => {
+      document.removeEventListener("fungies:checkout:complete", handleComplete)
+    }
   }, [])
+
+  // Scan DOM when proceed button renders
+  useEffect(() => {
+    if (proceed) {
+      setTimeout(() => {
+        // @ts-ignore
+        if (window.Fungies?.ScanDOM) window.Fungies.ScanDOM()
+      }, 100)
+    }
+  }, [proceed])
 
   // Check URL params for payment result on mount
   useEffect(() => {
@@ -47,9 +65,7 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
           body: JSON.stringify({ conceptId, projectId, checkOnly: true })
         })
         const data = await response.json()
-        if (data.alreadyPurchased) {
-          setAlreadyPurchased(true)
-        }
+        if (data.alreadyPurchased) setAlreadyPurchased(true)
       } catch {
         // silently fail
       }
@@ -57,12 +73,7 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
     checkPurchase()
   }, [conceptId, projectId])
 
-  async function handleDownload() {
-    if (alreadyPurchased) {
-      alert("Export coming soon — files will download here")
-      return
-    }
-
+  async function handleInitialClick() {
     setLoading(true)
     setError("")
 
@@ -126,10 +137,11 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
     return (
       <div className="flex flex-col items-center gap-2">
         <button
+          ref={buttonRef}
           className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
           data-fungies-checkout-url={`${checkoutUrl}&success_url=${encodeURIComponent(successUrl)}`}
-          data-fungies-custom-fields={customFieldsJson}
           data-fungies-mode="overlay"
+          data-fungies-custom-fields={customFieldsJson}
         >
           <Download className="size-5" />
           Purchase & Download — $429 NZD
@@ -141,7 +153,7 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
   return (
     <div className="flex flex-col items-center gap-2">
       <button
-        onClick={handleDownload}
+        onClick={handleInitialClick}
         disabled={loading}
         className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 transition-all duration-200 flex items-center justify-center gap-2"
       >
