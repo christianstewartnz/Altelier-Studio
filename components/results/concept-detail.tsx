@@ -1,14 +1,32 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowLeft, Check, RefreshCw, X } from "lucide-react"
+import { ArrowLeft, Check, Download, RefreshCw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 import { getContrastColor, getSortedColors } from "@/lib/color-utils"
 import type { BrandConcept } from "./results-overview"
 import { WordmarkSVG } from "./wordmark-svg"
 import { RefinementModal } from "./refinement-modal"
-import { ExportButton } from "@/components/export-button"
+
+function DownloadBrandPackageButton() {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <button
+        onClick={() =>
+          alert("Export coming soon — files will download here")
+        }
+        className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
+      >
+        <Download className="size-5" />
+        Download Brand Package
+      </button>
+      <p className="text-sm text-muted-foreground">
+        Your brand package is ready to download
+      </p>
+    </div>
+  )
+}
 
 type ConceptDetailProps = {
   concept: BrandConcept
@@ -559,7 +577,7 @@ export function ConceptDetail({
             </p>
             {isSelected ? (
               <div className="flex flex-col items-center gap-4">
-                <ExportButton conceptId={concept.id} projectId={projectId} userId={userId} />
+                <DownloadBrandPackageButton />
                 <p className="text-sm text-muted-foreground">
                   Your brand concept has been saved to your dashboard
                 </p>
@@ -753,7 +771,7 @@ export function ConceptDetail({
               {currentConcept.tagline}
             </p>
 
-            <ExportButton conceptId={concept.id} projectId={projectId} userId={userId} />
+            <DownloadBrandPackageButton />
           </div>
         </div>
       )}

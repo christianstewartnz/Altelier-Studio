@@ -1,4 +1,4 @@
-// Fungies webhook handler v2
+// Fungies webhook handler — project-level payment unlocks generation
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
@@ -28,14 +28,14 @@ export async function POST(request: Request) {
     console.log("Fungies webhook received:", event.type)
 
     if (event.type === "payment_success") {
-      // Custom fields are set on the Fungies product and pre-filled via checkout URL params
+      // Custom fields are set on the Fungies product and pre-filled via checkout URL params.
+      // New contract: { project_id, user_id } — payment unlocks generation for the project.
       const customFields = event.data?.items?.[0]?.customFields ?? {}
-      const conceptId = customFields.concept_id
-      const userId = customFields.user_id
       const projectId = customFields.project_id
+      const userId = customFields.user_id
       const paymentId = event.data?.payment?.id || event.data?.order?.id
 
-      if (!conceptId || !userId) {
+      if (!projectId || !userId) {
         console.error("Missing custom fields in webhook payload:", customFields)
         return NextResponse.json({ error: "Missing required custom fields" }, { status: 400 })
       }
@@ -43,19 +43,16 @@ export async function POST(request: Request) {
       const supabase = getServiceClient()
 
       const { error } = await supabase
-        .from("exports")
-        .upsert(
-          {
-            concept_id: conceptId,
-            user_id: userId,
-            project_id: projectId,
-            payment_id: paymentId,
-          },
-          { onConflict: "concept_id" }
-        )
+        .from("projects")
+        .update({
+          paid_at: new Date().toISOString(),
+          payment_id: paymentId,
+        })
+        .eq("id", projectId)
+        .eq("user_id", userId)
 
       if (error) {
-        console.error("Supabase upsert error:", {
+        console.error("Supabase project payment update error:", {
           code: error.code,
           message: error.message,
           details: error.details,
@@ -64,7 +61,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Database error" }, { status: 500 })
       }
 
-      console.log(`Export unlocked — concept: ${conceptId}, user: ${userId}`)
+      console.log(`Generation unlocked — project: ${projectId}, user: ${userId}`)
     }
 
     return NextResponse.json({ received: true }, { status: 200 })

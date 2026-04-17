@@ -66,7 +66,36 @@ export async function POST(request: Request) {
   // }
 
   try {
-    const { projectOverview, siteCharacter, brandAmbition } = await request.json()
+    const { projectId, projectOverview, siteCharacter, brandAmbition } = await request.json()
+
+    if (!projectId) {
+      return NextResponse.json(
+        { error: "Missing projectId" },
+        { status: 400 }
+      )
+    }
+
+    // Paywall: generation is only unlocked once the project has been paid for.
+    const { data: project, error: projectError } = await supabase
+      .from("projects")
+      .select("id, user_id, paid_at")
+      .eq("id", projectId)
+      .eq("user_id", user.id)
+      .single()
+
+    if (projectError || !project) {
+      return NextResponse.json(
+        { error: "Project not found" },
+        { status: 404 }
+      )
+    }
+
+    if (!project.paid_at) {
+      return NextResponse.json(
+        { error: "Payment required to generate brand concepts" },
+        { status: 402 }
+      )
+    }
 
     const userBrief = `
 PROJECT OVERVIEW

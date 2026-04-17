@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { StepProjectOverview } from "@/components/steps/step-project-overview"
@@ -34,6 +34,10 @@ export default function ProjectPage() {
   const [loading, setLoading] = useState(true)
   const [projectName, setProjectName] = useState("")
   const [userId, setUserId] = useState<string | null>(null)
+  const [isPaid, setIsPaid] = useState(false)
+
+  // Guard so the post-payment auto-generate only ever fires once per mount.
+  const autoGenerateTriggered = useRef(false)
 
   const [projectOverview, setProjectOverview] = useState<ProjectOverviewData>({
     location: "",
@@ -77,6 +81,7 @@ export default function ProjectPage() {
       }
 
       setProjectName(project.project_name)
+      setIsPaid(Boolean(project.paid_at))
 
       // Pre-fill location from suburb_city
       setProjectOverview(prev => ({
@@ -138,10 +143,60 @@ export default function ProjectPage() {
       }
 
       setLoading(false)
+
+      // Handle post-payment redirect:
+      // If we have ?payment=success, poll until paid_at is set on the project
+      // (the webhook can lag the Fungies redirect by a few seconds), then
+      // kick off generation automatically.
+      const hasConcepts = Boolean(existingConcepts && existingConcepts.length > 0)
+      const params = new URLSearchParams(window.location.search)
+      const isPaymentReturn = params.get("payment") === "success"
+
+      if (isPaymentReturn && !hasConcepts && !autoGenerateTriggered.current) {
+        autoGenerateTriggered.current = true
+        void handlePaymentReturn(Boolean(project.paid_at))
+      } else if (Boolean(project.paid_at) && !hasConcepts && !autoGenerateTriggered.current) {
+        // Covers the case where a user paid earlier but closed the tab
+        // before generation finished — show the paid Generate button
+        // in the review step by leaving isPaid=true; no auto-fire here.
+      }
     }
 
     loadProject()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId])
+
+  async function handlePaymentReturn(alreadyPaid: boolean) {
+    // Clear the query param immediately so refreshes don't retrigger.
+    window.history.replaceState({}, "", window.location.pathname)
+
+    let confirmed = alreadyPaid
+    if (!confirmed) {
+      // Poll for up to ~20s waiting for the webhook.
+      for (let attempt = 0; attempt < 10; attempt++) {
+        await new Promise(res => setTimeout(res, 2000))
+        const { data } = await supabase
+          .from("projects")
+          .select("paid_at")
+          .eq("id", projectId)
+          .single()
+        if (data?.paid_at) {
+          confirmed = true
+          break
+        }
+      }
+    }
+
+    if (!confirmed) {
+      alert(
+        "We're still confirming your payment. Please refresh in a moment — if this persists, contact support."
+      )
+      return
+    }
+
+    setIsPaid(true)
+    await handleGenerate()
+  }
 
   async function saveStepToDatabase(step: number) {
     const updates: any = {}
@@ -222,11 +277,27 @@ export default function ProjectPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          projectId,
           projectOverview,
           siteCharacter,
           brandAmbition
         })
       })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        clearInterval(messageInterval)
+        if (response.status === 402 || response.status === 403) {
+          alert("Payment is required before concepts can be generated.")
+        } else if (response.status === 429) {
+          alert("You have reached your daily generation limit. Please try again tomorrow.")
+        } else {
+          alert(err.error || "Generation failed. Please try again.")
+        }
+        setIsGenerating(false)
+        return
+      }
+
       const data = await response.json()
       clearInterval(messageInterval)
 
@@ -279,9 +350,6 @@ export default function ProjectPage() {
     } catch (error: any) {
       console.error("Generation failed:", error)
       clearInterval(messageInterval)
-      if (error?.status === 429) {
-        alert("You have reached your daily generation limit. Please try again tomorrow.")
-      }
     } finally {
       setIsGenerating(false)
     }
@@ -424,12 +492,15 @@ export default function ProjectPage() {
               onGoToStep={handleGoToStep}
               onPrevious={handlePrevious}
               onGenerate={handleGenerate}
+              projectId={projectId}
+              userId={userId ?? undefined}
+              isPaid={isPaid}
             />
           )}
         </div>
       </main>
 
-      {!isGenerating && !showResults && !selectedConcept && (
+      {process.env.NODE_ENV !== "production" && isPaid && !isGenerating && !showResults && !selectedConcept && (
         <button
           onClick={async () => {
             setProjectOverview({

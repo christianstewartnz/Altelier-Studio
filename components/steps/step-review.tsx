@@ -1,8 +1,19 @@
 "use client"
 
+import Script from "next/script"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Pencil, Sparkles } from "lucide-react"
 import type { ProjectOverviewData, SiteCharacterData, BrandAmbitionData } from "@/app/page"
+
+declare global {
+  interface Window {
+    Fungies?: {
+      Fungies?: {
+        ScanDOM: () => void
+      }
+    }
+  }
+}
 
 type StepReviewProps = {
   projectOverview: ProjectOverviewData
@@ -11,6 +22,9 @@ type StepReviewProps = {
   onGoToStep: (step: number) => void
   onPrevious: () => void
   onGenerate: () => void
+  projectId: string
+  userId?: string
+  isPaid: boolean
 }
 
 const siteQualityLabels: Record<string, string> = {
@@ -39,14 +53,40 @@ const brandDirectionLabels: Record<string, string> = {
   "timeless-understated": "Timeless & Understated"
 }
 
-export function StepReview({ 
-  projectOverview, 
-  siteCharacter, 
-  brandAmbition, 
-  onGoToStep, 
+export function StepReview({
+  projectOverview,
+  siteCharacter,
+  brandAmbition,
+  onGoToStep,
   onPrevious,
-  onGenerate 
+  onGenerate,
+  projectId,
+  userId,
+  isPaid
 }: StepReviewProps) {
+  const checkoutBaseUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
+  const successUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/project/${projectId}?payment=success`
+      : ""
+  const checkoutUrl = (() => {
+    if (!checkoutBaseUrl) return ""
+    try {
+      const url = new URL(checkoutBaseUrl)
+      if (successUrl) {
+        url.searchParams.set("success_url", successUrl)
+      }
+      return url.toString()
+    } catch {
+      return checkoutBaseUrl
+    }
+  })()
+
+  const customFields = JSON.stringify({
+    project_id: projectId,
+    user_id: userId || ""
+  })
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="mx-auto max-w-3xl px-6 py-16 md:py-20">
@@ -230,13 +270,34 @@ export function StepReview({
               <ArrowLeft className="size-5 mr-2" />
               Previous
             </Button>
-            <Button
-              onClick={onGenerate}
-              className="h-14 px-10 rounded-2xl text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              <Sparkles className="size-5 mr-2" />
-              Generate Brand Concepts
-            </Button>
+            {isPaid ? (
+              <Button
+                onClick={onGenerate}
+                className="h-14 px-10 rounded-2xl text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
+              >
+                <Sparkles className="size-5 mr-2" />
+                Generate Brand Concepts
+              </Button>
+            ) : (
+              <>
+                <Script
+                  src="https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
+                  strategy="afterInteractive"
+                  onLoad={() => {
+                    window.Fungies?.Fungies?.ScanDOM()
+                  }}
+                />
+                <button
+                  data-fungies-checkout-url={checkoutUrl}
+                  data-fungies-mode="overlay"
+                  data-fungies-custom-fields={customFields}
+                  className="h-14 px-10 rounded-2xl text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="size-5" />
+                  Generate Brand Concepts — $429 NZD
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
