@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { Download, Loader2 } from "lucide-react"
-import { initFungies, getFungies } from "@/lib/fungies"
 
 type ExportButtonProps = {
   conceptId: string
@@ -14,10 +13,19 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
   const [loading, setLoading] = useState(false)
   const [alreadyPurchased, setAlreadyPurchased] = useState(false)
   const [error, setError] = useState("")
+  const [proceed, setProceed] = useState(false)
 
-  // Initialise Fungies SDK on mount
+  // Load Fungies script via CDN using data attributes approach
   useEffect(() => {
-    initFungies()
+    const existing = document.getElementById("fungies-checkout-script")
+    if (!existing) {
+      const script = document.createElement("script")
+      script.id = "fungies-checkout-script"
+      script.src = "https://cdn.jsdelivr.net/npm/@fungies/fungies-js@2.0.0"
+      script.defer = true
+      script.dataset.autoInit = ""
+      document.body.appendChild(script)
+    }
   }, [])
 
   // Check URL params for payment result on mount
@@ -49,39 +57,6 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
     checkPurchase()
   }, [conceptId, projectId])
 
-  function openOverlay() {
-    const checkoutUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL
-    if (!checkoutUrl) {
-      setError("Checkout unavailable. Please try again.")
-      return
-    }
-
-    const successUrl = `${window.location.origin}${window.location.pathname}?payment=success`
-    const fullUrl = `${checkoutUrl}&success_url=${encodeURIComponent(successUrl)}`
-
-    const Fungies = getFungies()
-    if (Fungies?.Checkout?.open) {
-      Fungies.Checkout.open({
-        checkoutUrl: fullUrl,
-        settings: { mode: "overlay" },
-        customFields: {
-          concept_id: conceptId,
-          project_id: projectId,
-          user_id: userId || ""
-        }
-      })
-
-      // Listen for checkout completion
-      document.addEventListener("fungies:checkout:complete", () => {
-        setAlreadyPurchased(true)
-      }, { once: true })
-
-    } else {
-      // Fallback to new tab
-      window.open(fullUrl, "_blank")
-    }
-  }
-
   async function handleDownload() {
     if (alreadyPurchased) {
       alert("Export coming soon — files will download here")
@@ -107,7 +82,7 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
       }
 
       if (data.proceed) {
-        openOverlay()
+        setProceed(true)
         setLoading(false)
         return
       }
@@ -118,6 +93,49 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
     }
 
     setLoading(false)
+  }
+
+  const checkoutUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
+  const customFieldsJson = JSON.stringify({
+    concept_id: conceptId,
+    project_id: projectId,
+    user_id: userId || ""
+  })
+  const successUrl = typeof window !== "undefined"
+    ? `${window.location.origin}${window.location.pathname}?payment=success`
+    : ""
+
+  if (alreadyPurchased) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <button
+          onClick={() => alert("Export coming soon — files will download here")}
+          className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
+        >
+          <Download className="size-5" />
+          Download Brand Package
+        </button>
+        <p className="text-sm text-muted-foreground">
+          Your brand package is ready to download
+        </p>
+      </div>
+    )
+  }
+
+  if (proceed) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <button
+          className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
+          data-fungies-checkout-url={`${checkoutUrl}&success_url=${encodeURIComponent(successUrl)}`}
+          data-fungies-custom-fields={customFieldsJson}
+          data-fungies-mode="overlay"
+        >
+          <Download className="size-5" />
+          Purchase & Download — $429 NZD
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -132,15 +150,10 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
         ) : (
           <Download className="size-5" />
         )}
-        {alreadyPurchased ? "Download Brand Package" : "Purchase & Download — $429 NZD"}
+        Purchase & Download — $429 NZD
       </button>
       {error && (
         <p className="text-sm text-destructive">{error}</p>
-      )}
-      {alreadyPurchased && (
-        <p className="text-sm text-muted-foreground">
-          Your brand package is ready to download
-        </p>
       )}
     </div>
   )
