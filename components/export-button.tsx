@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Download, Loader2 } from "lucide-react"
+import { initFungies, getFungies } from "@/lib/fungies"
 
 type ExportButtonProps = {
   conceptId: string
@@ -14,16 +15,9 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
   const [alreadyPurchased, setAlreadyPurchased] = useState(false)
   const [error, setError] = useState("")
 
-  // Load Fungies script
+  // Initialise Fungies SDK on mount
   useEffect(() => {
-    const existing = document.getElementById("fungies-script")
-    if (existing) return
-    const script = document.createElement("script")
-    script.id = "fungies-script"
-    script.src = "https://cdn.jsdelivr.net/npm/@fungies/js@latest"
-    script.defer = true
-    script.setAttribute("data-auto-init", "true")
-    document.head.appendChild(script)
+    initFungies()
   }, [])
 
   // Check URL params for payment result on mount
@@ -56,32 +50,35 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
   }, [conceptId, projectId])
 
   function openOverlay() {
-    const baseUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL
-    if (!baseUrl) {
+    const checkoutUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL
+    if (!checkoutUrl) {
       setError("Checkout unavailable. Please try again.")
       return
     }
 
-    const customFields = JSON.stringify({
-      concept_id: conceptId,
-      project_id: projectId,
-      user_id: userId || ""
-    })
-
     const successUrl = `${window.location.origin}${window.location.pathname}?payment=success`
+    const fullUrl = `${checkoutUrl}&success_url=${encodeURIComponent(successUrl)}`
 
-    const url = `${baseUrl}&customFields=${encodeURIComponent(customFields)}&success_url=${encodeURIComponent(successUrl)}`
-
-    // @ts-ignore
-    const Fungies = window.Fungies
+    const Fungies = getFungies()
     if (Fungies?.Checkout?.open) {
       Fungies.Checkout.open({
-        checkoutUrl: url,
-        settings: { mode: "overlay" }
+        checkoutUrl: fullUrl,
+        settings: { mode: "overlay" },
+        customFields: {
+          concept_id: conceptId,
+          project_id: projectId,
+          user_id: userId || ""
+        }
       })
+
+      // Listen for checkout completion
+      document.addEventListener("fungies:checkout:complete", () => {
+        setAlreadyPurchased(true)
+      }, { once: true })
+
     } else {
-      // Fallback to redirect if SDK not loaded
-      window.location.href = url
+      // Fallback to new tab
+      window.open(fullUrl, "_blank")
     }
   }
 
