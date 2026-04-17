@@ -1,9 +1,10 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import Script from "next/script"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Pencil, Sparkles } from "lucide-react"
+import { createClient } from "@/lib/supabase/client"
 import type { ProjectOverviewData, SiteCharacterData, BrandAmbitionData } from "@/app/page"
 
 declare global {
@@ -11,8 +12,13 @@ declare global {
     Fungies?: {
       Fungies?: {
         ScanDOM: () => void
+        Initialize: (
+          options: { enableDataAttributes?: boolean },
+          state?: { completedSetup?: boolean; options?: unknown }
+        ) => void
       }
     }
+    __fungiesInitialized?: boolean
   }
 }
 
@@ -65,16 +71,44 @@ export function StepReview({
   userId,
   isPaid
 }: StepReviewProps) {
+  const redirectedRef = useRef(false)
+
   useEffect(() => {
-    const handleCheckoutComplete = () => {
+    if (isPaid) return
+
+    const redirectToSuccess = () => {
+      if (redirectedRef.current) return
+      redirectedRef.current = true
       window.location.href = `/project/${projectId}?payment=success`
     }
 
-    document.addEventListener("fungies:checkout:complete", handleCheckoutComplete)
+    // Primary signal: the SDK's checkout-complete event.
+    // NOTE: Fungies SDK v0.7.2 only dispatches this event if Initialize()
+    // has been called — ScanDOM() alone isn't enough. The Script's onLoad
+    // below handles that.
+    document.addEventListener("fungies:checkout:complete", redirectToSuccess)
+
+    // Fallback signal: poll our own DB for paid_at. Our webhook flips it
+    // on payment_success, so if the SDK event is missed (older cached SDK,
+    // postMessage blocked, overlay closed early, etc.) we still catch it.
+    const supabase = createClient()
+    const pollInterval = window.setInterval(async () => {
+      if (redirectedRef.current) return
+      const { data } = await supabase
+        .from("projects")
+        .select("paid_at")
+        .eq("id", projectId)
+        .maybeSingle()
+      if (data?.paid_at) {
+        redirectToSuccess()
+      }
+    }, 3000)
+
     return () => {
-      document.removeEventListener("fungies:checkout:complete", handleCheckoutComplete)
+      document.removeEventListener("fungies:checkout:complete", redirectToSuccess)
+      window.clearInterval(pollInterval)
     }
-  }, [projectId])
+  }, [projectId, isPaid])
 
   const checkoutBaseUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
   const successUrl =
@@ -296,7 +330,17 @@ export function StepReview({
                   src="https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
                   strategy="afterInteractive"
                   onLoad={() => {
-                    window.Fungies?.Fungies?.ScanDOM()
+                    // Initialize() (not ScanDOM()) is what attaches the
+                    // window.postMessage listener that dispatches
+                    // `fungies:checkout:complete` / `fungies:checkout:close`
+                    // on document and cleans up the overlay iframe on close.
+                    // Guarded so we don't double-register on re-mounts.
+                    if (!window.__fungiesInitialized) {
+                      window.Fungies?.Fungies?.Initialize({ enableDataAttributes: true })
+                      window.__fungiesInitialized = true
+                    } else {
+                      window.Fungies?.Fungies?.ScanDOM()
+                    }
                   }}
                 />
                 <button
