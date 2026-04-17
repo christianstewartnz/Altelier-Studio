@@ -63,8 +63,12 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
       if (data.proceed) {
         const baseUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
         const successUrl = `${window.location.origin}${window.location.pathname}?payment=success`
-        const url = `${baseUrl}&success_url=${encodeURIComponent(successUrl)}&concept_id=${encodeURIComponent(conceptId)}&project_id=${encodeURIComponent(projectId)}&user_id=${encodeURIComponent(userId || "")}`
-        window.open(url, "_blank")
+        const checkoutUrl = new URL(baseUrl)
+        checkoutUrl.searchParams.set("success_url", successUrl)
+        checkoutUrl.searchParams.set("concept_id", conceptId)
+        checkoutUrl.searchParams.set("project_id", projectId)
+        checkoutUrl.searchParams.set("user_id", userId || "")
+        window.open(checkoutUrl.toString(), "_blank")
         setLoading(false)
         return
       }
