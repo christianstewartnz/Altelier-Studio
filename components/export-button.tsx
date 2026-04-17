@@ -18,10 +18,8 @@ type ExportButtonProps = {
 }
 
 export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps) {
-  const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(true)
   const [alreadyPurchased, setAlreadyPurchased] = useState(false)
-  const [readyForOverlayCheckout, setReadyForOverlayCheckout] = useState(false)
-  const [error, setError] = useState("")
 
   const checkoutBaseUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
   const successUrl =
@@ -69,11 +67,14 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
         if (data.alreadyPurchased) setAlreadyPurchased(true)
       } catch {
         // silently fail
+      } finally {
+        setChecking(false)
       }
     }
     checkPurchase()
   }, [conceptId, projectId])
 
+  // Load the Fungies script on mount
   useEffect(() => {
     const scriptSrc = "https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
     const existingScript = document.querySelector<HTMLScriptElement>(
@@ -91,8 +92,10 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
     document.body.appendChild(script)
   }, [])
 
+  // Call ScanDOM once the purchase check is done and the button is in the DOM
   useEffect(() => {
-    if (!readyForOverlayCheckout) return
+    if (checking) return
+    if (alreadyPurchased) return
     if (!checkoutUrl) return
 
     let attempts = 0
@@ -105,51 +108,24 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
         window.Fungies.ScanDOM()
       } else if (attempts >= maxAttempts) {
         clearInterval(interval)
-        // Fallback to new tab if SDK never loads
-        window.open(checkoutUrl, "_blank")
       }
     }, 100)
 
     return () => clearInterval(interval)
-  }, [readyForOverlayCheckout, checkoutUrl])
+  }, [checking, alreadyPurchased, checkoutUrl])
 
-  async function handleInitialClick() {
-    setLoading(true)
-    setError("")
-
-    try {
-      const response = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conceptId, projectId })
-      })
-
-      const data = await response.json()
-
-      if (data.alreadyPurchased) {
-        setAlreadyPurchased(true)
-        setLoading(false)
-        return
-      }
-
-      if (data.proceed) {
-        if (!checkoutUrl) {
-          setError("Checkout is not configured. Please try again later.")
-          setLoading(false)
-          return
-        }
-
-        setReadyForOverlayCheckout(true)
-        setLoading(false)
-        return
-      }
-
-      setError("Something went wrong. Please try again.")
-    } catch {
-      setError("Something went wrong. Please try again.")
-    }
-
-    setLoading(false)
+  if (checking) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <button
+          disabled
+          className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background disabled:opacity-40 transition-all duration-200 flex items-center justify-center gap-2"
+        >
+          <Loader2 className="size-5 animate-spin" />
+          Purchase & Download — $429 NZD
+        </button>
+      </div>
+    )
   }
 
   if (alreadyPurchased) {
@@ -172,23 +148,14 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
   return (
     <div className="flex flex-col items-center gap-2">
       <button
-        onClick={readyForOverlayCheckout ? undefined : handleInitialClick}
-        disabled={loading}
-        data-fungies-checkout-url={readyForOverlayCheckout ? checkoutUrl : undefined}
-        data-fungies-mode={readyForOverlayCheckout ? "overlay" : undefined}
-        data-fungies-custom-fields={readyForOverlayCheckout ? customFields : undefined}
-        className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 transition-all duration-200 flex items-center justify-center gap-2"
+        data-fungies-checkout-url={checkoutUrl}
+        data-fungies-mode="overlay"
+        data-fungies-custom-fields={customFields}
+        className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
       >
-        {loading ? (
-          <Loader2 className="size-5 animate-spin" />
-        ) : (
-          <Download className="size-5" />
-        )}
+        <Download className="size-5" />
         Purchase & Download — $429 NZD
       </button>
-      {error && (
-        <p className="text-sm text-destructive">{error}</p>
-      )}
     </div>
   )
 }
