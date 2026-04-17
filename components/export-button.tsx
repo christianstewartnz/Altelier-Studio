@@ -7,7 +7,9 @@ import { Download, Loader2 } from "lucide-react"
 declare global {
   interface Window {
     Fungies?: {
-      ScanDOM: () => void
+      Fungies?: {
+        ScanDOM: () => void
+      }
     }
   }
 }
@@ -112,7 +114,7 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
         src="https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
         strategy="afterInteractive"
         onLoad={() => {
-          window.Fungies?.ScanDOM()
+          window.Fungies?.Fungies?.ScanDOM()
         }}
       />
       <button
