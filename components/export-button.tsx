@@ -103,11 +103,15 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
 
     const interval = setInterval(() => {
       attempts++
+      console.log(`Attempt ${attempts}: window.Fungies =`, window.Fungies)
       if (window.Fungies?.ScanDOM) {
         clearInterval(interval)
+        console.log("Calling ScanDOM")
         window.Fungies.ScanDOM()
+        console.log("ScanDOM called")
       } else if (attempts >= maxAttempts) {
         clearInterval(interval)
+        console.log("ScanDOM never found after 50 attempts")
       }
     }, 100)
 
