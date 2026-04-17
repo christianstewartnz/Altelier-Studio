@@ -7,7 +7,6 @@ import { Download, Loader2 } from "lucide-react"
 declare global {
   interface Window {
     Fungies?: {
-      Initialize: (options: { enableDataAttributes: boolean }) => void
       ScanDOM: () => void
     }
   }
@@ -113,7 +112,6 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
         src="https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
         strategy="afterInteractive"
         onLoad={() => {
-          window.Fungies?.Initialize({ enableDataAttributes: true })
           window.Fungies?.ScanDOM()
         }}
       />
