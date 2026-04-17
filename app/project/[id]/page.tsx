@@ -35,6 +35,8 @@ export default function ProjectPage() {
   const [projectName, setProjectName] = useState("")
   const [userId, setUserId] = useState<string | null>(null)
   const [isPaid, setIsPaid] = useState(false)
+  const [isTrialEligible, setIsTrialEligible] = useState(false)
+  const [isFreeTrial, setIsFreeTrial] = useState(false)
 
   // Guard so the post-payment auto-generate only ever fires once per mount.
   const autoGenerateTriggered = useRef(false)
@@ -82,6 +84,25 @@ export default function ProjectPage() {
 
       setProjectName(project.project_name)
       setIsPaid(Boolean(project.paid_at))
+
+      // Load trial flags from the profile so we can show the free Generate
+      // button when the user still has their one-and-only free generation
+      // available, and pick the correct Fungies overlay URL on the download
+      // button in the concept detail.
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_free_trial, free_trial_used")
+          .eq("id", user.id)
+          .single()
+
+        if (profile) {
+          setIsFreeTrial(Boolean(profile.is_free_trial))
+          setIsTrialEligible(
+            Boolean(profile.is_free_trial) && !profile.free_trial_used
+          )
+        }
+      }
 
       // Pre-fill location from suburb_city
       setProjectOverview(prev => ({
@@ -431,6 +452,8 @@ export default function ProjectPage() {
         onRefinementUsed={() => 
           setRefinementsRemaining(prev => prev - 1)
         }
+        isPaid={isPaid}
+        isFreeTrial={isFreeTrial}
       />
     )
   }
@@ -495,12 +518,13 @@ export default function ProjectPage() {
               projectId={projectId}
               userId={userId ?? undefined}
               isPaid={isPaid}
+              isTrialEligible={isTrialEligible}
             />
           )}
         </div>
       </main>
 
-      {process.env.NODE_ENV !== "production" && isPaid && !isGenerating && !showResults && !selectedConcept && (
+      {process.env.NODE_ENV !== "production" && (isPaid || isTrialEligible) && !isGenerating && !showResults && !selectedConcept && (
         <button
           onClick={async () => {
             setProjectOverview({

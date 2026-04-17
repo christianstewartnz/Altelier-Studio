@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Script from "next/script"
 import { ArrowLeft, Check, Download, RefreshCw, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
@@ -9,20 +10,106 @@ import type { BrandConcept } from "./results-overview"
 import { WordmarkSVG } from "./wordmark-svg"
 import { RefinementModal } from "./refinement-modal"
 
-function DownloadBrandPackageButton() {
+type DownloadBrandPackageButtonProps = {
+  projectId: string
+  conceptId: string
+  userId?: string
+  isPaid: boolean
+  isFreeTrial: boolean
+}
+
+function DownloadBrandPackageButton({
+  projectId,
+  conceptId,
+  userId,
+  isPaid,
+  isFreeTrial
+}: DownloadBrandPackageButtonProps) {
+  // Paid: direct download (asset export is a separate workstream and
+  // still a stub here; this component is about wiring the checkout).
+  if (isPaid) {
+    return (
+      <div className="flex flex-col items-center gap-2">
+        <button
+          onClick={() =>
+            alert("Export coming soon — files will download here")
+          }
+          className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
+        >
+          <Download className="size-5" />
+          Download Brand Package
+        </button>
+        <p className="text-sm text-muted-foreground">
+          Your brand package is ready to download
+        </p>
+      </div>
+    )
+  }
+
+  // Unpaid: open the Fungies overlay. Trial profiles get the discounted
+  // $172 checkout; everyone else gets the full $429 checkout (which is
+  // unreachable in practice because non-trial users have to pay to
+  // generate in the first place).
+  const checkoutBaseUrl = isFreeTrial
+    ? process.env.NEXT_PUBLIC_FUNGIES_TRIAL_OVERLAY_URL || ""
+    : process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
+
+  const successUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/project/${projectId}/concept/${conceptId}?payment=success`
+      : ""
+
+  const checkoutUrl = (() => {
+    if (!checkoutBaseUrl) return ""
+    try {
+      const url = new URL(checkoutBaseUrl)
+      if (successUrl) {
+        url.searchParams.set("success_url", successUrl)
+      }
+      return url.toString()
+    } catch {
+      return checkoutBaseUrl
+    }
+  })()
+
+  const customFields = JSON.stringify({
+    project_id: projectId,
+    user_id: userId || ""
+  })
+
+  const priceLabel = isFreeTrial ? "$172 NZD" : "$429 NZD"
+
   return (
     <div className="flex flex-col items-center gap-2">
+      <Script
+        src="https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
+        strategy="afterInteractive"
+        onLoad={() => {
+          // Initialize() (not ScanDOM()) attaches the postMessage listener
+          // that dispatches `fungies:checkout:complete` on document and
+          // cleans up the overlay iframe on close. Guarded so we don't
+          // double-register across re-mounts (e.g. refinement applied).
+          if (!window.__fungiesInitialized) {
+            window.Fungies?.Fungies?.Initialize({ enableDataAttributes: true })
+            window.__fungiesInitialized = true
+          } else {
+            window.Fungies?.Fungies?.ScanDOM()
+          }
+        }}
+      />
       <button
-        onClick={() =>
-          alert("Export coming soon — files will download here")
-        }
+        data-fungies-checkout-url={checkoutUrl}
+        data-fungies-mode="overlay"
+        data-fungies-custom-fields={customFields}
         className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
       >
         <Download className="size-5" />
-        Download Brand Package
+        Download Brand Package — {priceLabel}
       </button>
       <p className="text-sm text-muted-foreground">
-        Your brand package is ready to download
+        {isFreeTrial
+          ? "Unlock your brand package at the trial price"
+          : "Unlock your brand package to download"}
       </p>
     </div>
   )
@@ -39,6 +126,12 @@ type ConceptDetailProps = {
   onRefinementUsed: () => void
   defaultIsSelected?: boolean
   userId?: string
+  // Whether the underlying project has been paid for (project.paid_at).
+  // For non-trial users this was paid pre-generation; for trial users this
+  // is the $172 discounted download payment.
+  isPaid?: boolean
+  // Profile-level flag — picks the trial vs full Fungies overlay URL.
+  isFreeTrial?: boolean
 }
 
 export function ConceptDetail({ 
@@ -52,6 +145,8 @@ export function ConceptDetail({
   onRefinementUsed,
   defaultIsSelected,
   userId,
+  isPaid = false,
+  isFreeTrial = false,
 }: ConceptDetailProps) {
   const [currentConcept, setCurrentConcept] = useState(concept)
   const [showRefinement, setShowRefinement] = useState(false)
@@ -577,7 +672,13 @@ export function ConceptDetail({
             </p>
             {isSelected ? (
               <div className="flex flex-col items-center gap-4">
-                <DownloadBrandPackageButton />
+                <DownloadBrandPackageButton
+                  projectId={projectId}
+                  conceptId={currentConcept.id}
+                  userId={userId}
+                  isPaid={isPaid}
+                  isFreeTrial={isFreeTrial}
+                />
                 <p className="text-sm text-muted-foreground">
                   Your brand concept has been saved to your dashboard
                 </p>
@@ -771,11 +872,18 @@ export function ConceptDetail({
               {currentConcept.tagline}
             </p>
 
-            <DownloadBrandPackageButton />
+            <DownloadBrandPackageButton
+              projectId={projectId}
+              conceptId={currentConcept.id}
+              userId={userId}
+              isPaid={isPaid}
+              isFreeTrial={isFreeTrial}
+            />
           </div>
         </div>
       )}
     </div>
   )
 }
+
 

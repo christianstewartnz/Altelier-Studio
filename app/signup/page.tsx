@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 
-export default function SignupPage() {
+function SignupForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [fullName, setFullName] = useState("")
@@ -14,6 +14,8 @@ export default function SignupPage() {
   const [success, setSuccess] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const isTrialSignup = searchParams.get("trial") === "true"
   const supabase = createClient()
 
   async function handleSignup(e: React.FormEvent) {
@@ -21,7 +23,7 @@ export default function SignupPage() {
     setLoading(true)
     setError("")
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -34,10 +36,29 @@ export default function SignupPage() {
     if (error) {
       setError(error.message)
       setLoading(false)
-    } else {
-      setSuccess(true)
-      setLoading(false)
+      return
     }
+
+    // Stamp the trial flag on the auto-created profile row. The profile
+    // insert trigger fires on auth.users insert, so the row exists by the
+    // time signUp resolves. We still guard on data.user?.id because email
+    // confirmation flows can in theory return a null user.
+    if (isTrialSignup && data.user?.id) {
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ is_free_trial: true })
+        .eq("id", data.user.id)
+
+      if (profileError) {
+        // Don't block signup on a flag-update failure — the user still has
+        // a valid account. Surface it to the console so it's visible in
+        // testing without showing a confusing UI message post-signup.
+        console.error("Failed to set is_free_trial on profile:", profileError)
+      }
+    }
+
+    setSuccess(true)
+    setLoading(false)
   }
 
   if (success) {
@@ -204,5 +225,15 @@ export default function SignupPage() {
 
       </div>
     </div>
+  )
+}
+
+// useSearchParams() requires a Suspense boundary at the page level
+// in the Next.js app router; without it the page fails to prerender.
+export default function SignupPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
   )
 }

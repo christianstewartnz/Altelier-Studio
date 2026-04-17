@@ -90,11 +90,38 @@ export async function POST(request: Request) {
       )
     }
 
+    // Paywall with trial-bypass. The trial is consumed atomically here —
+    // one successful /api/generate call per trial profile — so generation
+    // and trial-consumption cannot drift apart.
     if (!project.paid_at) {
-      return NextResponse.json(
-        { error: "Payment required to generate brand concepts" },
-        { status: 402 }
-      )
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_free_trial, free_trial_used")
+        .eq("id", user.id)
+        .single()
+
+      let trialConsumed = false
+      if (profile?.is_free_trial && !profile.free_trial_used) {
+        // The .eq("free_trial_used", false) guard makes this a conditional
+        // update: only the first concurrent request wins, everyone else
+        // gets zero rows back and falls through to the paywall.
+        const { data: consumed } = await supabase
+          .from("profiles")
+          .update({ free_trial_used: true })
+          .eq("id", user.id)
+          .eq("free_trial_used", false)
+          .select("id")
+          .maybeSingle()
+
+        trialConsumed = Boolean(consumed)
+      }
+
+      if (!trialConsumed) {
+        return NextResponse.json(
+          { error: "Payment required to generate brand concepts" },
+          { status: 402 }
+        )
+      }
     }
 
     const userBrief = `

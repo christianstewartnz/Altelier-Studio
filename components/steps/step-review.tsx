@@ -32,6 +32,10 @@ type StepReviewProps = {
   projectId: string
   userId?: string
   isPaid: boolean
+  // True when the user is on an unused free trial — we bypass the Fungies
+  // overlay and show the free Generate button. /api/generate atomically
+  // consumes the trial server-side.
+  isTrialEligible: boolean
 }
 
 const siteQualityLabels: Record<string, string> = {
@@ -69,12 +73,15 @@ export function StepReview({
   onGenerate,
   projectId,
   userId,
-  isPaid
+  isPaid,
+  isTrialEligible
 }: StepReviewProps) {
   const redirectedRef = useRef(false)
 
   useEffect(() => {
-    if (isPaid) return
+    // Trial-eligible users never open the Fungies overlay here, so we
+    // don't need the post-checkout polling or SDK listeners.
+    if (isPaid || isTrialEligible) return
 
     const redirectToSuccess = () => {
       if (redirectedRef.current) return
@@ -108,7 +115,7 @@ export function StepReview({
       document.removeEventListener("fungies:checkout:complete", redirectToSuccess)
       window.clearInterval(pollInterval)
     }
-  }, [projectId, isPaid])
+  }, [projectId, isPaid, isTrialEligible])
 
   const checkoutBaseUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
   const successUrl =
@@ -316,7 +323,7 @@ export function StepReview({
               <ArrowLeft className="size-5 mr-2" />
               Previous
             </Button>
-            {isPaid ? (
+            {isPaid || isTrialEligible ? (
               <Button
                 onClick={onGenerate}
                 className="h-14 px-10 rounded-2xl text-base font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl"
