@@ -3,6 +3,14 @@
 import { useState, useEffect } from "react"
 import { Download, Loader2 } from "lucide-react"
 
+declare global {
+  interface Window {
+    Fungies?: {
+      ScanDOM: () => void
+    }
+  }
+}
+
 type ExportButtonProps = {
   conceptId: string
   projectId: string
@@ -12,7 +20,32 @@ type ExportButtonProps = {
 export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps) {
   const [loading, setLoading] = useState(false)
   const [alreadyPurchased, setAlreadyPurchased] = useState(false)
+  const [readyForOverlayCheckout, setReadyForOverlayCheckout] = useState(false)
   const [error, setError] = useState("")
+
+  const checkoutBaseUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
+  const successUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}${window.location.pathname}?payment=success`
+      : ""
+  const checkoutUrl = (() => {
+    if (!checkoutBaseUrl) return ""
+    try {
+      const url = new URL(checkoutBaseUrl)
+      if (successUrl) {
+        url.searchParams.set("success_url", successUrl)
+      }
+      return url.toString()
+    } catch {
+      return checkoutBaseUrl
+    }
+  })()
+
+  const customFields = JSON.stringify({
+    concept_id: conceptId,
+    project_id: projectId,
+    user_id: userId || ""
+  })
 
   // Check URL params for payment result on mount
   useEffect(() => {
@@ -41,6 +74,31 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
     checkPurchase()
   }, [conceptId, projectId])
 
+  useEffect(() => {
+    const scriptSrc = "https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      `script[src="${scriptSrc}"]`
+    )
+
+    if (existingScript) {
+      return
+    }
+
+    const script = document.createElement("script")
+    script.src = scriptSrc
+    script.defer = true
+    script.setAttribute("data-auto-init", "")
+    document.body.appendChild(script)
+  }, [])
+
+  useEffect(() => {
+    if (!readyForOverlayCheckout) return
+    if (!checkoutUrl) return
+    if (!window.Fungies?.ScanDOM) return
+
+    window.Fungies.ScanDOM()
+  }, [readyForOverlayCheckout, checkoutUrl, customFields])
+
   async function handleInitialClick() {
     setLoading(true)
     setError("")
@@ -61,14 +119,13 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
       }
 
       if (data.proceed) {
-        const baseUrl = process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
-        const successUrl = `${window.location.origin}${window.location.pathname}?payment=success`
-        const checkoutUrl = new URL(baseUrl)
-        checkoutUrl.searchParams.set("success_url", successUrl)
-        checkoutUrl.searchParams.set("concept_id", conceptId)
-        checkoutUrl.searchParams.set("project_id", projectId)
-        checkoutUrl.searchParams.set("user_id", userId || "")
-        window.open(checkoutUrl.toString(), "_blank")
+        if (!checkoutUrl) {
+          setError("Checkout is not configured. Please try again later.")
+          setLoading(false)
+          return
+        }
+
+        setReadyForOverlayCheckout(true)
         setLoading(false)
         return
       }
@@ -101,8 +158,11 @@ export function ExportButton({ conceptId, projectId, userId }: ExportButtonProps
   return (
     <div className="flex flex-col items-center gap-2">
       <button
-        onClick={handleInitialClick}
+        onClick={readyForOverlayCheckout ? undefined : handleInitialClick}
         disabled={loading}
+        data-fungies-checkout-url={readyForOverlayCheckout ? checkoutUrl : undefined}
+        data-fungies-mode={readyForOverlayCheckout ? "overlay" : undefined}
+        data-fungies-custom-fields={readyForOverlayCheckout ? customFields : undefined}
         className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 transition-all duration-200 flex items-center justify-center gap-2"
       >
         {loading ? (
