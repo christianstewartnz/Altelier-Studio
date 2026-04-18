@@ -16,6 +16,9 @@ declare global {
           options: { enableDataAttributes?: boolean },
           state?: { completedSetup?: boolean; options?: unknown }
         ) => void
+        Checkout?: {
+          close: () => void
+        }
       }
     }
     __fungiesInitialized?: boolean

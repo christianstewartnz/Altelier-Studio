@@ -6,6 +6,24 @@ import { createClient } from "@/lib/supabase/client"
 import { ConceptDetail } from "@/components/results/concept-detail"
 import type { BrandConcept } from "@/components/results/results-overview"
 
+declare global {
+  interface Window {
+    Fungies?: {
+      Fungies?: {
+        ScanDOM: () => void
+        Initialize: (
+          options: { enableDataAttributes?: boolean },
+          state?: { completedSetup?: boolean; options?: unknown }
+        ) => void
+        Checkout?: {
+          close: () => void
+        }
+      }
+    }
+    __fungiesInitialized?: boolean
+  }
+}
+
 export default function ConceptDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -94,6 +112,7 @@ export default function ConceptDetailPage() {
     const handlePaymentDetected = () => {
       if (paymentDetectedRef.current) return
       paymentDetectedRef.current = true
+      window.Fungies?.Fungies?.Checkout?.close()
       setIsPaid(true)
       const url = new URL(window.location.href)
       if (url.searchParams.has("payment")) {
