@@ -19,9 +19,9 @@ export default function ConceptDetailPage() {
   const [isPaid, setIsPaid] = useState(false)
   const [isFreeTrial, setIsFreeTrial] = useState(false)
 
-  // Guard post-payment polling so it only runs once even under strict-mode
-  // double-effects or re-renders.
-  const paymentReturnHandled = useRef(false)
+  // Guards handlePaymentDetected so it runs at most once per mount even if
+  // both the SDK event and the poll interval fire in the same tick.
+  const paymentDetectedRef = useRef(false)
 
   useEffect(() => {
     async function loadConcept() {
@@ -57,16 +57,14 @@ export default function ConceptDetailPage() {
       })
 
       // Load project paid_at + profile trial flag so the download button
-      // can pick the right Fungies overlay URL and whether to show it at
-      // all.
+      // can pick the right Fungies overlay URL and whether to show it at all.
       const { data: project } = await supabase
         .from("projects")
         .select("paid_at")
         .eq("id", projectId)
         .maybeSingle()
 
-      const initiallyPaid = Boolean(project?.paid_at)
-      setIsPaid(initiallyPaid)
+      setIsPaid(Boolean(project?.paid_at))
 
       if (user) {
         const { data: profile } = await supabase
@@ -78,56 +76,51 @@ export default function ConceptDetailPage() {
       }
 
       setLoading(false)
-
-      // Post-checkout return: the Fungies overlay redirects here with
-      // ?payment=success. The SDK's checkout:complete event and our webhook
-      // can arrive in either order, so we both listen AND poll paid_at.
-      const urlParams = new URLSearchParams(window.location.search)
-      const isPaymentReturn = urlParams.get("payment") === "success"
-
-      if (isPaymentReturn && !initiallyPaid && !paymentReturnHandled.current) {
-        paymentReturnHandled.current = true
-        void handlePaymentReturn()
-      }
-    }
-
-    async function handlePaymentReturn() {
-      window.history.replaceState({}, "", window.location.pathname)
-
-      for (let attempt = 0; attempt < 10; attempt++) {
-        await new Promise(res => setTimeout(res, 2000))
-        const { data } = await supabase
-          .from("projects")
-          .select("paid_at")
-          .eq("id", projectId)
-          .single()
-        if (data?.paid_at) {
-          setIsPaid(true)
-          return
-        }
-      }
-
-      alert(
-        "We're still confirming your payment. Please refresh in a moment — if this persists, contact support."
-      )
     }
 
     loadConcept()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conceptId, projectId])
 
-  // Fungies SDK also fires a DOM event on successful checkout. Catching
-  // that lets us flip the UI the instant the overlay closes, without
-  // waiting for the next poll tick.
+  // Mirrors step-review.tsx: listen for the SDK's checkout:complete event as
+  // the primary signal, and poll paid_at every 3 s as a safety net in case
+  // the postMessage is missed (overlay closed early, cached SDK, etc.).
+  // When either fires: flip isPaid, close the overlay (the SDK does this on
+  // the event; the poll case relies on the interval being cleared and React
+  // re-rendering without the checkout button), and strip ?payment=success.
   useEffect(() => {
-    function onCheckoutComplete() {
+    if (isPaid) return
+
+    const handlePaymentDetected = () => {
+      if (paymentDetectedRef.current) return
+      paymentDetectedRef.current = true
       setIsPaid(true)
+      const url = new URL(window.location.href)
+      if (url.searchParams.has("payment")) {
+        url.searchParams.delete("payment")
+        window.history.replaceState({}, "", url.toString())
+      }
     }
-    document.addEventListener("fungies:checkout:complete", onCheckoutComplete)
+
+    document.addEventListener("fungies:checkout:complete", handlePaymentDetected)
+
+    const pollInterval = window.setInterval(async () => {
+      if (paymentDetectedRef.current) return
+      const { data } = await supabase
+        .from("projects")
+        .select("paid_at")
+        .eq("id", projectId)
+        .maybeSingle()
+      if (data?.paid_at) {
+        handlePaymentDetected()
+      }
+    }, 3000)
+
     return () => {
-      document.removeEventListener("fungies:checkout:complete", onCheckoutComplete)
+      document.removeEventListener("fungies:checkout:complete", handlePaymentDetected)
+      window.clearInterval(pollInterval)
     }
-  }, [])
+  }, [projectId, isPaid])
 
   if (loading) {
     return (
