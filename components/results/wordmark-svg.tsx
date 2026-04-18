@@ -25,6 +25,46 @@ function fontWeightFromWeight(w: LogoComposition["weight"]): number {
   return 400
 }
 
+// ── Auto-scaling helpers ──────────────────────────────────────────────────────
+// Average glyph width as a fraction of font-size for proportional fonts.
+// Slightly conservative so we only compress when text genuinely overflows.
+const CHAR_WIDTH_FACTOR = 0.62
+
+function trackingEmValue(tracking: LogoComposition["tracking"]): number {
+  if (tracking === "tight") return -0.05
+  if (tracking === "wide") return 0.20
+  if (tracking === "ultrawide") return 0.45
+  return 0.05
+}
+
+function estimateTextWidth(text: string, fontSize: number, tracking: LogoComposition["tracking"]): number {
+  return text.length * fontSize * (CHAR_WIDTH_FACTOR + trackingEmValue(tracking))
+}
+
+// Returns the SVG textLength value only when text would exceed maxWidth.
+// Never returns a value larger than the natural estimate, so short names
+// are never stretched.
+function textLengthAttr(
+  text: string,
+  fontSize: number,
+  tracking: LogoComposition["tracking"],
+  maxWidth: number,
+): number | undefined {
+  return estimateTextWidth(text, fontSize, tracking) > maxWidth ? maxWidth : undefined
+}
+
+// For ultrawide style: compress letter-spacing instead of scaling glyphs,
+// so characters retain their natural shape. Clamps between 0.05em and 0.55em.
+function computeUltrawideSpacing(text: string, fontSize: number, maxWidth: number): string {
+  if (!text || text.length === 0) return "0.55em"
+  const charTotalWidth = text.length * fontSize * CHAR_WIDTH_FACTOR
+  if (charTotalWidth >= maxWidth) return "0.05em"
+  const spacingPx = (maxWidth - charTotalWidth) / text.length
+  const spacingEm = spacingPx / fontSize
+  const clamped = Math.min(0.55, Math.max(0.05, spacingEm))
+  return `${clamped.toFixed(3)}em`
+}
+
 export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProps) {
   const { style, lines, punctuation, punctuationPosition, tracking, case: textCase, weight } = composition
   const fill = color?.trim() ? color : "#171717"
@@ -47,6 +87,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
 
   // ── 1. inline-clean ──────────────────────────────────────────────────────────
   if (style === "inline-clean") {
+    const tl0 = textLengthAttr(line0, 48, tracking, 370)
     return (
       <svg {...svgProps}>
         <text
@@ -57,6 +98,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontWeight={fontWeight}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl0 !== undefined && { textLength: tl0, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line0}
         </text>
@@ -66,6 +108,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
 
   // ── 2. inline-ruled ──────────────────────────────────────────────────────────
   if (style === "inline-ruled") {
+    const tl0 = textLengthAttr(line0, 48, tracking, 370)
     return (
       <svg {...svgProps}>
         <text
@@ -76,6 +119,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontWeight={fontWeight}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl0 !== undefined && { textLength: tl0, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line0}
         </text>
@@ -86,6 +130,8 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
 
   // ── 3. stacked-ruled ─────────────────────────────────────────────────────────
   if (style === "stacked-ruled") {
+    const tl0 = textLengthAttr(line0, 42, tracking, 370)
+    const tl1 = textLengthAttr(line1, 42, tracking, 370)
     return (
       <svg {...svgProps}>
         <text
@@ -96,6 +142,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontWeight={fontWeight}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl0 !== undefined && { textLength: tl0, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line0}
         </text>
@@ -108,6 +155,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontWeight={fontWeight}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl1 !== undefined && { textLength: tl1, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line1}
         </text>
@@ -118,14 +166,17 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
   // ── 4. stacked-punctuation ───────────────────────────────────────────────────
   if (style === "stacked-punctuation") {
     const fontSize = 42
-    const charWidth = fontSize * 0.6
     const trackingPx = tracking === "tight" ? -2 :
       tracking === "wide" ? 8 :
       tracking === "ultrawide" ? 20 : 2
-    const textWidth = line1.length * (charWidth + trackingPx)
-    const punctWidth = 24 * 0.6
+    const textWidth = line1.length * (fontSize * CHAR_WIDTH_FACTOR + trackingPx)
+    const punctWidth = 24 * CHAR_WIDTH_FACTOR
     const totalWidth = textWidth + 8 + punctWidth
-    const startX = (400 - totalWidth) / 2
+    // Clamp to safe width so startX is always accurate for the rendered size
+    const clampedWidth = Math.min(360, totalWidth)
+    const startX = (400 - clampedWidth) / 2
+    const tl0 = textLengthAttr(line0, fontSize, tracking, 370)
+    const applyLine1TL = totalWidth > 360
 
     return (
       <svg {...svgProps} viewBox="0 0 400 120">
@@ -136,6 +187,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl0 !== undefined && { textLength: tl0, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line0}
         </text>
@@ -147,6 +199,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(applyLine1TL && { textLength: 360, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line1}
           <tspan
@@ -164,6 +217,8 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
 
   // ── 5. stacked-weighted ──────────────────────────────────────────────────────
   if (style === "stacked-weighted") {
+    const tl0 = textLengthAttr(line0, 52, tracking, 370)
+    const tl1 = textLengthAttr(line1, 28, tracking, 370)
     return (
       <svg {...svgProps}>
         <text
@@ -174,6 +229,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl0 !== undefined && { textLength: tl0, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line0}
         </text>
@@ -185,6 +241,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl1 !== undefined && { textLength: tl1, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line1}
         </text>
@@ -194,6 +251,9 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
 
   // ── 6. offset-subtitle ───────────────────────────────────────────────────────
   if (style === "offset-subtitle") {
+    const tl0 = textLengthAttr(line0, 52, tracking, 370)
+    // line1 is small (17px) right-anchored at x=320 — guard against unusually long subtitles
+    const tl1 = textLengthAttr(line1, 17, "normal", 310)
     return (
       <svg {...svgProps}>
         <text
@@ -204,6 +264,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontWeight={fontWeight}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl0 !== undefined && { textLength: tl0, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line0}
         </text>
@@ -215,6 +276,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing="0.12em"
+          {...(tl1 !== undefined && { textLength: tl1, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line1}
         </text>
@@ -225,6 +287,8 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
   // ── 7. weight-contrast ───────────────────────────────────────────────────────
   // Two stacked lines: first ultra-bold, second ultra-light — dramatic tonal split
   if (style === "weight-contrast") {
+    const tl0 = textLengthAttr(line0, 50, tracking, 370)
+    const tl1 = textLengthAttr(line1, 38, tracking, 370)
     return (
       <svg {...svgProps}>
         <text
@@ -235,6 +299,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl0 !== undefined && { textLength: tl0, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line0}
         </text>
@@ -246,6 +311,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl1 !== undefined && { textLength: tl1, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line1}
         </text>
@@ -256,6 +322,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
   // ── 8. scale-contrast ────────────────────────────────────────────────────────
   // One dominant word fills the space; second line rendered small beneath it
   if (style === "scale-contrast") {
+    const tl0 = textLengthAttr(line0, 64, tracking, 370)
     return (
       <svg {...svgProps}>
         <text
@@ -266,6 +333,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl0 !== undefined && { textLength: tl0, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line0}
         </text>
@@ -285,8 +353,11 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
   }
 
   // ── 9. ultrawide ─────────────────────────────────────────────────────────────
-  // Single line with extreme tracking — architectural, minimal
+  // Single line with extreme tracking — architectural, minimal.
+  // Long names compress letter-spacing rather than scaling glyphs to preserve
+  // the architectural character of the style.
   if (style === "ultrawide") {
+    const uwSpacing = computeUltrawideSpacing(line0, 30, 370)
     return (
       <svg {...svgProps} viewBox="0 0 400 120">
         <text
@@ -296,7 +367,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontWeight={fontWeight}
           fontFamily={fontFamily}
           fill={fill}
-          letterSpacing="0.55em"
+          letterSpacing={uwSpacing}
         >
           {line0}
         </text>
@@ -351,9 +422,12 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
   }
 
   // ── 11. mixed-weight-inline ──────────────────────────────────────────────────
-  // Both words on one baseline with contrasting weights side by side
+  // Both words on one baseline with contrasting weights side by side.
+  // textLength on the parent <text> distributes proportionally across tspans.
   if (style === "mixed-weight-inline") {
     const w0 = line0 + " "
+    const combinedText = w0 + line1
+    const tlCombined = textLengthAttr(combinedText, 44, tracking, 370)
     return (
       <svg {...svgProps}>
         <text
@@ -363,6 +437,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tlCombined !== undefined && { textLength: tlCombined, lengthAdjust: "spacingAndGlyphs" })}
         >
           <tspan fontWeight="700">{w0}</tspan>
           <tspan fontWeight="200">{line1}</tspan>
@@ -372,8 +447,11 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
   }
 
   // ── 12. left-editorial ───────────────────────────────────────────────────────
-  // Left-aligned stack with a thin rule accent on the left margin
+  // Left-aligned stack with a thin rule accent on the left margin.
+  // Text starts at x=46, so available width to right edge is ~350px.
   if (style === "left-editorial") {
+    const tl0 = textLengthAttr(line0, 44, tracking, 350)
+    const tl1 = textLengthAttr(line1, 44, tracking, 350)
     return (
       <svg {...svgProps}>
         <rect x="32" y="22" width="2" height="76" fill={fill} opacity="0.35" />
@@ -385,6 +463,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl0 !== undefined && { textLength: tl0, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line0}
         </text>
@@ -396,6 +475,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
           fontFamily={fontFamily}
           fill={fill}
           letterSpacing={letterSpacing}
+          {...(tl1 !== undefined && { textLength: tl1, lengthAdjust: "spacingAndGlyphs" })}
         >
           {line1}
         </text>
@@ -404,6 +484,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
   }
 
   // ── fallback ─────────────────────────────────────────────────────────────────
+  const tlFallback = textLengthAttr(line0, 48, tracking, 370)
   return (
     <svg {...svgProps}>
       <text
@@ -414,6 +495,7 @@ export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProp
         fontWeight={fontWeight}
         fill={fill}
         letterSpacing={letterSpacing}
+        {...(tlFallback !== undefined && { textLength: tlFallback, lengthAdjust: "spacingAndGlyphs" })}
       >
         {line0}
       </text>

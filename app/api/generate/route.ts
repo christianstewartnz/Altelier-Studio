@@ -5,6 +5,22 @@ import { createClient } from "@/lib/supabase/server"
 
 const client = new Anthropic()
 
+const EDITORIAL_LUXURY = [
+  "Cormorant Garamond", "Playfair Display", "Bodoni Moda", "Italiana",
+  "Cinzel", "Gloock", "Fraunces", "IM Fell English", "DM Serif Display", "Cormorant"
+]
+
+const CONTEMPORARY_ARCHITECTURAL = [
+  "Montserrat", "Raleway", "Josefin Sans", "Urbanist", "Syne",
+  "Space Grotesk", "Red Hat Display", "Mulish", "Jost", "Didact Gothic", "Tenor Sans"
+]
+
+const WARM_EXPRESSIVE = [
+  "Work Sans", "Outfit", "Bebas Neue", "Big Shoulders Display", "Lora",
+  "Libre Baskerville", "Yeseva One", "Rozha One", "Barlow Condensed",
+  "Figtree", "Fraunces", "Zilla Slab"
+]
+
 const BOLD_EXPRESSIVE = [
   "oversized-crop",
   "weight-contrast",
@@ -30,13 +46,19 @@ function pickSessionStyles(): {
   bold: string
   architectural: string
   refined: string
+  sessionFonts: { editorial: string; contemporary: string; expressive: string }
 } {
   const shuffle = (arr: string[]) =>
     [...arr].sort(() => Math.random() - 0.5)
   return {
     bold: shuffle(BOLD_EXPRESSIVE)[0],
     architectural: shuffle(ARCHITECTURAL_STRUCTURED)[0],
-    refined: shuffle(REFINED_ELEGANT)[0]
+    refined: shuffle(REFINED_ELEGANT)[0],
+    sessionFonts: {
+      editorial: shuffle(EDITORIAL_LUXURY)[0],
+      contemporary: shuffle(CONTEMPORARY_ARCHITECTURAL)[0],
+      expressive: shuffle(WARM_EXPRESSIVE)[0],
+    }
   }
 }
 
@@ -152,6 +174,7 @@ BRAND AMBITION
     // Fast call to identify three distinct creative territories
     // --------------------------------------------------------
     const sessionStyles = pickSessionStyles()
+    const { sessionFonts } = sessionStyles
 
     const strategyResponse = await client.messages.create({
       model: "claude-sonnet-4-6",
@@ -180,17 +203,20 @@ BRAND AMBITION
     // --------------------------------------------------------
 
     const concept1 = await generateConcept(
-      userBrief, territories[0], [], "A", []
+      userBrief, territories[0], [], "A", [],
+      sessionFonts.editorial, "Editorial/Luxury"
     )
 
     const concept2 = await generateConcept(
       userBrief, territories[1], [territories[0]], "B",
-      [concept1.logoComposition.style]
+      [concept1.logoComposition.style],
+      sessionFonts.contemporary, "Contemporary/Architectural"
     )
 
     const concept3 = await generateConcept(
       userBrief, territories[2], [territories[0], territories[1]], "C",
-      [concept1.logoComposition.style, concept2.logoComposition.style]
+      [concept1.logoComposition.style, concept2.logoComposition.style],
+      sessionFonts.expressive, "Warm/Expressive"
     )
 
     const concepts = [concept1, concept2, concept3].map((c, i) => ({
@@ -217,7 +243,9 @@ async function generateConcept(
   territory: Territory,
   otherTerritories: Territory[],
   slot: "A" | "B" | "C",
-  usedStyles: string[]
+  usedStyles: string[],
+  assignedHeadingFont: string,
+  fontGroupName: string
 ): Promise<BrandConceptOutput> {
   const avoidanceInstructions = otherTerritories.length > 0
     ? `
@@ -269,7 +297,19 @@ You must use this composition style. It has been
 selected to ensure variety across the three concepts 
 in this session. Your creative job is to make it 
 feel completely true to this concept through your 
-choices of font, weight, tracking, and case.
+choices of weight, tracking, and case.
+
+ASSIGNED HEADING FONT: ${assignedHeadingFont}
+FONT PERSONALITY GROUP: ${fontGroupName}
+
+You must use ${assignedHeadingFont} as the heading font. It has been 
+assigned to ensure typographic variety across the three concepts 
+in this session. Your creative job is to make it feel completely 
+true to this concept through your weight, tracking, and case choices.
+
+For the body font: choose freely from any category that pairs well 
+with ${assignedHeadingFont}. Pair from a different category than 
+the heading font.
 
 TYPOGRAPHIC CREATIVE DECISIONS:
 
@@ -491,9 +531,10 @@ A great name makes you feel something.
 
 Study these examples and understand WHY they work:
 
-"Bankside" — not "Riverside" or "WaterEdge". Bankside is specific — 
-it references the industrial working bank of a river, implying grit 
-transformed into sophistication. It has history and texture. You can picture it.
+"Verge" — not "Edge" or "Boundary". Verge is the exact point 
+where two worlds meet — urban and residential, old and new, 
+public and private. It implies threshold without stating it. 
+Precise, loaded, one word does everything.
 
 "Schist" — not "Stone" or "Boulder". Schist is the actual geological 
 material of Queenstown. Using it says: we know this place at a molecular 
@@ -552,6 +593,9 @@ NAMES THAT WILL ALWAYS BE REJECTED:
 - [Adjective] + [generic noun]: BrightHomes, FreshLiving, ClearView
 - Any word that could be a scented candle, a cafe, or a wellness retreat
 - Any name a generic developer could have come up with without reading this brief
+- NEVER use suffix patterns like -side, -scape, -haus, -co, -works, 
+  -yard, -field, -wood, -gate — these are the most overused patterns 
+  in property naming and signal lazy thinking.
 
 COLOUR RULES — FULL CREATIVE CONTROL:
 You have complete creative freedom with colour palettes.
@@ -594,26 +638,25 @@ Examples of considered wordmark colour choices:
 
 The wordmark colour should reinforce the brand personality.
 
-FONT RULES — CHOOSE FROM THE FULL LIBRARY:
-Select fonts that authentically express this concept's 
-specific emotional territory. Do not default to safe choices.
-Read the territory and name — then choose fonts that 
-feel like they belong to this brand world.
+FONT RULES:
+Your heading font has been assigned to you above — you must use it. 
+Your creative job is to choose a body font that pairs well with it 
+from a different category.
+
+Full font library for body font selection:
 
 REFINED SERIF — elegant, quiet, heritage:
 Cormorant Garamond, Playfair Display, DM Serif Display,
-Italiana, Bodoni Moda
+Italiana, Bodoni Moda, Cormorant, IM Fell English, Cinzel,
+Gloock, Fraunces, Unna, Cardo, Zilla Slab
 
 GEOMETRIC SANS — contemporary, architectural, precise:
-Montserrat, Raleway, Josefin Sans, Jost, Nunito Sans
-
-EDITORIAL HIGH CONTRAST — bold, dramatic, fashion:
-Bodoni Moda, Yeseva One, Rozha One, Abril Fatface,
-Oleo Script
+Montserrat, Raleway, Josefin Sans, Jost, Nunito Sans,
+Urbanist, Mulish, Red Hat Display, Syne, Space Grotesk
 
 HUMANIST SANS — warm, approachable, community:
-Work Sans, Outfit, DM Sans, Nunito, Poppins, 
-Plus Jakarta Sans
+Work Sans, Outfit, DM Sans, Nunito, Poppins, Plus Jakarta Sans,
+Karla, Cabin, Figtree, Rubik, Manrope
 
 TRANSITIONAL SERIF — grounded, craft, timeless:
 Lora, Libre Baskerville, Merriweather, Spectral,
@@ -624,37 +667,19 @@ Bebas Neue, Big Shoulders Display, Barlow Condensed,
 Oswald, Squada One
 
 CONDENSED — structured, space-efficient, strong:
-Barlow Condensed, IBM Plex Sans Condensed,
-Roboto Condensed, Encode Sans Condensed
+Barlow, Exo 2, Saira Condensed, Cuprum, Yanone Kaffeesatz,
+IBM Plex Sans Condensed, Roboto Condensed, Encode Sans Condensed
 
 VARIABLE WEIGHT — contrast-capable, versatile:
-Inter, Plus Jakarta Sans, Source Sans 3, Nunito Sans
+Inter, Plus Jakarta Sans, Source Sans 3, Nunito Sans,
+Didact Gothic, Tenor Sans
 
 PAIRING RULES:
-- Pair heading font with body font from a different category
+- Body font must be from a different category to the heading font
 - Do not repeat any font across the 3 concepts in this session
-- For weight-contrast and mixed-weight-inline styles choose 
-  fonts with genuine light (200-300) and bold (700-800) 
-  weights — Inter, Montserrat, Raleway, Barlow work well
-- Return exact Google Fonts names as they appear on 
-  fonts.google.com
-
-Font personalities:
-- Refined serif (Cormorant Garamond, Playfair Display, DM Serif Display)
-  → elegant, quiet, heritage
-- Geometric sans (Montserrat, Raleway, Josefin Sans)
-  → contemporary, architectural, precise
-- Editorial high-contrast (Bodoni Moda, Yeseva One, Rozha One)
-  → bold, dramatic, fashion-forward
-- Humanist sans (Work Sans, Outfit, DM Sans)
-  → warm, approachable, community
-- Transitional serif (Lora, Libre Baskerville, Merriweather)
-  → grounded, craft, timeless
-- Expressive display (Bebas Neue, Big Shoulders Display, Barlow Condensed)
-  → urban, energetic, industrial
-
-Pair heading font with body font from a different category.
-Return exact Google Fonts names.
+- Return exact Google Fonts names as they appear on fonts.google.com
+- For weight-contrast and mixed-weight-inline styles choose fonts 
+  with genuine light (200-300) and bold (700-800) weights
 
 LOGO COMPOSITION RULES:
 Your composition style has been assigned above — 
@@ -706,7 +731,30 @@ mixed-weight-inline
 Two words on one line. First ultra-light, 
 second ultra-bold.
 Requires two complete meaningful words.
-NEVER split one word into syllables.
+
+ABSOLUTE RULE — NEVER SPLIT A SINGLE WORD:
+This is the most common and most damaging error in logo composition.
+A single word must NEVER be split across two lines or have spaces 
+inserted within it.
+
+WRONG: lines: ["JOHN", "SONVILLE"]
+WRONG: lines: ["J O H N S O N V I L L E"]
+CORRECT: lines: ["JOHNSONVILLE", ""]
+
+If the brand name is a single word it must appear complete and 
+unbroken on lines[0]. lines[1] must be empty string "" or a 
+completely separate meaningful word — never a fragment of the brand name.
+
+Two-word brand names may be split across lines[0] and lines[1] 
+only if each line contains a complete standalone word.
+
+COMPOSITION + NAME LENGTH MATCHING:
+- oversized-crop: only for names of 3-6 characters
+- ultrawide: only for names of 3-7 characters
+- inline-clean/inline-ruled: works for 3-10 characters
+- stacked styles: best when splitting across two lines naturally
+- weight-contrast/mixed-weight-inline: requires exactly two words
+- For names longer than 8 characters avoid oversized-crop and ultrawide
 
 left-editorial
 Words stacked left-aligned with thin vertical 
