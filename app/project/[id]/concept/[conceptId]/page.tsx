@@ -112,7 +112,23 @@ export default function ConceptDetailPage() {
     const handlePaymentDetected = () => {
       if (paymentDetectedRef.current) return
       paymentDetectedRef.current = true
+      // Tear down the Fungies overlay. step-review.tsx gets away without
+      // this because its handler does a full `window.location.href` redirect
+      // and the parent page unload disposes of the iframe — here we stay
+      // on the page, so we have to remove it ourselves.
+      //
+      // Call the SDK's Checkout.close() first (handles popup-window
+      // checkouts and internal bookkeeping), then sweep any lingering
+      // `.fungies-frame` / `.fungies-loader` nodes. The SDK's close() has
+      // been observed to no-op on this flow because, by the time the
+      // webhook has fired and the poll picks up `paid_at`, the checkout
+      // iframe has already navigated to our own success_url and the SDK
+      // appears to lose its reference. The manual sweep is the same DOM
+      // operation close() itself does, so it's safe either way.
       window.Fungies?.Fungies?.Checkout?.close()
+      document
+        .querySelectorAll(".fungies-frame, .fungies-loader")
+        .forEach(el => el.remove())
       setIsPaid(true)
       const url = new URL(window.location.href)
       if (url.searchParams.has("payment")) {
