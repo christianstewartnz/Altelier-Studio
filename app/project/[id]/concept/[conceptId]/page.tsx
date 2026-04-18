@@ -6,24 +6,6 @@ import { createClient } from "@/lib/supabase/client"
 import { ConceptDetail } from "@/components/results/concept-detail"
 import type { BrandConcept } from "@/components/results/results-overview"
 
-declare global {
-  interface Window {
-    Fungies?: {
-      Fungies?: {
-        ScanDOM: () => void
-        Initialize: (
-          options: { enableDataAttributes?: boolean },
-          state?: { completedSetup?: boolean; options?: unknown }
-        ) => void
-        Checkout?: {
-          close: () => void
-        }
-      }
-    }
-    __fungiesInitialized?: boolean
-  }
-}
-
 export default function ConceptDetailPage() {
   const params = useParams()
   const router = useRouter()
@@ -102,39 +84,22 @@ export default function ConceptDetailPage() {
 
   // Mirrors step-review.tsx: listen for the SDK's checkout:complete event as
   // the primary signal, and poll paid_at every 3 s as a safety net in case
-  // the postMessage is missed (overlay closed early, cached SDK, etc.).
-  // When either fires: flip isPaid, close the overlay (the SDK does this on
-  // the event; the poll case relies on the interval being cleared and React
-  // re-rendering without the checkout button), and strip ?payment=success.
+  // the postMessage is missed. When either fires, hard-navigate the parent
+  // window to the same URL minus `?payment=success` — the page unload
+  // disposes of the Fungies overlay iframe as a side effect, and the fresh
+  // mount reads paid_at from the DB so `isPaid` starts true and the paid
+  // download UI renders immediately. Programmatic `Checkout.close()` is
+  // unreliable here because by the time the poll picks up paid_at the
+  // checkout iframe has already navigated to our own success_url.
   useEffect(() => {
     if (isPaid) return
 
     const handlePaymentDetected = () => {
       if (paymentDetectedRef.current) return
       paymentDetectedRef.current = true
-      // Tear down the Fungies overlay. step-review.tsx gets away without
-      // this because its handler does a full `window.location.href` redirect
-      // and the parent page unload disposes of the iframe — here we stay
-      // on the page, so we have to remove it ourselves.
-      //
-      // Call the SDK's Checkout.close() first (handles popup-window
-      // checkouts and internal bookkeeping), then sweep any lingering
-      // `.fungies-frame` / `.fungies-loader` nodes. The SDK's close() has
-      // been observed to no-op on this flow because, by the time the
-      // webhook has fired and the poll picks up `paid_at`, the checkout
-      // iframe has already navigated to our own success_url and the SDK
-      // appears to lose its reference. The manual sweep is the same DOM
-      // operation close() itself does, so it's safe either way.
-      window.Fungies?.Fungies?.Checkout?.close()
-      document
-        .querySelectorAll(".fungies-frame, .fungies-loader")
-        .forEach(el => el.remove())
-      setIsPaid(true)
       const url = new URL(window.location.href)
-      if (url.searchParams.has("payment")) {
-        url.searchParams.delete("payment")
-        window.history.replaceState({}, "", url.toString())
-      }
+      url.searchParams.delete("payment")
+      window.location.href = url.toString()
     }
 
     document.addEventListener("fungies:checkout:complete", handlePaymentDetected)
