@@ -40,6 +40,8 @@ export default function ProjectPage() {
 
   // Guard so the post-payment auto-generate only ever fires once per mount.
   const autoGenerateTriggered = useRef(false)
+  // Guard for the download-payment detection on the concept detail view.
+  const downloadPaymentDetectedRef = useRef(false)
 
   const [projectOverview, setProjectOverview] = useState<ProjectOverviewData>({
     location: "",
@@ -186,6 +188,45 @@ export default function ProjectPage() {
     loadProject()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId])
+
+  // When the user is viewing a concept and hasn't paid for the download yet,
+  // poll paid_at every 3 s and listen for the Fungies checkout:complete event.
+  // When either fires, hard-navigate to the same URL so the page unloads and
+  // takes the Fungies overlay iframe with it. On remount, paid_at is truthy so
+  // isPaid starts true and the paid download button renders immediately.
+  useEffect(() => {
+    if (!selectedConcept || isPaid) return
+
+    // Reset the guard each time this effect activates (concept selected, not yet paid).
+    downloadPaymentDetectedRef.current = false
+
+    const handleDownloadPaymentDetected = () => {
+      if (downloadPaymentDetectedRef.current) return
+      downloadPaymentDetectedRef.current = true
+      const url = new URL(window.location.href)
+      url.searchParams.delete("payment")
+      window.location.href = url.toString()
+    }
+
+    document.addEventListener("fungies:checkout:complete", handleDownloadPaymentDetected)
+
+    const pollInterval = window.setInterval(async () => {
+      if (downloadPaymentDetectedRef.current) return
+      const { data } = await supabase
+        .from("projects")
+        .select("paid_at")
+        .eq("id", projectId)
+        .maybeSingle()
+      if (data?.paid_at) {
+        handleDownloadPaymentDetected()
+      }
+    }, 3000)
+
+    return () => {
+      document.removeEventListener("fungies:checkout:complete", handleDownloadPaymentDetected)
+      window.clearInterval(pollInterval)
+    }
+  }, [projectId, selectedConcept, isPaid])
 
   async function handlePaymentReturn(alreadyPaid: boolean) {
     // Clear the query param immediately so refreshes don't retrigger.
