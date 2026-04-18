@@ -203,9 +203,9 @@ export default function ProjectPage() {
     const handleDownloadPaymentDetected = () => {
       if (downloadPaymentDetectedRef.current) return
       downloadPaymentDetectedRef.current = true
-      const url = new URL(window.location.href)
-      url.searchParams.delete("payment")
-      window.location.href = url.toString()
+      // Navigate to the concept's own route so the page unloads (closing the
+      // Fungies overlay iframe) and remounts with isPaid read from the DB.
+      window.location.href = `/project/${projectId}/concept/${selectedConcept.id}`
     }
 
     document.addEventListener("fungies:checkout:complete", handleDownloadPaymentDetected)
