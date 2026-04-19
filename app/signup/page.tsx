@@ -9,6 +9,7 @@ function SignupForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [fullName, setFullName] = useState("")
+  const [company, setCompany] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -43,17 +44,20 @@ function SignupForm() {
     // insert trigger fires on auth.users insert, so the row exists by the
     // time signUp resolves. We still guard on data.user?.id because email
     // confirmation flows can in theory return a null user.
-    if (isTrialSignup && data.user?.id) {
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({ is_free_trial: true })
-        .eq("id", data.user.id)
+    if (data.user?.id) {
+      const profileUpdate: Record<string, unknown> = {}
+      if (isTrialSignup) profileUpdate.is_free_trial = true
+      if (company.trim()) profileUpdate.company = company.trim()
 
-      if (profileError) {
-        // Don't block signup on a flag-update failure — the user still has
-        // a valid account. Surface it to the console so it's visible in
-        // testing without showing a confusing UI message post-signup.
-        console.error("Failed to set is_free_trial on profile:", profileError)
+      if (Object.keys(profileUpdate).length > 0) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update(profileUpdate)
+          .eq("id", data.user.id)
+
+        if (profileError) {
+          console.error("Failed to update profile:", profileError)
+        }
       }
     }
 
@@ -145,6 +149,17 @@ function SignupForm() {
                 onChange={e => setFullName(e.target.value)}
                 placeholder="Your name"
                 required
+                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="field-label">Company <span className="text-stone font-normal normal-case">(optional)</span></label>
+              <input
+                type="text"
+                value={company}
+                onChange={e => setCompany(e.target.value)}
+                placeholder="Your company or studio"
                 className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
               />
             </div>

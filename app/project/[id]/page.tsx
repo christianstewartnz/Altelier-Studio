@@ -529,11 +529,6 @@ export default function ProjectPage() {
         currentStep={currentStep}
         onGoToStep={handleGoToStep}
         onStartOver={handleStartOver}
-        onLogout={async () => {
-          const supabase = createClient()
-          await supabase.auth.signOut()
-          router.push("/login")
-        }}
       />
       <main className="pb-24">
         <div className="relative">

@@ -3,7 +3,10 @@
     "allow": [
       "Bash(pnpm add *)",
       "Bash(node -e \"require\\('framer-motion'\\)\")",
-      "Bash(node -e \"const fm = require\\('./node_modules/framer-motion/dist/cjs/index.js'\\); console.log\\(typeof fm.motion, typeof fm.LayoutGroup, typeof fm.AnimatePresence, typeof fm.useScroll, typeof fm.useMotionValueEvent\\)\")"
+      "Bash(node -e \"const fm = require\\('./node_modules/framer-motion/dist/cjs/index.js'\\); console.log\\(typeof fm.motion, typeof fm.LayoutGroup, typeof fm.AnimatePresence, typeof fm.useScroll, typeof fm.useMotionValueEvent\\)\")",
+      "Bash(xargs grep *)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)"
     ]
   }
 }

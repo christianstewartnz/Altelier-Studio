@@ -4,24 +4,12 @@ import Link from "next/link"
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-background/95 
-      backdrop-blur-sm border-b border-border">
+      <header className="sticky top-0 z-50 bg-ink text-paper grain-texture">
         <div className="mx-auto max-w-3xl px-6 py-5">
-          <div className="flex items-center justify-between">
-            <Link href="/dashboard" className="flex flex-col">
-              <span className="font-serif text-xl tracking-tight 
-              text-foreground">{APP_NAME}</span>
-              <span className="text-[10px] tracking-[0.25em] uppercase 
-              text-muted-foreground ml-6 -mt-0.5">Studio</span>
-            </Link>
-            <Link 
-              href="/dashboard"
-              className="text-sm text-muted-foreground 
-              hover:text-foreground transition-colors"
-            >
-              Back to Dashboard
-            </Link>
-          </div>
+          <Link href="/dashboard" className="flex items-baseline gap-2">
+            <span className="font-serif text-2xl tracking-tight">{APP_NAME}</span>
+            <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">Studio</span>
+          </Link>
         </div>
       </header>
 

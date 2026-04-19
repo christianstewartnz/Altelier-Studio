@@ -4,7 +4,9 @@ import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
-import { Plus, Download } from "lucide-react"
+import { Plus, Download, Search } from "lucide-react"
+import { WordmarkSVG } from "@/components/results/wordmark-svg"
+import { isLightColor } from "@/lib/color-utils"
 
 type Project = {
   id: string
@@ -31,6 +33,8 @@ export default function DashboardPage() {
   const [suburbCity, setSuburbCity] = useState("")
   const [creating, setCreating] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const [search, setSearch] = useState("")
+  const [locationFilter, setLocationFilter] = useState("")
   const router = useRouter()
   const supabase = createClient()
 
@@ -62,12 +66,21 @@ export default function DashboardPage() {
           ...p,
           selected_concept: p.concepts?.find((c: any) => c.is_selected) || null
         }))
-        setProjects(mapped)
+        setProjects(sortProjects(mapped))
       }
       setLoading(false)
     }
     load()
   }, [])
+
+  function sortProjects(list: Project[]): Project[] {
+    return [...list].sort((a, b) => {
+      const aComplete = a.status === "completed" ? 1 : 0
+      const bComplete = b.status === "completed" ? 1 : 0
+      if (aComplete !== bComplete) return aComplete - bComplete
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
+  }
 
   function extractLocation(fullAddress: string): string {
     const parts = fullAddress.split(",").map(p => p.trim())
@@ -128,9 +141,9 @@ export default function DashboardPage() {
     if (updatedProjects) {
       const mapped = updatedProjects.map((p: any) => ({
         ...p,
-        selected_concept: p.concepts?.find((c: any) => c.is_selected) || null
+        selected_concept: p.concepts?.find((c: any) => c.is_selected) || null,
       }))
-      setProjects(mapped)
+      setProjects(sortProjects(mapped))
     }
   }
 
@@ -160,6 +173,22 @@ export default function DashboardPage() {
     )
   }
 
+  const locations = Array.from(new Set(
+    projects.map(p => (p as any).suburb_city || (p as any).location || "").filter(Boolean)
+  )).sort()
+
+  const visibleProjects = projects.filter(p => {
+    const q = search.toLowerCase()
+    const matchesSearch = !q ||
+      p.project_name.toLowerCase().includes(q) ||
+      p.address.toLowerCase().includes(q) ||
+      ((p as any).suburb_city || "").toLowerCase().includes(q) ||
+      (p.selected_concept?.brand_name || "").toLowerCase().includes(q)
+    const loc = (p as any).suburb_city || (p as any).location || ""
+    const matchesLocation = !locationFilter || loc === locationFilter
+    return matchesSearch && matchesLocation
+  })
+
   return (
     <div className="min-h-screen bg-cream">
 
@@ -173,7 +202,7 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={handleLogout}
-              className="text-sm text-stone-light hover:text-paper transition-colors"
+              className="text-sm text-stone-light hover:opacity-70 transition-opacity"
             >
               Sign out
             </button>
@@ -215,7 +244,7 @@ export default function DashboardPage() {
       {/* Projects grid */}
       {projects.length > 0 && (
         <main className="mx-auto max-w-6xl px-6 py-12">
-          <div className="flex items-end justify-between mb-10">
+          <div className="flex items-end justify-between mb-6">
             <h1 className="font-serif text-3xl md:text-4xl text-foreground tracking-tight">
               Your Projects
             </h1>
@@ -228,108 +257,179 @@ export default function DashboardPage() {
             </button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {projects.map(project => (
-              <div
-                key={project.id}
-                className="bg-paper border border-border flex flex-col"
-              >
-                {/* Logo preview area */}
+          {/* Search + filter row */}
+          <div className="flex gap-3 mb-8">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-light pointer-events-none" />
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search projects…"
+                className="w-full h-10 pl-9 pr-4 bg-paper border border-border text-sm text-foreground placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+              />
+            </div>
+            <select
+              value={locationFilter}
+              onChange={e => setLocationFilter(e.target.value)}
+              className="h-10 px-4 bg-paper border border-border text-sm text-foreground focus:outline-none focus:border-terracotta transition-colors appearance-none pr-8"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}
+            >
+              <option value="">All Locations</option>
+              {locations.map(loc => (
+                <option key={loc} value={loc}>{loc}</option>
+              ))}
+            </select>
+          </div>
+
+          {visibleProjects.length === 0 && (
+            <p className="text-sm text-stone py-8">No projects match your search.</p>
+          )}
+
+          <div className="flex flex-col gap-3">
+            {visibleProjects.map(project => {
+              const concept = project.selected_concept
+              const bgColor = concept ? concept.colors[0] : "#FFFFFF"
+              const light = concept ? isLightColor(concept.colors[0]) : true
+              const textColor = light ? "#3D2412" : "#F8F6F2"
+              const mutedColor = light ? "rgba(61,36,18,0.5)" : "rgba(248,246,242,0.5)"
+              const dividerColor = light ? "rgba(61,36,18,0.12)" : "rgba(248,246,242,0.12)"
+              const btnSolidBg = light ? "rgba(61,36,18,0.9)" : "rgba(248,246,242,0.92)"
+              const btnSolidText = light ? "#F8F6F2" : "#3D2412"
+              const btnBorderColor = light ? "rgba(61,36,18,0.35)" : "rgba(248,246,242,0.35)"
+
+              const statusLabel =
+                project.status === "completed" ? "Completed"
+                : project.status === "in_progress" ? "In Progress"
+                : "Draft"
+
+              return (
                 <div
-                  className="h-36 flex items-center justify-center"
-                  style={{
-                    backgroundColor: project.selected_concept
-                      ? project.selected_concept.colors[0]
-                      : "var(--ink)"
-                  }}
+                  key={project.id}
+                  className="flex items-stretch"
+                  style={{ backgroundColor: bgColor, border: `1px solid ${dividerColor}` }}
                 >
-                  {project.selected_concept ? (
-                    <div className="w-4/5 text-center">
+                  {/* Left: project info + action buttons */}
+                  <div className="flex-1 min-w-0 px-8 py-6 flex flex-col justify-between gap-4">
+                    <div className="min-w-0">
                       <p
-                        className="font-serif text-xl"
-                        style={{
-                          color: project.selected_concept.wordmark_color,
-                          fontFamily: `'${project.selected_concept.fonts.heading}', serif`
-                        }}
+                        className="text-[10px] tracking-[0.25em] uppercase mb-1.5"
+                        style={{ color: mutedColor }}
                       >
-                        {project.selected_concept.brand_name}
+                        {statusLabel}
+                      </p>
+                      <h2
+                        className="font-serif text-2xl tracking-tight truncate"
+                        style={{ color: textColor }}
+                      >
+                        {project.project_name}
+                      </h2>
+                      <p className="text-sm mt-0.5 truncate" style={{ color: mutedColor }}>
+                        {(project as any).street_address || project.address}
+                        {((project as any).suburb_city || (project as any).location)
+                          ? `, ${(project as any).suburb_city || (project as any).location}`
+                          : ""}
+                      </p>
+                      <p
+                        className="text-[10px] tracking-[0.15em] uppercase mt-1.5"
+                        style={{ color: mutedColor }}
+                      >
+                        {new Date(project.created_at).toLocaleDateString("en-NZ", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric"
+                        })}
                       </p>
                     </div>
-                  ) : (
-                    <p className="text-[11px] tracking-[0.2em] uppercase text-stone-light">
-                      {project.status === "in_progress" ? "In Progress" : "No concept yet"}
-                    </p>
-                  )}
-                </div>
 
-                {/* Project info */}
-                <div className="p-6 flex flex-col gap-4 flex-1">
-                  <div>
-                    <h2 className="font-serif text-xl text-foreground tracking-tight">
-                      {project.project_name}
-                    </h2>
-                    <p className="text-sm text-stone mt-1">
-                      {project.street_address || project.address}
-                    </p>
-                    <p className="text-sm text-stone">
-                      {project.suburb_city || project.location}
-                    </p>
-                    <p className="text-[11px] tracking-[0.1em] uppercase text-stone-light mt-2">
-                      {new Date(project.created_at).toLocaleDateString("en-NZ", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric"
-                      })}
-                    </p>
+                    {/* Action buttons */}
+                    <div className="flex gap-2 flex-wrap">
+                      {project.status === "completed" && (
+                        <>
+                          <button
+                            onClick={() => router.push(
+                              `/project/${project.id}/concept/${concept?.id}`
+                            )}
+                            className="h-9 px-5 text-xs font-medium tracking-wide transition-all duration-150"
+                            style={{
+                              backgroundColor: btnSolidBg,
+                              color: btnSolidText,
+                            }}
+                          >
+                            View Brand Concept
+                          </button>
+                          <button
+                            onClick={() => alert("Export coming soon — Phase 2")}
+                            className="h-9 px-5 text-xs font-medium tracking-wide flex items-center gap-1.5 transition-all duration-150"
+                            style={{
+                              border: `1px solid ${btnBorderColor}`,
+                              color: textColor,
+                              backgroundColor: "transparent",
+                            }}
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            Download Package
+                          </button>
+                        </>
+                      )}
+                      {project.status === "in_progress" && (
+                        <button
+                          onClick={() => router.push(`/project/${project.id}`)}
+                          className="h-9 px-5 text-xs font-medium tracking-wide transition-all duration-150"
+                          style={{
+                            backgroundColor: btnSolidBg,
+                            color: btnSolidText,
+                          }}
+                        >
+                          Continue Brief
+                        </button>
+                      )}
+                      {project.status === "draft" && (
+                        <button
+                          onClick={async () => {
+                            await supabase
+                              .from("projects")
+                              .update({ status: "in_progress" })
+                              .eq("id", project.id)
+                            router.push(`/project/${project.id}`)
+                          }}
+                          className="h-9 px-5 text-xs font-medium tracking-wide transition-all duration-150"
+                          style={{
+                            backgroundColor: btnSolidBg,
+                            color: btnSolidText,
+                          }}
+                        >
+                          Create Brand Concept
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Action buttons */}
-                  <div className="flex flex-col gap-2 mt-auto">
-                    {project.status === "completed" && (
-                      <>
-                        <button
-                          onClick={() => router.push(
-                            `/project/${project.id}/concept/${project.selected_concept?.id}`
-                          )}
-                          className="w-full h-12 text-sm font-medium bg-ink text-paper hover:bg-ink-light transition-all duration-200"
-                        >
-                          View Brand Concept
-                        </button>
-                        <button
-                          onClick={() => alert("Export coming soon — Phase 2")}
-                          className="w-full h-12 text-sm font-medium border border-border text-foreground hover:bg-cream transition-all duration-200 flex items-center justify-center gap-2"
-                        >
-                          <Download className="w-4 h-4" />
-                          Download Brand Package
-                        </button>
-                      </>
-                    )}
-                    {project.status === "in_progress" && (
-                      <button
-                        onClick={() => router.push(`/project/${project.id}`)}
-                        className="w-full h-12 text-sm font-medium border border-border text-foreground hover:bg-cream transition-all"
+                  {/* Vertical divider */}
+                  <div className="w-px self-stretch" style={{ backgroundColor: dividerColor }} />
+
+                  {/* Right: logo */}
+                  <div className="w-64 md:w-80 flex-shrink-0 flex items-center justify-center px-8 py-5">
+                    {concept?.logo_composition ? (
+                      <div className="w-full">
+                        <WordmarkSVG
+                          composition={concept.logo_composition}
+                          color={concept.wordmark_color}
+                          headingFont={concept.fonts.heading}
+                        />
+                      </div>
+                    ) : (
+                      <p
+                        className="text-[10px] tracking-[0.25em] uppercase text-center"
+                        style={{ color: mutedColor }}
                       >
-                        Continue Brief
-                      </button>
-                    )}
-                    {project.status === "draft" && (
-                      <button
-                        onClick={async () => {
-                          await supabase
-                            .from("projects")
-                            .update({ status: "in_progress" })
-                            .eq("id", project.id)
-                          router.push(`/project/${project.id}`)
-                        }}
-                        className="w-full h-12 text-sm font-medium border border-border text-foreground hover:bg-cream transition-all"
-                      >
-                        Create Brand Concept
-                      </button>
+                        {project.status === "in_progress" ? "In Progress" : "No concept yet"}
+                      </p>
                     )}
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </main>
       )}

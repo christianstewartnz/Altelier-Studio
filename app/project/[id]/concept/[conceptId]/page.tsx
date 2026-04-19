@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { ConceptDetail } from "@/components/results/concept-detail"
@@ -18,10 +18,6 @@ export default function ConceptDetailPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [isPaid, setIsPaid] = useState(false)
   const [isFreeTrial, setIsFreeTrial] = useState(false)
-
-  // Guards handlePaymentDetected so it runs at most once per mount even if
-  // both the SDK event and the poll interval fire in the same tick.
-  const paymentDetectedRef = useRef(false)
 
   useEffect(() => {
     async function loadConcept() {
@@ -82,45 +78,6 @@ export default function ConceptDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conceptId, projectId])
 
-  // Mirrors step-review.tsx: listen for the SDK's checkout:complete event as
-  // the primary signal, and poll paid_at every 3 s as a safety net in case
-  // the postMessage is missed. When either fires, hard-navigate the parent
-  // window to the same URL minus `?payment=success` — the page unload
-  // disposes of the Fungies overlay iframe as a side effect, and the fresh
-  // mount reads paid_at from the DB so `isPaid` starts true and the paid
-  // download UI renders immediately. Programmatic `Checkout.close()` is
-  // unreliable here because by the time the poll picks up paid_at the
-  // checkout iframe has already navigated to our own success_url.
-  useEffect(() => {
-    if (isPaid) return
-
-    const handlePaymentDetected = () => {
-      if (paymentDetectedRef.current) return
-      paymentDetectedRef.current = true
-      const url = new URL(window.location.href)
-      url.searchParams.delete("payment")
-      window.location.href = url.toString()
-    }
-
-    document.addEventListener("fungies:checkout:complete", handlePaymentDetected)
-
-    const pollInterval = window.setInterval(async () => {
-      if (paymentDetectedRef.current) return
-      const { data } = await supabase
-        .from("projects")
-        .select("paid_at")
-        .eq("id", projectId)
-        .maybeSingle()
-      if (data?.paid_at) {
-        handlePaymentDetected()
-      }
-    }, 3000)
-
-    return () => {
-      document.removeEventListener("fungies:checkout:complete", handlePaymentDetected)
-      window.clearInterval(pollInterval)
-    }
-  }, [projectId, isPaid])
 
   if (loading) {
     return (
@@ -155,14 +112,16 @@ export default function ConceptDetailPage() {
       projectId={projectId}
       userId={userId ?? undefined}
       onBack={() => router.push("/dashboard")}
+      onGoToDashboard={() => router.push("/dashboard")}
       onSelect={() => router.push("/dashboard")}
       onRefine={() => {}}
       onGenerateVariations={() => {}}
       refinementsRemaining={refinementsRemaining}
-      onRefinementUsed={() => 
+      onRefinementUsed={() =>
         setRefinementsRemaining(prev => prev - 1)
       }
       defaultIsSelected={true}
+      isConfirmed={true}
       isPaid={isPaid}
       isFreeTrial={isFreeTrial}
     />

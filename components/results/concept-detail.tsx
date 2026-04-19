@@ -2,13 +2,27 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import Script from "next/script"
-import { ArrowLeft, Check, Download, X } from "lucide-react"
+import { ArrowLeft, Check, Download, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 import { getContrastColor, getSortedColors } from "@/lib/color-utils"
 import type { BrandConcept } from "./results-overview"
 import { WordmarkSVG } from "./wordmark-svg"
 import { RefinementModal } from "./refinement-modal"
+
+// Close the Fungies overlay without a page reload.
+// Tries the SDK method first; falls back to removing the iframe from the DOM.
+function closeFungiesOverlay() {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ;(window as any).Fungies?.Fungies?.Checkout?.close?.()
+  } catch {}
+  document
+    .querySelectorAll('iframe[src*="fungies"], [data-fungies-overlay], .fungies-overlay')
+    .forEach((el) => el.remove())
+}
 
 type DownloadBrandPackageButtonProps = {
   projectId: string
@@ -22,26 +36,136 @@ function DownloadBrandPackageButton({
   projectId,
   conceptId,
   userId,
-  isPaid,
-  isFreeTrial
+  isPaid: isPaidProp,
+  isFreeTrial,
 }: DownloadBrandPackageButtonProps) {
+  // Own local state so we can flip to paid without a page reload.
+  const [isPaid, setIsPaid] = useState(isPaidProp)
+  const [isLoading, setIsLoading] = useState(false)
+  // Ensures payment handling runs at most once even if multiple signals fire.
+  const detectedRef = useRef(false)
+
+  // Sync upward: if the parent resolves isPaid=true after initial load, adopt it.
+  useEffect(() => {
+    if (isPaidProp) setIsPaid(true)
+  }, [isPaidProp])
+
+  // Listen for Fungies payment signals while unpaid.
+  useEffect(() => {
+    if (isPaid) return
+
+    let pollInterval: ReturnType<typeof setInterval> | null = null
+    let pollTimeout: ReturnType<typeof setTimeout> | null = null
+
+    function onPaymentDetected() {
+      if (detectedRef.current) return
+      detectedRef.current = true
+
+      // Close the overlay immediately — no page reload needed.
+      closeFungiesOverlay()
+
+      // Poll paid_at until the webhook has written it (usually < 5 s).
+      const supabase = createClient()
+      pollInterval = setInterval(async () => {
+        const { data } = await supabase
+          .from("projects")
+          .select("paid_at")
+          .eq("id", projectId)
+          .maybeSingle()
+        if (data?.paid_at) {
+          if (pollInterval) clearInterval(pollInterval)
+          setIsPaid(true)
+        }
+      }, 2000)
+
+      // Give up polling after 5 minutes.
+      pollTimeout = setTimeout(() => {
+        if (pollInterval) clearInterval(pollInterval)
+      }, 300_000)
+    }
+
+    // Fungies SDK fires a custom DOM event on the document.
+    document.addEventListener("fungies:checkout:complete", onPaymentDetected)
+
+    // Fungies iframe also sends a postMessage — catch both shapes seen in the wild.
+    function onWindowMessage(e: MessageEvent) {
+      const d = e.data
+      if (
+        d?.type === "fungies:checkout:complete" ||
+        d?.event === "payment_success" ||
+        d?.type === "payment_success"
+      ) {
+        onPaymentDetected()
+      }
+    }
+    window.addEventListener("message", onWindowMessage)
+
+    return () => {
+      document.removeEventListener("fungies:checkout:complete", onPaymentDetected)
+      window.removeEventListener("message", onWindowMessage)
+      if (pollInterval) clearInterval(pollInterval)
+      if (pollTimeout) clearTimeout(pollTimeout)
+    }
+  }, [isPaid, projectId])
+
+  async function handleDownload() {
+    setIsLoading(true)
+    try {
+      const res = await fetch("/api/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conceptId }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Export failed")
+      const a = document.createElement("a")
+      a.href = data.downloadUrl
+      a.download = "brand-package.zip"
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Could not generate your brand package. Please try again.",
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // ── Paid state ───────────────────────────────────────────────────────────────
   if (isPaid) {
     return (
       <div className="flex flex-col items-center gap-2">
         <button
-          onClick={() => alert("Export coming soon — files will download here")}
-          className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light transition-all duration-200 flex items-center justify-center gap-2"
+          onClick={handleDownload}
+          disabled={isLoading}
+          className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          <Download className="w-5 h-5" />
-          Download Brand Package
+          {isLoading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Preparing download...
+            </>
+          ) : (
+            <>
+              <Download className="w-5 h-5" />
+              Download Brand Package
+            </>
+          )}
         </button>
         <p className="text-sm text-stone">
-          Your brand package is ready to download
+          {isLoading
+            ? "Generating your files, this may take a moment"
+            : "Your brand package is ready to download"}
         </p>
       </div>
     )
   }
 
+  // ── Unpaid state — Fungies checkout overlay ──────────────────────────────────
   const checkoutBaseUrl = isFreeTrial
     ? process.env.NEXT_PUBLIC_FUNGIES_TRIAL_OVERLAY_URL || ""
     : process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
@@ -62,12 +186,7 @@ function DownloadBrandPackageButton({
     }
   })()
 
-  const customFields = JSON.stringify({
-    project_id: projectId,
-    user_id: userId || ""
-  })
-
-  const priceLabel = isFreeTrial ? "$172 NZD" : "$429 NZD"
+  const customFields = JSON.stringify({ project_id: projectId, user_id: userId || "" })
 
   return (
     <div className="flex flex-col items-center gap-2">
@@ -90,7 +209,7 @@ function DownloadBrandPackageButton({
         className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light transition-all duration-200 flex items-center justify-center gap-2"
       >
         <Download className="w-5 h-5" />
-        Download Brand Package — {priceLabel}
+        Purchase to Download (70% off $179)
       </button>
       <p className="text-sm text-stone">
         {isFreeTrial

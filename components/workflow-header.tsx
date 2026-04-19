@@ -1,13 +1,12 @@
 "use client"
 
-import { ArrowLeft, RotateCcw } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
 
 type WorkflowHeaderProps = {
   currentStep: number
   onGoToStep: (step: number) => void
   onStartOver: () => void
-  onLogout: () => void
+  onLogout?: () => void
 }
 
 const steps = [
@@ -17,21 +16,12 @@ const steps = [
   { number: 4, label: "Review" }
 ]
 
-export function WorkflowHeader({ currentStep, onGoToStep, onStartOver, onLogout }: WorkflowHeaderProps) {
+export function WorkflowHeader({ currentStep, onGoToStep, onStartOver }: WorkflowHeaderProps) {
   return (
     <header className="sticky top-0 z-50 bg-ink text-paper grain-texture">
       <div className="mx-auto max-w-6xl px-6 relative z-10">
         <div className="flex items-center justify-between h-16 md:h-20">
-          {/* Dashboard Link */}
-          <button
-            onClick={onStartOver}
-            className="flex items-center gap-2 text-sm text-stone-light hover:text-paper transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Dashboard
-          </button>
-
-          {/* Logo — Bold, editorial treatment */}
+          {/* Logo — top left */}
           <div className="flex items-baseline gap-2">
             <span className="font-serif text-2xl md:text-3xl tracking-tight">Atelier</span>
             <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">Studio</span>
@@ -100,26 +90,14 @@ export function WorkflowHeader({ currentStep, onGoToStep, onStartOver, onLogout 
             </span>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3">
-            {currentStep > 1 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onStartOver}
-                className="text-stone-light hover:text-paper hover:bg-ink-light transition-colors"
-              >
-                <RotateCcw className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Start Over</span>
-              </Button>
-            )}
-            <button
-              onClick={onLogout}
-              className="text-sm text-stone-light hover:text-paper transition-colors"
-            >
-              Sign out
-            </button>
-          </div>
+          {/* Dashboard — top right */}
+          <button
+            onClick={onStartOver}
+            className="flex items-center gap-2 text-sm text-stone-light hover:opacity-70 transition-opacity"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Dashboard
+          </button>
         </div>
 
         {/* Mobile Progress Bar */}
