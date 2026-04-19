@@ -57,150 +57,161 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
   const isValid = data.direction && data.buyerFeeling && data.pointOfDifference
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="mx-auto max-w-3xl px-6 py-16 md:py-20">
-        {/* Header */}
-        <div className="mb-16 text-center">
-          <h1 className="font-serif text-4xl md:text-5xl text-foreground tracking-tight mb-5 text-balance">
-            What direction speaks to you?
-          </h1>
-          <p className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed">
-            Choose the brand territory that feels closest to your vision.
-          </p>
+    <div className="animate-fade-up">
+      {/* Hero Section — with grain texture */}
+      <section className="bg-ink text-paper py-16 md:py-24 grain-texture">
+        <div className="mx-auto max-w-3xl px-6 relative z-10">
+          <div className="max-w-xl">
+            <p className="step-label text-stone-light mb-6">Step 03</p>
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight mb-6 text-balance leading-[1.1]">
+              What direction speaks to you?
+            </h1>
+            <p className="text-lg text-stone-light leading-relaxed max-w-md">
+              Choose the brand territory that feels closest to your vision.
+            </p>
+          </div>
         </div>
+      </section>
 
-        <div className="space-y-12">
-          <div className="space-y-8">
-            <div className="space-y-3">
-              <Label htmlFor="buyerFeeling" className="text-sm font-medium text-foreground">
+      {/* Form Section — warm off-white background */}
+      <section className="py-16 md:py-20 bg-cream">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="space-y-16">
+            {/* Buyer Feeling */}
+            <div className="space-y-4">
+              <Label htmlFor="buyerFeeling" className="field-label">
                 What should buyers feel when they first hear the name?
               </Label>
               <Input
                 id="buyerFeeling"
-                name="buyerFeeling"
-                type="text"
-                placeholder="e.g. Arrived. Proud. Like they've discovered something others haven't. Like it was made for them."
+                placeholder="e.g. Arrived. Proud. Like they've discovered something others haven't."
                 value={data.buyerFeeling}
                 onChange={(e) => onChange({ ...data, buyerFeeling: e.target.value })}
-                className="h-14 px-5 bg-card border-border rounded-2xl text-base placeholder:text-muted-foreground/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
               />
             </div>
-            <div className="space-y-3">
-              <Label htmlFor="pointOfDifference" className="text-sm font-medium text-foreground">
+
+            {/* Point of Difference */}
+            <div className="space-y-4">
+              <Label htmlFor="pointOfDifference" className="field-label">
                 How is this development different from others nearby?
               </Label>
               <Input
                 id="pointOfDifference"
-                name="pointOfDifference"
-                type="text"
-                placeholder={`e.g. Only boutique development on this street.
-Larger section sizes than comparable projects nearby.`}
+                placeholder="e.g. Only boutique development on this street. Larger section sizes than comparable projects."
                 value={data.pointOfDifference}
                 onChange={(e) => onChange({ ...data, pointOfDifference: e.target.value })}
-                className="h-14 px-5 bg-card border-border rounded-2xl text-base placeholder:text-muted-foreground/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
               />
             </div>
-          </div>
 
-          {/* Brand Directions */}
-          <div className="space-y-4">
-            <div className="grid gap-4">
-              {brandDirections.map((direction) => {
-                const isSelected = data.direction === direction.id
-                return (
-                  <button
-                    key={direction.id}
-                    type="button"
-                    onClick={() => onChange({ ...data, direction: direction.id })}
-                    className={`relative text-left p-6 md:p-8 rounded-3xl transition-all duration-300 ${
-                      isSelected
-                        ? "bg-card border-2 border-primary shadow-lg scale-[1.01]"
-                        : "bg-card border border-border hover:border-primary/40 hover:shadow-md"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <h3 className={`font-serif text-xl md:text-2xl mb-2 ${
-                          isSelected ? "text-primary" : "text-foreground"
+            {/* Brand Directions */}
+            <div className="space-y-6">
+              <Label className="field-label">
+                Choose a Direction
+              </Label>
+              <div className="grid gap-4">
+                {brandDirections.map((direction) => {
+                  const isSelected = data.direction === direction.id
+                  return (
+                    <button
+                      key={direction.id}
+                      type="button"
+                      onClick={() => onChange({ ...data, direction: direction.id })}
+                      className={`
+                        relative text-left p-6 md:p-8 transition-all duration-300 border-2
+                        ${isSelected
+                          ? "bg-ink text-paper border-ink"
+                          : "bg-paper border-border hover:border-terracotta"
+                        }
+                      `}
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className={`font-serif text-xl md:text-2xl mb-2 ${
+                            isSelected ? "text-paper" : "text-foreground"
+                          }`}>
+                            {direction.title}
+                          </h3>
+                          <p className={`text-sm md:text-base leading-relaxed mb-3 ${
+                            isSelected ? "text-stone-light" : "text-stone"
+                          }`}>
+                            {direction.description}
+                          </p>
+                          <p className="text-xs italic text-stone-light">
+                            {direction.visual}
+                          </p>
+                        </div>
+                        <div className={`flex-shrink-0 w-7 h-7 border-2 flex items-center justify-center transition-all ${
+                          isSelected
+                            ? "border-paper bg-paper text-ink"
+                            : "border-border"
                         }`}>
-                          {direction.title}
-                        </h3>
-                        <p className="text-muted-foreground text-sm md:text-base leading-relaxed mb-3">
-                          {direction.description}
-                        </p>
-                        <p className="text-xs text-muted-foreground/70 italic">
-                          {direction.visual}
-                        </p>
+                          {isSelected && <Check className="w-4 h-4" />}
+                        </div>
                       </div>
-                      <div className={`flex-shrink-0 size-7 rounded-full border-2 flex items-center justify-center transition-all ${
-                        isSelected
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border"
-                      }`}>
-                        {isSelected && <Check className="size-4" />}
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Words to Avoid */}
+            <div className="space-y-4">
+              <Label htmlFor="wordsToAvoid" className="field-label">
+                Words to Avoid
+                <span className="text-stone-light font-normal ml-2 text-[11px] normal-case tracking-normal">(Optional)</span>
+              </Label>
+              <Input
+                id="wordsToAvoid"
+                placeholder="e.g., luxe, exclusive, paradise, oasis"
+                value={data.wordsToAvoid}
+                onChange={(e) => onChange({ ...data, wordsToAvoid: e.target.value })}
+                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
+              />
+              <p className="text-xs text-stone">
+                List any words or phrases you&apos;d prefer we don&apos;t use in naming or messaging.
+              </p>
+            </div>
+
+            {/* References & Additional Thoughts */}
+            <div className="space-y-4">
+              <Label htmlFor="additionalInfo" className="field-label">
+                References & Additional Thoughts
+                <span className="text-stone-light font-normal ml-2 text-[11px] normal-case tracking-normal">(Optional)</span>
+              </Label>
+              <Textarea
+                id="additionalInfo"
+                placeholder="Share any brands, projects or aesthetics you admire, plus any other thoughts, constraints or preferences we should know before generating."
+                value={data.additionalInfo}
+                onChange={(e) => onChange({ ...data, additionalInfo: e.target.value })}
+                rows={4}
+                className="px-0 py-4 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors resize-none"
+              />
+            </div>
+
+            {/* Navigation */}
+            <div className="pt-8 flex justify-between border-t border-border">
+              <Button
+                variant="ghost"
+                onClick={onPrevious}
+                className="h-14 px-6 text-base font-medium text-stone hover:text-foreground hover:bg-cream transition-all duration-200"
+              >
+                <ArrowLeft className="w-5 h-5 mr-2" />
+                Previous
+              </Button>
+              <Button
+                onClick={onNext}
+                disabled={!isValid}
+                className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light disabled:opacity-40 transition-all duration-200 group"
+              >
+                Continue
+                <ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />
+              </Button>
             </div>
           </div>
-
-          {/* Words to Avoid */}
-          <div className="space-y-3">
-            <Label htmlFor="wordsToAvoid" className="text-sm font-medium text-foreground">
-              Words to Avoid
-              <span className="text-muted-foreground font-normal ml-2">(Optional)</span>
-            </Label>
-            <Input
-              id="wordsToAvoid"
-              placeholder="e.g., luxe, exclusive, paradise, oasis"
-              value={data.wordsToAvoid}
-              onChange={(e) => onChange({ ...data, wordsToAvoid: e.target.value })}
-              className="h-14 px-5 bg-card border-border rounded-2xl text-base placeholder:text-muted-foreground/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
-            <p className="text-xs text-muted-foreground">
-              List any words or phrases you&apos;d prefer we don&apos;t use in naming or messaging.
-            </p>
-          </div>
-
-          {/* References & Additional Thoughts */}
-          <div className="space-y-3">
-            <Label htmlFor="additionalInfo" className="text-sm font-medium text-foreground">
-              References & Additional Thoughts
-              <span className="text-muted-foreground font-normal ml-2">(Optional)</span>
-            </Label>
-            <Textarea
-              id="additionalInfo"
-              placeholder="Share any brands, projects or aesthetics you admire, plus any other thoughts, constraints or preferences we should know before generating."
-              value={data.additionalInfo}
-              onChange={(e) => onChange({ ...data, additionalInfo: e.target.value })}
-              rows={4}
-              className="px-5 py-4 bg-card border-border rounded-2xl text-base placeholder:text-muted-foreground/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
-            />
-          </div>
-
-          {/* Navigation */}
-          <div className="pt-8 flex justify-between">
-            <Button
-              variant="ghost"
-              onClick={onPrevious}
-              className="h-14 px-6 rounded-2xl text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
-            >
-              <ArrowLeft className="size-5 mr-2" />
-              Previous
-            </Button>
-            <Button
-              onClick={onNext}
-              disabled={!isValid}
-              className="h-14 px-8 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 transition-all duration-200"
-            >
-              Continue
-              <ArrowRight className="size-5 ml-2" />
-            </Button>
-          </div>
         </div>
-      </div>
+      </section>
     </div>
   )
 }

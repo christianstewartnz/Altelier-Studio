@@ -19,59 +19,72 @@ const steps = [
 
 export function WorkflowHeader({ currentStep, onGoToStep, onStartOver, onLogout }: WorkflowHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-      <div className="mx-auto max-w-5xl px-6 py-5">
-        <div className="flex items-center justify-between">
+    <header className="sticky top-0 z-50 bg-ink text-paper grain-texture">
+      <div className="mx-auto max-w-6xl px-6 relative z-10">
+        <div className="flex items-center justify-between h-16 md:h-20">
           {/* Dashboard Link */}
           <button
             onClick={onStartOver}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 text-sm text-stone-light hover:text-paper transition-colors"
           >
-            <ArrowLeft className="size-4" />
+            <ArrowLeft className="w-4 h-4" />
             Dashboard
           </button>
 
-          {/* Logo - Asymmetrical composition */}
-          <div className="flex flex-col">
-            <span className="font-serif text-2xl md:text-3xl tracking-tight text-foreground">Atelier</span>
-            <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground ml-6 -mt-0.5">Studio</span>
+          {/* Logo — Bold, editorial treatment */}
+          <div className="flex items-baseline gap-2">
+            <span className="font-serif text-2xl md:text-3xl tracking-tight">Atelier</span>
+            <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">Studio</span>
           </div>
 
-          {/* Progress Steps - Desktop */}
-          <nav className="hidden md:flex items-center gap-1">
+          {/* Progress Steps — Desktop */}
+          <nav className="hidden md:flex items-center">
             {steps.map((step, index) => (
               <div key={step.number} className="flex items-center">
                 <button
-                  onClick={() => onGoToStep(step.number)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                    currentStep === step.number
-                      ? "text-foreground"
+                  onClick={() => step.number <= currentStep && onGoToStep(step.number)}
+                  disabled={step.number > currentStep}
+                  className={`
+                    relative px-5 py-2 text-sm font-medium transition-all duration-200
+                    ${currentStep === step.number
+                      ? "text-paper"
                       : currentStep > step.number
-                      ? "text-primary hover:text-primary/80"
-                      : "text-muted-foreground/50 cursor-not-allowed"
-                  }`}
-                  disabled={currentStep < step.number}
+                        ? "text-stone-light hover:text-paper"
+                        : "text-stone cursor-not-allowed"
+                    }
+                  `}
                 >
-                  <span className={`flex items-center justify-center size-6 rounded-full text-xs font-medium transition-all ${
-                    currentStep === step.number
-                      ? "bg-foreground text-background"
-                      : currentStep > step.number
-                      ? "bg-primary/20 text-primary"
-                      : "bg-muted text-muted-foreground/50"
-                  }`}>
-                    {currentStep > step.number ? (
-                      <svg className="size-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : (
-                      step.number
-                    )}
+                  <span className="flex items-center gap-2.5">
+                    <span className={`
+                      flex items-center justify-center w-6 h-6 text-xs font-medium border transition-all
+                      ${currentStep === step.number
+                        ? "border-paper bg-paper text-ink"
+                        : currentStep > step.number
+                          ? "border-stone-light text-stone-light"
+                          : "border-stone text-stone"
+                      }
+                    `}>
+                      {currentStep > step.number ? (
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        step.number
+                      )}
+                    </span>
+                    {step.label}
                   </span>
-                  <span className="text-sm font-medium">{step.label}</span>
+
+                  {/* Active indicator line — terracotta accent */}
+                  {currentStep === step.number && (
+                    <span className="absolute bottom-0 left-5 right-5 h-[2px] bg-terracotta" />
+                  )}
                 </button>
+
+                {/* Connector line */}
                 {index < steps.length - 1 && (
-                  <div className={`w-8 h-px mx-1 ${
-                    currentStep > step.number ? "bg-primary/40" : "bg-border"
+                  <div className={`w-8 h-px ${
+                    currentStep > step.number ? "bg-stone-light" : "bg-stone"
                   }`} />
                 )}
               </div>
@@ -79,28 +92,30 @@ export function WorkflowHeader({ currentStep, onGoToStep, onStartOver, onLogout 
           </nav>
 
           {/* Mobile Step Indicator */}
-          <div className="md:hidden flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">Step {currentStep}</span>
-            <span>/</span>
-            <span>4</span>
+          <div className="md:hidden flex items-center gap-3">
+            <span className="text-sm text-stone-light">
+              <span className="text-paper font-medium">{currentStep}</span>
+              <span className="mx-1">/</span>
+              <span>4</span>
+            </span>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {currentStep > 1 && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={onStartOver}
-                className="text-muted-foreground hover:text-foreground transition-colors"
+                className="text-stone-light hover:text-paper hover:bg-ink-light transition-colors"
               >
-                <RotateCcw className="size-4 mr-2" />
+                <RotateCcw className="w-4 h-4 mr-2" />
                 <span className="hidden sm:inline">Start Over</span>
               </Button>
             )}
             <button
               onClick={onLogout}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm text-stone-light hover:text-paper transition-colors"
             >
               Sign out
             </button>
@@ -108,13 +123,13 @@ export function WorkflowHeader({ currentStep, onGoToStep, onStartOver, onLogout 
         </div>
 
         {/* Mobile Progress Bar */}
-        <div className="md:hidden mt-4">
-          <div className="flex gap-2">
+        <div className="md:hidden pb-4">
+          <div className="flex gap-1.5">
             {steps.map((step) => (
               <div
                 key={step.number}
-                className={`h-1 flex-1 rounded-full transition-all ${
-                  currentStep >= step.number ? "bg-primary" : "bg-muted"
+                className={`h-0.5 flex-1 transition-all ${
+                  currentStep >= step.number ? "bg-terracotta" : "bg-stone"
                 }`}
               />
             ))}

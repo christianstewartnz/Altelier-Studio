@@ -33,81 +33,91 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
-      <div className="w-full max-w-sm">
-        
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-12">
-          <span className="font-serif text-3xl tracking-tight text-foreground">
-            {APP_NAME}
-          </span>
-          <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground ml-6 -mt-0.5">
-            {APP_SUBTITLE}
-          </span>
+    <div className="min-h-screen flex flex-col md:flex-row">
+
+      {/* Left — espresso brand panel (desktop) / header (mobile) */}
+      <div className="bg-ink text-paper grain-texture md:w-1/2 flex flex-col items-start justify-between px-10 py-12 md:px-16 md:py-20 md:sticky md:top-0 md:h-screen">
+        {/* Wordmark */}
+        <div className="flex items-baseline gap-2">
+          <span className="font-serif text-2xl md:text-3xl tracking-tight">{APP_NAME}</span>
+          <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">{APP_SUBTITLE}</span>
         </div>
 
-        {/* Heading */}
-        <h1 className="font-serif text-3xl text-foreground tracking-tight mb-2 text-center">
-          Welcome back
-        </h1>
-        <p className="text-muted-foreground text-center mb-8">
-          Sign in to your account
-        </p>
+        {/* Editorial line — hidden on mobile */}
+        <div className="hidden md:block">
+          <p className="font-serif text-4xl lg:text-5xl xl:text-6xl tracking-tight text-balance leading-[1.1] mb-6">
+            Where property brands begin.
+          </p>
+          <div className="divider-editorial" />
+        </div>
 
-        {/* Form */}
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-              className="w-full h-14 px-5 bg-card border border-border rounded-2xl text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
-          </div>
+        {/* Bottom spacer — desktop only */}
+        <div className="hidden md:block" />
+      </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-              className="w-full h-14 px-5 bg-card border border-border rounded-2xl text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-            />
-          </div>
+      {/* Right — form panel */}
+      <div className="bg-cream md:w-1/2 flex flex-col justify-center px-10 py-16 md:px-16 md:py-20">
+        <div className="w-full max-w-sm mx-auto">
 
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
+          {/* Heading */}
+          <h1 className="font-serif text-4xl md:text-5xl tracking-tight text-foreground mb-3">
+            Welcome back
+          </h1>
+          <p className="field-label text-stone mb-10">
+            Sign in to your account
+          </p>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full h-14 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 transition-all duration-200 mt-4"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </button>
-        </form>
+          {/* Form */}
+          <form onSubmit={handleLogin} className="space-y-8">
+            <div className="space-y-2">
+              <label className="field-label">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+              />
+            </div>
 
-        {/* Sign up link */}
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          Don't have an account?{" "}
-          <a 
-            href="/signup" 
-            className="text-foreground underline underline-offset-4 hover:text-foreground/80"
-          >
-            Sign up
-          </a>
-        </p>
+            <div className="space-y-2">
+              <label className="field-label">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+              />
+            </div>
 
+            {error && (
+              <p className="text-sm text-terracotta">{error}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-14 text-base font-medium bg-ink text-paper hover:bg-ink-light disabled:opacity-40 transition-all duration-200"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+
+          {/* Sign up link */}
+          <p className="text-sm text-stone mt-8">
+            Don&apos;t have an account?{" "}
+            <a
+              href="/signup"
+              className="text-foreground underline underline-offset-4 hover:text-ink transition-colors"
+            >
+              Sign up
+            </a>
+          </p>
+
+        </div>
       </div>
     </div>
   )

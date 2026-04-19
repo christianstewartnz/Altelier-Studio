@@ -37,6 +37,8 @@ export default function ProjectPage() {
   const [isPaid, setIsPaid] = useState(false)
   const [isTrialEligible, setIsTrialEligible] = useState(false)
   const [isFreeTrial, setIsFreeTrial] = useState(false)
+  const [tileData, setTileData] = useState<{ rect: DOMRect; color: string; scrollY: number } | null>(null)
+  const [confirmedConceptId, setConfirmedConceptId] = useState<string | null>(null)
 
   // Guard so the post-payment auto-generate only ever fires once per mount.
   const autoGenerateTriggered = useRef(false)
@@ -163,6 +165,8 @@ export default function ProjectPage() {
         }))
         setConcepts(mapped)
         setShowResults(true)
+        const selectedInDb = existingConcepts.find((c: any) => c.is_selected)
+        if (selectedInDb) setConfirmedConceptId(selectedInDb.id)
       }
 
       setLoading(false)
@@ -417,14 +421,13 @@ export default function ProjectPage() {
     }
   }
 
-  const handleViewConcept = (concept: BrandConcept) => {
+  const handleViewConcept = (concept: BrandConcept, data?: { rect: DOMRect; color: string; scrollY: number }) => {
+    setTileData(data ?? null)
     setSelectedConcept(concept)
-    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const handleBackToResults = () => {
     setSelectedConcept(null)
-    window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const handleSelectConcept = async (concept: BrandConcept) => {
@@ -444,6 +447,8 @@ export default function ProjectPage() {
       .from("projects")
       .update({ status: "completed" })
       .eq("id", projectId)
+
+    setConfirmedConceptId(concept.id)
   }
 
   const handleStartOver = () => {
@@ -486,15 +491,19 @@ export default function ProjectPage() {
         projectId={projectId}
         userId={userId ?? undefined}
         onBack={handleBackToResults}
+        onGoToDashboard={handleStartOver}
         onSelect={handleSelectConcept}
         onRefine={() => {}}
         onGenerateVariations={() => {}}
         refinementsRemaining={refinementsRemaining}
-        onRefinementUsed={() => 
+        onRefinementUsed={() =>
           setRefinementsRemaining(prev => prev - 1)
         }
+        defaultIsSelected={confirmedConceptId === selectedConcept.id}
+        isConfirmed={confirmedConceptId !== null}
         isPaid={isPaid}
         isFreeTrial={isFreeTrial}
+        tileData={tileData ?? undefined}
       />
     )
   }
@@ -507,6 +516,9 @@ export default function ProjectPage() {
         onStartOver={handleStartOver}
         hasSeenInstructions={hasSeenInstructions}
         onDismissInstructions={() => setHasSeenInstructions(true)}
+        contractionData={tileData ?? undefined}
+        onContractionComplete={() => setTileData(null)}
+        confirmedConceptId={confirmedConceptId ?? undefined}
       />
     )
   }

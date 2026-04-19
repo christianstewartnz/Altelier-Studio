@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import Script from "next/script"
-import { ArrowLeft, Check, Download, RefreshCw, X } from "lucide-react"
+import { ArrowLeft, Check, Download, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 import { getContrastColor, getSortedColors } from "@/lib/color-utils"
@@ -25,31 +25,23 @@ function DownloadBrandPackageButton({
   isPaid,
   isFreeTrial
 }: DownloadBrandPackageButtonProps) {
-  // Paid: direct download (asset export is a separate workstream and
-  // still a stub here; this component is about wiring the checkout).
   if (isPaid) {
     return (
       <div className="flex flex-col items-center gap-2">
         <button
-          onClick={() =>
-            alert("Export coming soon — files will download here")
-          }
-          className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
+          onClick={() => alert("Export coming soon — files will download here")}
+          className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light transition-all duration-200 flex items-center justify-center gap-2"
         >
-          <Download className="size-5" />
+          <Download className="w-5 h-5" />
           Download Brand Package
         </button>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-stone">
           Your brand package is ready to download
         </p>
       </div>
     )
   }
 
-  // Unpaid: open the Fungies overlay. Trial profiles get the discounted
-  // $172 checkout; everyone else gets the full $429 checkout (which is
-  // unreachable in practice because non-trial users have to pay to
-  // generate in the first place).
   const checkoutBaseUrl = isFreeTrial
     ? process.env.NEXT_PUBLIC_FUNGIES_TRIAL_OVERLAY_URL || ""
     : process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
@@ -63,9 +55,7 @@ function DownloadBrandPackageButton({
     if (!checkoutBaseUrl) return ""
     try {
       const url = new URL(checkoutBaseUrl)
-      if (successUrl) {
-        url.searchParams.set("success_url", successUrl)
-      }
+      if (successUrl) url.searchParams.set("success_url", successUrl)
       return url.toString()
     } catch {
       return checkoutBaseUrl
@@ -85,10 +75,6 @@ function DownloadBrandPackageButton({
         src="https://cdn.jsdelivr.net/npm/@fungies/fungies-js@0.7.2"
         strategy="afterInteractive"
         onLoad={() => {
-          // Initialize() (not ScanDOM()) attaches the postMessage listener
-          // that dispatches `fungies:checkout:complete` on document and
-          // cleans up the overlay iframe on close. Guarded so we don't
-          // double-register across re-mounts (e.g. refinement applied).
           if (!window.__fungiesInitialized) {
             window.Fungies?.Fungies?.Initialize({ enableDataAttributes: true })
             window.__fungiesInitialized = true
@@ -101,12 +87,12 @@ function DownloadBrandPackageButton({
         data-fungies-checkout-url={checkoutUrl}
         data-fungies-mode="overlay"
         data-fungies-custom-fields={customFields}
-        className="h-14 px-10 rounded-2xl text-base font-medium bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 flex items-center justify-center gap-2"
+        className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light transition-all duration-200 flex items-center justify-center gap-2"
       >
-        <Download className="size-5" />
+        <Download className="w-5 h-5" />
         Download Brand Package — {priceLabel}
       </button>
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-stone">
         {isFreeTrial
           ? "Unlock your brand package at the trial price"
           : "Unlock your brand package to download"}
@@ -119,34 +105,36 @@ type ConceptDetailProps = {
   concept: BrandConcept
   projectId: string
   onBack: () => void
+  onGoToDashboard: () => void
   onSelect: (concept: BrandConcept) => void
   onRefine: (concept: BrandConcept) => void
   onGenerateVariations: (concept: BrandConcept) => void
   refinementsRemaining: number
   onRefinementUsed: () => void
   defaultIsSelected?: boolean
+  isConfirmed?: boolean
   userId?: string
-  // Whether the underlying project has been paid for (project.paid_at).
-  // For non-trial users this was paid pre-generation; for trial users this
-  // is the $172 discounted download payment.
   isPaid?: boolean
-  // Profile-level flag — picks the trial vs full Fungies overlay URL.
   isFreeTrial?: boolean
+  tileData?: { rect: DOMRect; color: string; scrollY: number }
 }
 
-export function ConceptDetail({ 
-  concept, 
+export function ConceptDetail({
+  concept,
   projectId,
-  onBack, 
-  onSelect, 
-  onRefine, 
+  onBack,
+  onGoToDashboard,
+  onSelect,
+  onRefine,
   onGenerateVariations,
   refinementsRemaining,
   onRefinementUsed,
   defaultIsSelected,
+  isConfirmed = false,
   userId,
   isPaid = false,
   isFreeTrial = false,
+  tileData,
 }: ConceptDetailProps) {
   const [currentConcept, setCurrentConcept] = useState(concept)
   const [showRefinement, setShowRefinement] = useState(false)
@@ -155,28 +143,41 @@ export function ConceptDetail({
   const [confirmChecked, setConfirmChecked] = useState(false)
   const [showCongratulations, setShowCongratulations] = useState(false)
   const [isSelected, setIsSelected] = useState(defaultIsSelected || false)
+  const [headerVisible, setHeaderVisible] = useState(false)
+  const [barVisible, setBarVisible] = useState(false)
+  const [isExiting, setIsExiting] = useState(false)
+  const lastScrollY = useRef(0)
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY
+      const scrollingUp = currentY < lastScrollY.current
+      const pastHero = currentY > window.innerHeight * 0.8
+      setHeaderVisible(scrollingUp || pastHero)
+      lastScrollY.current = currentY
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const t = setTimeout(() => setBarVisible(true), 400)
+    return () => clearTimeout(t)
+  }, [])
 
   const headingFont = currentConcept.fonts.heading
   const bodyFont = currentConcept.fonts.body
-
   const headingStyle: React.CSSProperties = { fontFamily: `'${headingFont}', serif` }
 
   const sortedColors = getSortedColors(currentConcept.colors)
   const darkestColor = sortedColors[0]
   const lightestColor = sortedColors[sortedColors.length - 1]
   const secondLightestColor = sortedColors[sortedColors.length - 2]
-  const midColor = sortedColors[Math.floor(sortedColors.length / 2)]
   const APARTMENT_IMAGE = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80"
-
-  function handleApplyRefinements(updatedConcept: BrandConcept) {
-    setShowRefinement(false)
-    setIsApplying(true)
-    onRefinementUsed()
-    setTimeout(() => {
-      setCurrentConcept(updatedConcept)
-      setIsApplying(false)
-    }, 1500)
-  }
 
   useEffect(() => {
     const families = [headingFont, bodyFont]
@@ -195,530 +196,374 @@ export function ConceptDetail({
     }
   }, [headingFont, bodyFont])
 
+  function handleApplyRefinements(updatedConcept: BrandConcept) {
+    setShowRefinement(false)
+    setIsApplying(true)
+    onRefinementUsed()
+    setTimeout(() => {
+      setCurrentConcept(updatedConcept)
+      setIsApplying(false)
+    }, 1500)
+  }
+
+  function handleBack() {
+    if (!tileData) { onBack(); return }
+    setIsExiting(true)
+    setBarVisible(false)
+    setTimeout(onBack, 380)
+  }
+
+  const heroTextColor = currentConcept.wordmarkColor || getContrastColor(currentConcept.colors[0])
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="mx-auto max-w-6xl px-6 py-5">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <span className="font-serif text-2xl md:text-3xl tracking-tight text-foreground">
-                {APP_NAME}
-              </span>
-              <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground ml-6 -mt-0.5">
-                {APP_SUBTITLE}
-              </span>
+    <div className="min-h-screen bg-cream" style={{ fontFamily: `'${bodyFont}', sans-serif` }}>
+
+      {/* ── SCROLL-CONTROLLED HEADER ── */}
+      <header
+        className="fixed top-0 left-0 right-0 z-50 bg-ink text-paper grain-texture transition-opacity duration-300"
+        style={{
+          opacity: headerVisible ? 1 : 0,
+          pointerEvents: headerVisible ? "auto" : "none",
+        }}
+      >
+        <div className="mx-auto max-w-6xl px-6 relative z-10">
+          <div className="flex items-center h-16 md:h-20">
+            <div className="flex items-baseline gap-2">
+              <span className="font-serif text-2xl md:text-3xl tracking-tight">{APP_NAME}</span>
+              <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">{APP_SUBTITLE}</span>
             </div>
-            {!isSelected ? (
-              <button
-                onClick={onBack}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="size-4" />
-                Concepts
-              </button>
-            ) : (
-              <button
-                onClick={() => { window.location.href = "/dashboard" }}
-                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <ArrowLeft className="size-4" />
-                Dashboard
-              </button>
-            )}
           </div>
         </div>
       </header>
 
-      <main className="pb-24" style={{ fontFamily: `'${bodyFont}', sans-serif` }}>
-        {/* SECTION 1 — HERO */}
-        <section className="relative py-24 md:py-32 overflow-hidden animate-in fade-in duration-700">
-          <div 
-            className="absolute inset-0 opacity-[0.03]"
-            style={{ backgroundColor: currentConcept.colors[0] }}
-          />
-          <div className="mx-auto max-w-5xl px-6 text-center relative">
-            {/* Concept Title */}
-            <p className="text-xs tracking-[0.3em] uppercase text-muted-foreground mb-8">
-              {currentConcept.conceptTitle}
-            </p>
+      {/* ── ALWAYS-VISIBLE BACK BUTTON ── */}
+      <button
+        onClick={isConfirmed ? onGoToDashboard : handleBack}
+        className="fixed top-0 right-0 z-[51] flex items-center gap-2 text-sm hover:opacity-70 transition-opacity h-16 md:h-20 px-6"
+        style={{ color: headerVisible ? "#A89880" : heroTextColor }}
+      >
+        <ArrowLeft className="w-4 h-4" />
+        {isConfirmed ? "Dashboard" : "All Concepts"}
+      </button>
 
-            {/* Brand Name */}
-            <h1
-              className="text-5xl md:text-7xl lg:text-8xl text-foreground tracking-tight mb-6"
-              style={headingStyle}
-            >
-              {currentConcept.brandName}
-            </h1>
+      {/* ── HERO — primary colour fills screen (overlay already animated it in) ── */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
+        <div
+          className="absolute inset-0 grain-texture"
+          style={{ backgroundColor: currentConcept.colors[0] }}
+        />
 
-            {/* Tagline */}
-            <p className="text-xl md:text-2xl text-muted-foreground italic max-w-2xl mx-auto">
-              {currentConcept.tagline}
-            </p>
+        {/* Content — fades out on exit, fades in on entry */}
+        <div
+          className="animate-fade-in relative z-10 flex flex-col items-center text-center px-6 w-full max-w-4xl mx-auto pt-20"
+          style={{
+            animationDuration: "0.5s",
+            animationFillMode: "both",
+            opacity: isExiting ? 0 : undefined,
+            transition: isExiting ? "opacity 0.3s ease" : undefined,
+          }}
+        >
+          <div className="w-full max-w-[560px] md:max-w-[680px] h-auto mb-16 flex items-center justify-center">
+            <WordmarkSVG
+              composition={currentConcept.logoComposition}
+              color={currentConcept.wordmarkColor || "#FFFFFF"}
+              headingFont={headingFont}
+            />
+          </div>
 
-            {/* Logo Visual */}
-            <div className="mt-16 flex justify-center">
-              <div
-                className="rounded-2xl overflow-hidden flex items-center justify-center p-4"
-                style={{
-                  backgroundColor: currentConcept.colors[0],
-                  width: "320px",
-                  height: "120px",
-                }}
-              >
-                <WordmarkSVG
-                  composition={currentConcept.logoComposition}
-                  headingFont={headingFont}
-                  color={currentConcept.wordmarkColor || getContrastColor(currentConcept.colors[0])}
+          <p className="font-serif italic text-xl md:text-2xl max-w-xl" style={{ color: heroTextColor, opacity: 0.8 }}>
+            {currentConcept.tagline}
+          </p>
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2">
+          <div className="w-px h-16" style={{ backgroundColor: heroTextColor, opacity: 0.3 }} />
+        </div>
+      </section>
+
+      {/* ── BRAND RATIONALE ── */}
+      <section className="py-24 md:py-32 bg-cream">
+        <div className="mx-auto max-w-4xl px-6">
+          <p className="section-label-accent mb-12">Brand Rationale</p>
+          <blockquote className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground leading-snug mb-12 text-balance" style={headingStyle}>
+            {currentConcept.tagline}
+          </blockquote>
+          <div className="text-base md:text-lg text-foreground/85 leading-relaxed">
+            {currentConcept.rationale}
+          </div>
+        </div>
+      </section>
+
+      {/* ── COLOUR PALETTE ── */}
+      <section className="py-24 md:py-32 bg-paper">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="section-label-accent mb-12">Colour Palette</p>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
+            {currentConcept.colors.map((color, index) => (
+              <div key={index} className="flex flex-col">
+                <div
+                  className="aspect-square w-full mb-4"
+                  style={{ backgroundColor: color }}
                 />
+                <p className="text-[11px] tracking-[0.2em] uppercase text-stone font-medium">
+                  {color}
+                </p>
+              </div>
+            ))}
+          </div>
+          {currentConcept.colorRationale && (
+            <p className="mt-10 text-base text-stone leading-relaxed max-w-2xl">
+              {currentConcept.colorRationale}
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* ── TYPOGRAPHY ── */}
+      <section className="py-24 md:py-32 bg-cream">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="section-label-accent mb-12">Typography</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
+            <div>
+              <p
+                className="text-4xl md:text-5xl lg:text-6xl mb-6 text-foreground tracking-tight"
+                style={{ fontFamily: `"${headingFont}", serif` }}
+              >
+                {currentConcept.brandName}
+              </p>
+              <p className="text-[12px] tracking-[0.15em] uppercase text-stone-light">{headingFont} — Heading</p>
+            </div>
+            <div>
+              <p
+                className="text-xl md:text-2xl lg:text-3xl mb-6 text-foreground/85 italic leading-relaxed"
+                style={{ fontFamily: `"${bodyFont}", sans-serif` }}
+              >
+                {currentConcept.tagline}
+              </p>
+              <p className="text-[12px] tracking-[0.15em] uppercase text-stone-light">{bodyFont} — Body</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── IDENTITY ── */}
+      <section className="py-24 md:py-32 bg-paper">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="section-label-accent mb-12">Identity</p>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="flex flex-col items-center justify-center p-12 min-h-[200px]" style={{ backgroundColor: currentConcept.colors[0] }}>
+              <p className="field-label mb-8" style={{ color: currentConcept.wordmarkColor }}>Primary Wordmark</p>
+              <div className="flex items-center justify-center" style={{ width: "240px", height: "100px" }}>
+                <WordmarkSVG composition={currentConcept.logoComposition} headingFont={headingFont} color={currentConcept.wordmarkColor} />
+              </div>
+            </div>
+            <div className="flex flex-col items-center justify-center p-12 min-h-[200px]" style={{ backgroundColor: currentConcept.wordmarkColor }}>
+              <p className="field-label mb-8" style={{ color: currentConcept.colors[0] }}>Reversed</p>
+              <div className="flex items-center justify-center" style={{ width: "240px", height: "100px" }}>
+                <WordmarkSVG composition={currentConcept.logoComposition} headingFont={headingFont} color={currentConcept.colors[0]} />
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* SECTION 2 — RATIONALE */}
-        <section className="py-20 md:py-28 border-t border-border animate-in fade-in duration-700" style={{ animationDelay: "100ms" }}>
-          <div className="mx-auto max-w-3xl px-6">
-            <h2
-              className="text-2xl md:text-3xl text-foreground tracking-tight mb-8"
-              style={headingStyle}
-            >
-              The Rationale
-            </h2>
-            <div className="space-y-6 text-lg text-muted-foreground leading-relaxed">
-              <p>{currentConcept.rationale}</p>
-              {currentConcept.voiceSample?.trim() ? (
-                <blockquote className="font-serif text-xl italic text-muted-foreground border-l-2 border-primary pl-6 mt-6">
-                  {currentConcept.voiceSample}
-                </blockquote>
-              ) : null}
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 3 — COLOUR SYSTEM */}
-        <section className="py-20 md:py-28 border-t border-border bg-card animate-in fade-in duration-700" style={{ animationDelay: "200ms" }}>
-          <div className="mx-auto max-w-5xl px-6">
-            <h2
-              className="text-2xl md:text-3xl text-foreground tracking-tight mb-12 text-center"
-              style={headingStyle}
-            >
-              Colour System
-            </h2>
-            <div className="flex flex-wrap justify-center gap-6 md:gap-10">
-              {currentConcept.colors.map((color, index) => (
-                <div key={index} className="flex flex-col items-center gap-4">
-                  <div 
-                    className="size-24 md:size-32 rounded-2xl shadow-lg border border-border/30"
-                    style={{ backgroundColor: color }}
-                  />
-                  <span className="text-sm text-muted-foreground font-mono uppercase">
-                    {color}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 4 — TYPOGRAPHY */}
-        <section className="py-20 md:py-28 border-t border-border animate-in fade-in duration-700" style={{ animationDelay: "300ms" }}>
-          <div className="mx-auto max-w-5xl px-6">
-            <h2
-              className="text-2xl md:text-3xl text-foreground tracking-tight mb-12 text-center"
-              style={headingStyle}
-            >
-              Typography
-            </h2>
-            <div className="grid md:grid-cols-2 gap-12 md:gap-16">
-              {/* Heading Style */}
-              <div className="bg-card border border-border rounded-2xl p-8 md:p-10">
-                <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-6">
-                  Heading
-                </p>
-                <p
-                  className="text-4xl md:text-5xl text-foreground tracking-tight mb-4"
-                  style={{ fontFamily: `'${currentConcept.fonts.heading}', serif` }}
-                >
-                  {currentConcept.brandName}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {currentConcept.fonts.heading} — Light, Regular, Medium
-                </p>
+      {/* ── BRAND ATTRIBUTES ── */}
+      <section className="py-24 md:py-32 bg-cream">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="section-label-accent mb-12">Brand Attributes</p>
+          <div className="flex flex-wrap gap-4">
+            {currentConcept.attributes.map((attr) => (
+              <div key={attr} className="px-6 py-4 border border-border bg-paper text-[11px] tracking-[0.2em] uppercase font-medium text-ink">
+                {attr}
               </div>
-
-              {/* Body Style */}
-              <div className="bg-card border border-border rounded-2xl p-8 md:p-10">
-                <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-6">
-                  Body
-                </p>
-                <p
-                  className="text-lg text-foreground leading-relaxed mb-4"
-                  style={{ fontFamily: `'${currentConcept.fonts.body}', sans-serif` }}
-                >
-                  {currentConcept.tagline}
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  {currentConcept.fonts.body} — Regular, Medium
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* SECTION 5 — IDENTITY */}
-        <section className="py-20 md:py-28 border-t border-border bg-card animate-in fade-in duration-700" style={{ animationDelay: "400ms" }}>
-          <div className="mx-auto max-w-5xl px-6">
-            <h2
-              className="text-2xl md:text-3xl text-foreground tracking-tight mb-12 text-center"
-              style={headingStyle}
-            >
-              Identity
-            </h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {/* Primary Wordmark — light background */}
+      {/* ── APPLICATIONS ── */}
+      <section className="py-20 md:py-28 bg-paper">
+        <div className="mx-auto max-w-6xl px-6">
+          <p className="section-label-accent mb-12">Applications</p>
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+            {/* Brochure Cover */}
+            <div className="group">
               <div
-                className="flex flex-col items-center justify-center p-12 rounded-2xl min-h-[200px]"
-                style={{ backgroundColor: currentConcept.colors[0] }}
+                className="aspect-[3/4] overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
+                style={{ backgroundColor: lightestColor }}
               >
-                <p
-                  className="text-xs tracking-[0.2em] uppercase mb-8"
-                  style={{ color: currentConcept.wordmarkColor }}
-                >
-                  Primary Wordmark
-                </p>
-                <div
-                  className="rounded-xl overflow-hidden flex items-center justify-center p-4"
-                  style={{ width: "240px", height: "100px" }}
-                >
+                <div className="flex items-center justify-center p-6 flex-shrink-0" style={{ height: '30%' }}>
                   <WordmarkSVG
                     composition={currentConcept.logoComposition}
-                    headingFont={headingFont}
-                    color={currentConcept.wordmarkColor}
+                    color={getContrastColor(lightestColor)}
+                    headingFont={currentConcept.fonts.heading}
                   />
                 </div>
-              </div>
-
-              {/* Reversed Wordmark — dark background */}
-              <div 
-                className="flex flex-col items-center justify-center p-12 rounded-2xl min-h-[200px]"
-                style={{ backgroundColor: currentConcept.wordmarkColor }}
-              >
-                <p 
-                  className="text-xs tracking-[0.2em] uppercase mb-8"
-                  style={{ color: currentConcept.colors[0] }}
-                >
-                  Reversed
-                </p>
-                <div
-                  className="rounded-xl overflow-hidden flex items-center justify-center p-4"
-                  style={{ width: "240px", height: "100px" }}
-                >
-                  <WordmarkSVG
-                    composition={currentConcept.logoComposition}
-                    headingFont={headingFont}
-                    color={currentConcept.colors[0]}
-                  />
+                <div className="mx-4 overflow-hidden flex-shrink-0" style={{ height: '35%' }}>
+                  <img src={APARTMENT_IMAGE} alt="Development preview" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex flex-col items-center justify-center p-4 flex-1">
+                  <p
+                    className="text-xs tracking-[0.2em] uppercase mb-2"
+                    style={{ color: getContrastColor(lightestColor), fontFamily: 'Inter, sans-serif', opacity: 0.7 }}
+                  >
+                    For Sale
+                  </p>
+                  <p
+                    className="text-sm text-center italic leading-snug"
+                    style={{ color: getContrastColor(lightestColor), fontFamily: `'${currentConcept.fonts.body}', sans-serif` }}
+                  >
+                    {currentConcept.tagline}
+                  </p>
                 </div>
               </div>
+              <p className="text-sm text-stone mt-4 text-center">Brochure Cover</p>
             </div>
-          </div>
-        </section>
 
-        {/* SECTION 6 — APPLICATIONS */}
-        <section className="py-20 md:py-28 border-t border-border animate-in fade-in duration-700" style={{ animationDelay: "500ms" }}>
-          <div className="mx-auto max-w-6xl px-6">
-            <h2
-              className="text-2xl md:text-3xl text-foreground tracking-tight mb-12 text-center"
-              style={headingStyle}
-            >
-              Applications
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6 md:gap-8">
-              {/* Brochure Cover */}
-              <div className="group">
-                <div 
-                  className="aspect-[3/4] rounded-2xl overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
-                  style={{ backgroundColor: lightestColor }}
-                >
-                  {/* Logo area - top third */}
-                  <div className="flex items-center justify-center p-6 flex-shrink-0" style={{ height: '30%' }}>
+            {/* Development Signage */}
+            <div className="group">
+              <div
+                className="aspect-[3/4] overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
+                style={{ backgroundColor: darkestColor }}
+              >
+                <div className="p-5 flex-shrink-0" style={{ height: '35%' }}>
+                  <p
+                    className="text-xs tracking-[0.25em] uppercase mb-3"
+                    style={{ color: getContrastColor(darkestColor), fontFamily: 'Inter, sans-serif', opacity: 0.7 }}
+                  >
+                    Now Selling
+                  </p>
+                  <div style={{ width: '80%' }}>
                     <WordmarkSVG
                       composition={currentConcept.logoComposition}
-                      color={getContrastColor(lightestColor)}
+                      color={getContrastColor(darkestColor)}
                       headingFont={currentConcept.fonts.heading}
                     />
                   </div>
-
-                  {/* Apartment image - middle */}
-                  <div className="mx-4 rounded-xl overflow-hidden flex-shrink-0" style={{ height: '35%' }}>
-                    <img 
-                      src={APARTMENT_IMAGE}
-                      alt="Development preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {/* Text area - bottom */}
-                  <div className="flex flex-col items-center justify-center p-4 flex-1">
-                    <p 
-                      className="text-xs tracking-[0.2em] uppercase mb-2"
-                      style={{ 
-                        color: getContrastColor(lightestColor),
-                        fontFamily: 'Inter, sans-serif',
-                        opacity: 0.7
-                      }}
-                    >
-                      For Sale
-                    </p>
-                    <p 
-                      className="text-sm text-center italic leading-snug"
-                      style={{ 
-                        color: getContrastColor(lightestColor),
-                        fontFamily: `'${currentConcept.fonts.body}', sans-serif`
-                      }}
-                    >
-                      {currentConcept.tagline}
-                    </p>
-                  </div>
                 </div>
-                <p className="text-sm text-muted-foreground mt-4 text-center">
-                  Brochure Cover
-                </p>
-              </div>
-
-              {/* Development Signage */}
-              <div className="group">
-                <div 
-                  className="aspect-[3/4] rounded-2xl overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
-                  style={{ backgroundColor: darkestColor }}
-                >
-                  {/* Top section - NOW SELLING + Logo */}
-                  <div className="p-5 flex-shrink-0" style={{ height: '35%' }}>
-                    <p 
-                      className="text-xs tracking-[0.25em] uppercase mb-3"
-                      style={{ 
-                        color: getContrastColor(darkestColor),
-                        fontFamily: 'Inter, sans-serif',
-                        opacity: 0.7
-                      }}
-                    >
-                      Now Selling
-                    </p>
-                    <div style={{ width: '80%' }}>
-                      <WordmarkSVG
-                        composition={currentConcept.logoComposition}
-                        color={getContrastColor(darkestColor)}
-                        headingFont={currentConcept.fonts.heading}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Apartment image - middle */}
-                  <div className="mx-4 rounded-xl overflow-hidden flex-shrink-0" style={{ height: '35%' }}>
-                    <img 
-                      src={APARTMENT_IMAGE}
-                      alt="Development preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {/* Text area - bottom */}
-                  <div className="p-5 flex-1 flex flex-col justify-end">
-                    <p 
-                      className="text-base font-medium mb-1"
-                      style={{ 
-                        color: getContrastColor(darkestColor),
-                        fontFamily: `'${currentConcept.fonts.heading}', serif`
-                      }}
-                    >
-                      {currentConcept.brandName}
-                    </p>
-                    <p 
-                      className="text-xs italic"
-                      style={{ 
-                        color: getContrastColor(darkestColor),
-                        fontFamily: `'${currentConcept.fonts.body}', sans-serif`,
-                        opacity: 0.8
-                      }}
-                    >
-                      {currentConcept.tagline}
-                    </p>
-                  </div>
+                <div className="mx-4 overflow-hidden flex-shrink-0" style={{ height: '35%' }}>
+                  <img src={APARTMENT_IMAGE} alt="Development preview" className="w-full h-full object-cover" />
                 </div>
-                <p className="text-sm text-muted-foreground mt-4 text-center">
-                  Development Signage
-                </p>
-              </div>
-
-              {/* Website Hero */}
-              <div className="group">
-                <div 
-                  className="aspect-[3/4] rounded-2xl overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
-                  style={{ backgroundColor: secondLightestColor }}
-                >
-                  {/* Nav bar */}
-                  <div 
-                    className="flex items-center justify-between px-4 py-3 flex-shrink-0"
-                    style={{ 
-                      backgroundColor: darkestColor,
-                      borderBottom: `1px solid ${getContrastColor(darkestColor)}20`
-                    }}
+                <div className="p-5 flex-1 flex flex-col justify-end">
+                  <p
+                    className="text-base font-medium mb-1"
+                    style={{ color: getContrastColor(darkestColor), fontFamily: `'${currentConcept.fonts.heading}', serif` }}
                   >
-                    <div style={{ width: '45%' }}>
-                      <WordmarkSVG
-                        composition={currentConcept.logoComposition}
-                        color={getContrastColor(darkestColor)}
-                        headingFont={currentConcept.fonts.heading}
-                      />
-                    </div>
-                    <div className="flex gap-3">
-                      <span 
-                        className="text-[9px] tracking-wide"
-                        style={{ 
-                          color: getContrastColor(darkestColor),
-                          fontFamily: 'Inter, sans-serif',
-                          opacity: 0.7
-                        }}
-                      >
-                        Floor Plans
-                      </span>
-                      <span 
-                        className="text-[9px] tracking-wide"
-                        style={{ 
-                          color: getContrastColor(darkestColor),
-                          fontFamily: 'Inter, sans-serif',
-                          opacity: 0.7
-                        }}
-                      >
-                        Price List
-                      </span>
-                    </div>
-                  </div>
+                    {currentConcept.brandName}
+                  </p>
+                  <p
+                    className="text-xs italic"
+                    style={{ color: getContrastColor(darkestColor), fontFamily: `'${currentConcept.fonts.body}', sans-serif`, opacity: 0.8 }}
+                  >
+                    {currentConcept.tagline}
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-stone mt-4 text-center">Development Signage</p>
+            </div>
 
-                  {/* Apartment image */}
-                  <div className="mx-4 mt-4 rounded-xl overflow-hidden flex-shrink-0" style={{ height: '40%' }}>
-                    <img 
-                      src={APARTMENT_IMAGE}
-                      alt="Development preview"
-                      className="w-full h-full object-cover"
+            {/* Website Hero */}
+            <div className="group">
+              <div
+                className="aspect-[3/4] overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
+                style={{ backgroundColor: secondLightestColor }}
+              >
+                <div
+                  className="flex items-center justify-between px-4 py-3 flex-shrink-0"
+                  style={{ backgroundColor: darkestColor, borderBottom: `1px solid ${getContrastColor(darkestColor)}20` }}
+                >
+                  <div style={{ width: '45%' }}>
+                    <WordmarkSVG
+                      composition={currentConcept.logoComposition}
+                      color={getContrastColor(darkestColor)}
+                      headingFont={currentConcept.fonts.heading}
                     />
                   </div>
-
-                  {/* Content area */}
-                  <div className="p-4 flex-1 flex flex-col justify-center">
-                    <p 
-                      className="text-base font-medium mb-1"
-                      style={{ 
-                        color: getContrastColor(secondLightestColor),
-                        fontFamily: `'${currentConcept.fonts.heading}', serif`
-                      }}
-                    >
-                      {currentConcept.brandName}
-                    </p>
-                    <p 
-                      className="text-xs italic"
-                      style={{ 
-                        color: getContrastColor(secondLightestColor),
-                        fontFamily: `'${currentConcept.fonts.body}', sans-serif`,
-                        opacity: 0.8
-                      }}
-                    >
-                      {currentConcept.tagline}
-                    </p>
+                  <div className="flex gap-3">
+                    <span className="text-[9px] tracking-wide" style={{ color: getContrastColor(darkestColor), fontFamily: 'Inter, sans-serif', opacity: 0.7 }}>Floor Plans</span>
+                    <span className="text-[9px] tracking-wide" style={{ color: getContrastColor(darkestColor), fontFamily: 'Inter, sans-serif', opacity: 0.7 }}>Price List</span>
                   </div>
                 </div>
-                <p className="text-sm text-muted-foreground mt-4 text-center">
-                  Website Hero
-                </p>
+                <div className="mx-4 mt-4 overflow-hidden flex-shrink-0" style={{ height: '40%' }}>
+                  <img src={APARTMENT_IMAGE} alt="Development preview" className="w-full h-full object-cover" />
+                </div>
+                <div className="p-4 flex-1 flex flex-col justify-center">
+                  <p
+                    className="text-base font-medium mb-1"
+                    style={{ color: getContrastColor(secondLightestColor), fontFamily: `'${currentConcept.fonts.heading}', serif` }}
+                  >
+                    {currentConcept.brandName}
+                  </p>
+                  <p
+                    className="text-xs italic"
+                    style={{ color: getContrastColor(secondLightestColor), fontFamily: `'${currentConcept.fonts.body}', sans-serif`, opacity: 0.8 }}
+                  >
+                    {currentConcept.tagline}
+                  </p>
+                </div>
               </div>
+              <p className="text-sm text-stone mt-4 text-center">Website Hero</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── VOICE SAMPLE ── */}
+      {currentConcept.voiceSample?.trim() && (
+        <section className="py-24 md:py-32 bg-paper">
+          <div className="mx-auto max-w-4xl px-6">
+            <p className="section-label-accent mb-12">Voice Sample</p>
+            <div className="relative pl-8 md:pl-12">
+              <span className="absolute left-0 top-0 font-serif text-6xl md:text-8xl text-terracotta leading-none">&ldquo;</span>
+              <blockquote className="font-serif italic text-xl md:text-2xl text-foreground/85 leading-relaxed">
+                {currentConcept.voiceSample}
+              </blockquote>
             </div>
           </div>
         </section>
+      )}
 
-        {/* SECTION 7 — BRAND ATTRIBUTES */}
-        <section className="py-20 md:py-28 border-t border-border bg-card animate-in fade-in duration-700" style={{ animationDelay: "600ms" }}>
-          <div className="mx-auto max-w-4xl px-6 text-center">
-            <h2
-              className="text-2xl md:text-3xl text-foreground tracking-tight mb-10"
-              style={headingStyle}
-            >
-              Brand Attributes
-            </h2>
-            <div className="flex flex-wrap justify-center gap-3">
-              {currentConcept.attributes.map((attr) => (
-                <span
-                  key={attr}
-                  className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-full text-sm"
+      {/* ── STICKY BOTTOM BAR ── */}
+      <div
+        className="fixed bottom-0 left-0 right-0 z-50 bg-paper border-t border-border transition-transform duration-500"
+        style={{ transform: barVisible ? "translateY(0)" : "translateY(100%)" }}
+      >
+        <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-center gap-3">
+            {!isSelected && (
+              <>
+                <button
+                  onClick={() => setShowRefinement(true)}
+                  disabled={refinementsRemaining === 0}
+                  className="px-6 py-3 bg-transparent border border-ink text-ink text-[12px] tracking-[0.15em] uppercase font-medium transition-colors duration-200 hover:bg-ink hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {attr}
-                </span>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 8 — ACTIONS */}
-        <section className="py-20 md:py-28 border-t border-border animate-in fade-in duration-700" style={{ animationDelay: "700ms" }}>
-          <div className="mx-auto max-w-2xl px-6 text-center">
-            <h2
-              className="text-2xl md:text-3xl text-foreground tracking-tight mb-4"
-              style={headingStyle}
-            >
-              Ready to move forward?
-            </h2>
-            <p className="text-muted-foreground mb-10">
-              Select this concept to refine, or explore other options.
-            </p>
-            {isSelected ? (
-              <div className="flex flex-col items-center gap-4">
-                <DownloadBrandPackageButton
-                  projectId={projectId}
-                  conceptId={currentConcept.id}
-                  userId={userId}
-                  isPaid={isPaid}
-                  isFreeTrial={isFreeTrial}
-                />
-                <p className="text-sm text-muted-foreground">
-                  Your brand concept has been saved to your dashboard
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-4">
-                <div className="flex flex-col sm:flex-row items-center sm:items-start justify-center gap-4">
-                  <Button
-                    size="lg"
-                    onClick={() => setShowConfirmSelection(true)}
-                    className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 h-14"
-                  >
-                    <Check className="mr-2 size-4" />
-                    Select This Concept
-                  </Button>
-                  <div className="flex flex-col items-center gap-1">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      onClick={() => setShowRefinement(true)}
-                      disabled={refinementsRemaining === 0}
-                      className="rounded-full px-8 h-14"
-                    >
-                      <RefreshCw className="mr-2 size-4" />
-                      Refine This Direction
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                      {refinementsRemaining} refinement
-                      {refinementsRemaining !== 1 ? "s" : ""} remaining
-                    </p>
-                  </div>
-                </div>
-              </div>
+                  Refine this concept
+                </button>
+                <button
+                  onClick={() => setShowConfirmSelection(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-ink text-paper text-[12px] tracking-[0.15em] uppercase font-medium transition-colors duration-200 hover:bg-terracotta"
+                >
+                  <Check className="w-4 h-4" />
+                  <span className="hidden md:inline">Select this concept</span>
+                  <span className="md:hidden">Select</span>
+                </button>
+              </>
             )}
-          </div>
-        </section>
-      </main>
+            {isSelected && (
+              <DownloadBrandPackageButton
+                projectId={projectId}
+                conceptId={currentConcept.id}
+                userId={userId}
+                isPaid={isPaid}
+                isFreeTrial={isFreeTrial}
+              />
+            )}
+        </div>
+      </div>
 
+      {/* ── APPLYING OVERLAY ── */}
       {isApplying && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-cream">
           <p className="font-serif text-3xl text-foreground tracking-tight mb-8 text-center">
             Applying your refinements...
           </p>
@@ -729,13 +574,14 @@ export function ConceptDetail({
             }
           `}</style>
           <div className="flex items-center justify-center gap-2">
-            <span className="block w-2 h-2 rounded-full bg-foreground" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0s" }} />
-            <span className="block w-2 h-2 rounded-full bg-foreground" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.2s" }} />
-            <span className="block w-2 h-2 rounded-full bg-foreground" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.4s" }} />
+            <span className="block w-2 h-2 bg-ink" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0s" }} />
+            <span className="block w-2 h-2 bg-ink" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.2s" }} />
+            <span className="block w-2 h-2 bg-ink" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.4s" }} />
           </div>
         </div>
       )}
 
+      {/* ── REFINEMENT MODAL ── */}
       {showRefinement && (
         <RefinementModal
           concept={currentConcept}
@@ -745,47 +591,33 @@ export function ConceptDetail({
         />
       )}
 
+      {/* ── CONFIRM SELECTION MODAL ── */}
       {showConfirmSelection && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
-          style={{
-            backgroundColor: "rgba(0,0,0,0.6)",
-            backdropFilter: "blur(4px)",
-          }}
+          style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
         >
-          <div className="bg-card rounded-3xl p-8 w-full max-w-md border border-border shadow-2xl">
+          <div className="bg-cream p-8 w-full max-w-md border border-border">
             <h2 className="font-serif text-2xl text-foreground tracking-tight mb-3">
               Ready to commit?
             </h2>
-            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+            <p className="text-stone text-sm leading-relaxed mb-6">
               Once you select this concept you will no longer be able to refine
               it or view the other concept options. Make sure you are happy with
               your chosen direction before proceeding.
             </p>
             <div
-              className="flex items-start gap-3 p-4 bg-secondary rounded-2xl mb-6 cursor-pointer"
+              className="flex items-start gap-3 p-4 bg-paper border border-border mb-6 cursor-pointer"
               onClick={() => setConfirmChecked(!confirmChecked)}
             >
               <div
-                className={`size-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
-                  confirmChecked
-                    ? "border-foreground bg-foreground"
-                    : "border-border"
+                className={`w-5 h-5 border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                  confirmChecked ? "border-ink bg-ink" : "border-border"
                 }`}
               >
                 {confirmChecked && (
-                  <svg
-                    className="size-3 text-background"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={3}
-                      d="M5 13l4 4L19 7"
-                    />
+                  <svg className="w-3 h-3 text-paper" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                   </svg>
                 )}
               </div>
@@ -796,11 +628,8 @@ export function ConceptDetail({
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => {
-                  setShowConfirmSelection(false)
-                  setConfirmChecked(false)
-                }}
-                className="flex-1 h-14 rounded-2xl text-sm font-medium border border-border hover:bg-secondary transition-all"
+                onClick={() => { setShowConfirmSelection(false); setConfirmChecked(false) }}
+                className="flex-1 h-14 text-sm font-medium border border-border hover:bg-paper transition-all"
               >
                 Go Back
               </button>
@@ -812,7 +641,7 @@ export function ConceptDetail({
                   onSelect(currentConcept)
                 }}
                 disabled={!confirmChecked}
-                className="flex-1 h-14 rounded-2xl text-sm font-medium bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40 transition-all"
+                className="flex-1 h-14 text-sm font-medium bg-ink text-paper hover:bg-ink-light disabled:opacity-40 transition-all"
               >
                 Confirm Selection
               </button>
@@ -821,37 +650,31 @@ export function ConceptDetail({
         </div>
       )}
 
+      {/* ── CONGRATULATIONS MODAL ── */}
       {showCongratulations && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
-          style={{
-            backgroundColor: "rgba(0,0,0,0.6)",
-            backdropFilter: "blur(4px)",
-          }}
+          style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
         >
-          <div className="bg-card rounded-3xl p-8 w-full max-w-md border border-border shadow-2xl relative">
+          <div className="bg-cream p-8 w-full max-w-md border border-border relative">
             <button
               onClick={() => setShowCongratulations(false)}
-              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              className="absolute top-4 right-4 text-stone hover:text-foreground transition-colors"
             >
-              <X className="size-5" />
+              <X className="w-5 h-5" />
             </button>
-
             <div className="text-center mb-6">
-              <p className="text-xs tracking-[0.2em] uppercase text-muted-foreground mb-4">
-                Brand Selected
-              </p>
+              <p className="section-label-accent mb-4">Brand Selected</p>
               <h2 className="font-serif text-3xl text-foreground tracking-tight mb-2">
                 Congratulations
               </h2>
-              <p className="text-muted-foreground text-sm leading-relaxed">
+              <p className="text-stone text-sm leading-relaxed">
                 Your brand concept is confirmed. Download your complete brand
                 package below.
               </p>
             </div>
-
             <div
-              className="rounded-2xl p-6 flex items-center justify-center mb-6"
+              className="p-6 flex items-center justify-center mb-6"
               style={{ backgroundColor: currentConcept.colors[0] }}
             >
               <div style={{ width: "80%" }}>
@@ -862,16 +685,12 @@ export function ConceptDetail({
                 />
               </div>
             </div>
-
             <p
-              className="text-center text-lg italic text-muted-foreground mb-6"
-              style={{
-                fontFamily: `'${currentConcept.fonts.body}', sans-serif`,
-              }}
+              className="text-center text-lg italic text-stone mb-6"
+              style={{ fontFamily: `'${currentConcept.fonts.body}', sans-serif` }}
             >
               {currentConcept.tagline}
             </p>
-
             <DownloadBrandPackageButton
               projectId={projectId}
               conceptId={currentConcept.id}
@@ -885,5 +704,3 @@ export function ConceptDetail({
     </div>
   )
 }
-
-

@@ -3,82 +3,131 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+  ATELIER STUDIO — Editorial Design System
+  =========================================
+  Inspired by: Neometro, Time & Place, Base Design
+
+  Philosophy:
+  - Bold typographic confidence (not safe, not flat)
+  - High-contrast color blocks (dark backgrounds with light text)
+  - Square edges (architectural precision)
+  - Generous white space
+  - Editorial hierarchy
+*/
+
 :root {
-  /* Premium Property Branding Theme */
-  --background: #F7F5F2;
-  --foreground: #1C1C1C;
-  --card: #FFFFFF;
-  --card-foreground: #1C1C1C;
-  --popover: #FFFFFF;
-  --popover-foreground: #1C1C1C;
-  --primary: #6F7D6A;
-  --primary-foreground: #FFFFFF;
-  --secondary: #EDEAE6;
-  --secondary-foreground: #1C1C1C;
-  --muted: #EDEAE6;
-  --muted-foreground: #6B6B6B;
-  --accent: #6F7D6A;
-  --accent-foreground: #FFFFFF;
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
+  /*
+    COLOR PALETTE (5 colors only)
+    -----------------------------
+    1. Ink (Deep charcoal-black) — Primary dark tone
+    2. Stone (Warm mid-gray) — Muted text, borders
+    3. Cream (Warm off-white) — Cards, content areas
+    4. Paper (Pure white) — Primary background
+    5. Terracotta (Warm rust accent) — Action, energy
+  */
+
+  /* Ink — Warm visible brown (not near-black) */
+  --ink: #3D2412;
+  --ink-light: #4A2E18;
+
+  /* Stone — Sophisticated gray */
+  --stone: #6B6B6B;
+  --stone-light: #9A9A9A;
+
+  /* Cream — Warm off-white for forms/content */
+  --cream: #F8F6F2;
+
+  /* Paper — Clean white */
+  --paper: #FFFFFF;
+
+  /* Terracotta — Warm aged gold accent for active/focus/CTA */
+  --terracotta: #C9A84C;
+  --terracotta-dark: #A68B3D;
+
+  /* Semantic tokens mapped to palette */
+  --background: var(--paper);
+  --foreground: var(--ink);
+
+  --card: var(--cream);
+  --card-foreground: var(--ink);
+
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+
+  --secondary: var(--cream);
+  --secondary-foreground: var(--ink);
+
+  --muted: var(--cream);
+  --muted-foreground: var(--stone);
+
+  --accent: var(--terracotta);
+  --accent-foreground: var(--paper);
+
+  --destructive: #B54A32;
+  --destructive-foreground: var(--paper);
+
   --border: #E5E2DE;
   --input: #E5E2DE;
-  --ring: #6F7D6A;
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 1rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --ring: var(--terracotta);
+
+  /* Focus/Active state color */
+  --focus: var(--terracotta);
+
+  /* Charts */
+  --chart-1: var(--terracotta);
+  --chart-2: var(--ink);
+  --chart-3: var(--stone);
+  --chart-4: #D4A574;
+  --chart-5: #8B7355;
+
+  /* Square edges — architectural precision */
+  --radius: 0px;
+
+  /* Sidebar */
+  --sidebar: var(--ink);
+  --sidebar-foreground: var(--paper);
+  --sidebar-primary: var(--paper);
+  --sidebar-primary-foreground: var(--ink);
+  --sidebar-accent: var(--ink-light);
+  --sidebar-accent-foreground: var(--paper);
+  --sidebar-border: var(--ink-light);
+  --sidebar-ring: var(--terracotta);
+
+  /* Custom tokens for inverted sections */
+  --surface-inverse: var(--ink);
+  --surface-inverse-foreground: var(--paper);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --background: var(--ink);
+  --foreground: var(--paper);
+  --card: var(--ink-light);
+  --card-foreground: var(--paper);
+  --popover: var(--ink);
+  --popover-foreground: var(--paper);
+  --primary: var(--paper);
+  --primary-foreground: var(--ink);
+  --secondary: var(--ink-light);
+  --secondary-foreground: var(--paper);
+  --muted: var(--ink-light);
+  --muted-foreground: var(--stone-light);
+  --accent: var(--terracotta);
+  --accent-foreground: var(--paper);
+  --border: #333333;
+  --input: #333333;
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), 'Inter', sans-serif;
-  --font-serif: var(--font-cormorant), 'Cormorant Garamond', serif;
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  /* Typography — Editorial confidence */
+  --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-serif: var(--font-instrument-serif), 'Instrument Serif', 'Times New Roman', serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
+
+  /* Color mappings */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -103,10 +152,14 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Square radius system */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+
+  /* Sidebar */
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -115,18 +168,133 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Custom palette tokens */
+  --color-ink: var(--ink);
+  --color-ink-light: var(--ink-light);
+  --color-stone: var(--stone);
+  --color-stone-light: var(--stone-light);
+  --color-cream: var(--cream);
+  --color-paper: var(--paper);
+  --color-terracotta: var(--terracotta);
+  --color-terracotta-dark: var(--terracotta-dark);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-surface-inverse-foreground: var(--surface-inverse-foreground);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "ss02", "cv01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Typography scale — Editorial hierarchy */
+  h1, h2, h3, h4 {
+    @apply font-serif tracking-tight text-balance;
+  }
+
+  /* Selection styling */
+  ::selection {
+    background: var(--terracotta);
+    color: var(--paper);
   }
 }
 
-@keyframes dotFade {
-  0%, 100% { opacity: 0.15; }
-  50%       { opacity: 1; }
+@layer components {
+  /* Inverted section utility */
+  .surface-inverse {
+    @apply bg-ink text-paper;
+  }
+
+  /* Editorial divider */
+  .divider-editorial {
+    @apply w-12 h-px bg-stone;
+  }
+
+  /* Step indicator active state */
+  .step-active {
+    @apply relative;
+  }
+
+  .step-active::after {
+    content: '';
+    @apply absolute -bottom-px left-0 right-0 h-0.5 bg-ink;
+  }
+
+  /* Section header — 13px spaced caps, deep green (for PROJECT, PLACE, DIRECTION) */
+  .section-header {
+    @apply text-[13px] tracking-[0.2em] uppercase font-medium text-ink;
+  }
+
+  /* Field label — 12px spaced caps, muted (for Location, Development Type, etc.) */
+  .field-label {
+    @apply text-[12px] tracking-[0.2em] uppercase font-medium text-stone;
+  }
+
+  /* Field value — display serif, 16-18px */
+  .field-value {
+    @apply font-serif text-[17px] text-foreground leading-relaxed;
+  }
+
+  /* Step indicator label — 11px for hero step numbers */
+  .step-label {
+    @apply text-[11px] tracking-[0.25em] uppercase font-medium;
+  }
+
+  /* Section label — 11px spaced caps, terracotta (for COLOUR PALETTE, TYPOGRAPHY, etc.) */
+  .section-label-accent {
+    @apply text-[11px] tracking-[0.25em] uppercase font-medium text-terracotta;
+  }
+
+  /* Grain texture overlay for dark headers */
+  .grain-texture {
+    @apply relative;
+  }
+
+  .grain-texture::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+  }
 }
+
+/* Animation keyframes */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+/* Staggered animation delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }

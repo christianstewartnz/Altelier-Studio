@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Cormorant_Garamond } from 'next/font/google'
+import { Inter, Instrument_Serif } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
@@ -8,10 +8,10 @@ const inter = Inter({
   variable: '--font-inter'
 });
 
-const cormorant = Cormorant_Garamond({ 
+const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-cormorant'
+  weight: ['400'],
+  variable: '--font-instrument-serif'
 });
 
 export const metadata: Metadata = {
@@ -43,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${cormorant.variable} bg-background`}>
+    <html lang="en" className={`${inter.variable} ${instrumentSerif.variable} bg-background`}>
       <body className="font-sans antialiased">
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
