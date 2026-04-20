@@ -349,44 +349,157 @@ const LOCATION_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
 You are generating 3 variations of a brand name combined
 with its location for a residential property development.
 
-The developer wants to explore adding the suburb or city
-name to the brand name. This is a considered branding
-technique when the location itself is a selling point.
+The location must always appear on a second line beneath
+the brand name. The original name line is completely locked
+— you must not change the font, the name text, the weight,
+the tracking, or the case of the original name.
+
+Your creative control applies to the LOCATION LINE ONLY:
+
+LOCATION LINE CREATIVE OPTIONS:
+- Case: can be upper, title, or lower — does not need to
+  match the name line. A lower case location beneath an
+  upper case name can feel considered and intentional.
+- Weight: can be light, regular, or bold — can differ
+  from the name line. A lighter location feels like a
+  quiet qualifier. A bolder location feels like equal billing.
+- Size: location can be the same size as the name,
+  notably smaller, or much smaller as a subtitle treatment.
+- Position: centred under the name, left-aligned,
+  right-aligned, or offset slightly to create tension.
+- Punctuation: you may add a dash "—" before the location
+  if it genuinely suits the aesthetic of this brand.
+  Do not add commas. Only use a dash when it feels like
+  a considered design decision, not a default.
+
+COMPOSITION STYLE:
+Choose the two-line composition style that best suits
+this specific name and location combination:
+- stacked-weighted: name dominant, location smaller and lighter below
+- stacked-ruled: name and location separated by a thin rule
+- offset-subtitle: name centred large, location as small offset subtitle
+- left-editorial: both lines left-aligned with vertical rule on left
+- scale-contrast: name large left-aligned, location tiny right-aligned below
+
+THE RULE: The location line must feel like it was designed
+to complement the existing name — not compete with it or
+redesign it. The name is always the dominant element.
+The original name font must be used for both lines.
 
 WHAT TO GENERATE:
-3 different ways to combine the brand name with the location.
-Try different combination styles:
-- Style 1: Name + Location with no punctuation (e.g. Tallow Rosewood)
-- Style 2: Name comma Location (e.g. Tallow, Rosewood)
-- Style 3: Name dash Location (e.g. Tallow — Rosewood)
-
-The combination should feel intentional — not like a
-label was appended. The location should elevate the name.
-The standalone name is always shown as Keep Current —
-do not include it in your 3 alternatives.
+3 genuinely different typographic treatments — each
+should feel like a distinct creative decision about
+how the name and location relate to each other.
 
 Return ONLY this JSON:
-{ "names": ["Variation 1", "Variation 2", "Variation 3"] }
+{
+  "locationVariations": [
+    {
+      "display": "TALLOW\nROSEWOOD",
+      "style": "stacked-weighted",
+      "locationCase": "upper",
+      "locationWeight": "light",
+      "punctuation": "none",
+      "punctuationPosition": "none",
+      "tracking": "normal"
+    },
+    {
+      "display": "TALLOW\nrosewood",
+      "style": "offset-subtitle",
+      "locationCase": "lower",
+      "locationWeight": "regular",
+      "punctuation": "none",
+      "punctuationPosition": "none",
+      "tracking": "wide"
+    },
+    {
+      "display": "Tallow\n— Rosewood",
+      "style": "left-editorial",
+      "locationCase": "title",
+      "locationWeight": "bold",
+      "punctuation": "—",
+      "punctuationPosition": "before-location",
+      "tracking": "normal"
+    }
+  ]
+}
 `
 
 const REMOVE_LOCATION_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
 
-The current brand name includes a location suffix.
-The developer wants to explore removing it and using
-just the core brand name.
+The current brand name includes a location on a second
+line. The developer wants to remove the location and
+return to a single-line standalone name treatment.
 
-WHAT TO GENERATE:
-3 versions of the name with the location removed.
-- Option 1: exact core name with location stripped
-- Options 2 and 3: subtle variations if the core name
-  alone feels incomplete — slightly adjusted form of
-  the same word that works better standalone
+YOUR JOB: Return 3 single-line versions of the core
+brand name with the location removed. Do not invent
+new names — only work with the existing core name.
 
-All 3 must belong to the same brand territory.
-All 3 must pass the buyer test and self-evaluation.
+THE ORIGINAL NAME LINE IS LOCKED:
+Do not change the name text itself. Your only creative
+decisions are which single-line composition style best
+suits this name standalone, and minor typographic
+adjustments to help it stand confidently alone.
+
+COMPOSITION STYLE REVERSION RULES:
+The current two-line style should revert to its natural
+single-line equivalent:
+- left-editorial → inline-clean or inline-ruled
+  (the vertical rule no longer spans two lines —
+  choose inline-ruled if a ruled treatment suits the name,
+  inline-clean if the name stands better alone)
+- stacked-weighted → inline-clean
+  (remove the stacked treatment, name stands alone)
+- stacked-ruled → inline-ruled
+  (keep the ruled aesthetic but single line only)
+- offset-subtitle → inline-clean
+  (remove the subtitle, name centred and clean)
+- scale-contrast → inline-clean or ultrawide
+  (if name length suits ultrawide, use it)
+
+If the original style was already a considered two-line
+style before location was added, keep the style but
+clear lines[1] to empty string and assess whether the
+style still makes sense with one line.
+
+GENERATE 3 OPTIONS:
+- Option 1: Most natural single-line reversion —
+  the style that best suits this name standalone
+- Option 2: An alternative single-line style that
+  gives the name a different character
+- Option 3: A third interpretation — consider whether
+  ultrawide, oversized-crop, or another style would
+  suit this name's length and personality
+
+All 3 options use the same font, weight, and case
+as the original name. Only the composition style changes.
 
 Return ONLY this JSON:
-{ "names": ["Name1", "Name2", "Name3"] }
+{
+  "removeVariations": [
+    {
+      "display": "TALLOW",
+      "style": "inline-ruled",
+      "weight": "regular",
+      "tracking": "normal",
+      "case": "upper"
+    },
+    {
+      "display": "TALLOW",
+      "style": "ultrawide",
+      "weight": "light",
+      "tracking": "ultrawide",
+      "case": "upper"
+    },
+    {
+      "display": "Tallow",
+      "style": "inline-clean",
+      "weight": "regular",
+      "tracking": "normal",
+      "case": "title"
+    }
+  ]
+}
 `
 
 const SYSTEM_PROMPTS: Record<string, string> = {
@@ -456,7 +569,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { concept, conceptId, selectedItems, contextInputs, allConcepts = [], projectBrief, locationPreference } =
+    const { concept, conceptId, selectedItems, contextInputs, allConcepts = [], projectBrief, locationPreference, originalNameBeforeLocation, originalDisplayWithLocation } =
       await request.json()
 
     // Check this concept's remaining refinements
@@ -488,30 +601,48 @@ export async function POST(request: Request) {
       if (!systemPrompt) continue
 
       let userContent: string
+      const maxTokens = (item === "add-location" || item === "remove-location") ? 1500 : 1200
       if (item === "add-location") {
         const locationStr = locationPreference === "suburb"
           ? (projectBrief?.suburb || projectBrief?.location || "—")
           : (projectBrief?.city || projectBrief?.location || "—")
+        const addOriginalInstruction = originalDisplayWithLocation
+          ? `\nORIGINAL TWO-LINE DISPLAY BEFORE LOCATION WAS REMOVED: "${originalDisplayWithLocation}"
+CRITICAL: Option 1 MUST reproduce this exact two-line display — it is the version the client had before removing the location and must always be presented as an option. Choose an appropriate composition style that suits it. Options 2 and 3 should follow the normal location addition rules.`
+          : ""
         userContent = `BRAND NAME: ${concept.brandName}
 LOCATION TO ADD: ${locationStr}
+CURRENT LOGO STYLE: ${concept.logoComposition.style}
+CURRENT LOGO TRACKING: ${concept.logoComposition.tracking}
+CURRENT LOGO CASE: ${concept.logoComposition.case}
+CURRENT LOGO WEIGHT: ${concept.logoComposition.weight}
 CONCEPT TERRITORY: ${concept.conceptTitle}
 BRAND RATIONALE: ${concept.rationale}
-
-Generate 3 variations combining the brand name with the location.
-Try no punctuation, comma separator, and dash separator as three styles.`
+${addOriginalInstruction}
+Generate 3 genuinely different typographic treatments combining the brand name with the location.
+The name line is locked — focus your creative decisions on how the location line is treated.`
       } else if (item === "remove-location") {
+        const originalInstruction = originalNameBeforeLocation
+          ? `\nORIGINAL NAME BEFORE LOCATION WAS ADDED: "${originalNameBeforeLocation}"
+CRITICAL: Option 1 MUST use "${originalNameBeforeLocation}" as the display text — this is the version the client started with and must always be presented as an option. Options 2 and 3 should also use "${originalNameBeforeLocation}" with different composition styles.`
+          : ""
         userContent = `BRAND NAME: ${concept.brandName}
+CURRENT LOGO STYLE: ${concept.logoComposition.style}
+CURRENT LOGO TRACKING: ${concept.logoComposition.tracking}
+CURRENT LOGO CASE: ${concept.logoComposition.case}
+CURRENT LOGO WEIGHT: ${concept.logoComposition.weight}
 CONCEPT TERRITORY: ${concept.conceptTitle}
 BRAND RATIONALE: ${concept.rationale}
-
-Generate 3 versions of this name with the location suffix removed.`
+${originalInstruction}
+The brand name above includes a location. Generate 3 single-line composition options
+with the location removed, reverting the two-line treatment to a standalone single-line.`
       } else {
         userContent = buildUserMessage(item, concept, contextInputs[item] || "", allConcepts, projectBrief)
       }
 
       const response = await client.messages.create({
         model: REFINEMENT_MODEL,
-        max_tokens: 1200,
+        max_tokens: maxTokens,
         system: systemPrompt,
         messages: [{ role: "user", content: userContent }]
       })

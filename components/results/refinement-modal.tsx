@@ -7,6 +7,24 @@ import { Textarea } from "@/components/ui/textarea"
 import type { BrandConcept, LogoComposition } from "./results-overview"
 import { WordmarkSVG } from "./wordmark-svg"
 
+type LocationVariation = {
+  display: string
+  style: LogoComposition["style"]
+  locationCase: "upper" | "title" | "lower"
+  locationWeight: "light" | "regular" | "bold"
+  punctuation: string
+  punctuationPosition: string
+  tracking: LogoComposition["tracking"]
+}
+
+type RemoveVariation = {
+  display: string
+  style: LogoComposition["style"]
+  weight: LogoComposition["weight"]
+  tracking: LogoComposition["tracking"]
+  case: LogoComposition["case"]
+}
+
 type RefinementResults = {
   names?: string[]
   taglines?: string[]
@@ -17,6 +35,8 @@ type RefinementResults = {
   }>
   fontPairings?: Array<{ heading: string; body: string }>
   logoCompositions?: LogoComposition[]
+  locationVariations?: LocationVariation[]
+  removeVariations?: RemoveVariation[]
 }
 
 type RefinementSelections = {
@@ -25,6 +45,8 @@ type RefinementSelections = {
   colorPalette?: { colors: string[]; wordmarkColor: string }
   fonts?: { heading: string; body: string }
   logoComposition?: LogoComposition
+  locationVariation?: LocationVariation
+  removeVariation?: RemoveVariation
 }
 
 type ProjectBrief = {
@@ -90,6 +112,11 @@ export function RefinementModal({
   const [closing, setClosing] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
 
+  // locationAdded=true → explicitly added; locationAdded=false → explicitly removed;
+  // locationAdded=undefined → AI-generated, fall back to whether lines[1] is populated
+  const hasLocationInName = concept.locationAdded === true ||
+    (concept.locationAdded !== false && !!concept.logoComposition.lines[1]?.trim())
+
   const elementsLabel = selectedItems.map(id => ELEMENT_LABELS[id] || id).join(" & ")
 
   useEffect(() => {
@@ -136,7 +163,7 @@ export function RefinementModal({
       const response = await fetch("/api/refine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ concept, conceptId: concept.id, selectedItems, contextInputs, allConcepts, projectBrief, locationPreference })
+        body: JSON.stringify({ concept, conceptId: concept.id, selectedItems, contextInputs, allConcepts, projectBrief, locationPreference, originalNameBeforeLocation: concept.originalNameBeforeLocation, originalDisplayWithLocation: concept.originalDisplayWithLocation })
       })
       const data = await response.json()
       if (!response.ok) {
@@ -154,8 +181,11 @@ export function RefinementModal({
 
   function selectAlternative(category: string, value: unknown) {
     setKeepCurrentItems(prev => { const s = new Set(prev); s.delete(category); return s })
-    // "colors" → colorPalette, "logo" → logoComposition to match RefinementSelections type
-    const key = category === "colors" ? "colorPalette" : category === "logo" ? "logoComposition" : category
+    const key = category === "colors" ? "colorPalette"
+      : category === "logo" ? "logoComposition"
+      : category === "add-location" ? "locationVariation"
+      : category === "remove-location" ? "removeVariation"
+      : category
     setSelections(prev => ({ ...prev, [key]: value }))
   }
 
@@ -168,6 +198,8 @@ export function RefinementModal({
       if (category === "colors") delete next.colorPalette
       if (category === "fonts") delete next.fonts
       if (category === "logo") delete next.logoComposition
+      if (category === "add-location") delete next.locationVariation
+      if (category === "remove-location") delete next.removeVariation
       return next
     })
   }
@@ -193,6 +225,40 @@ export function RefinementModal({
     if (!keepCurrentItems.has("fonts") && selections.fonts) updatedConcept.fonts = selections.fonts
     if (!keepCurrentItems.has("logo") && selections.logoComposition) {
       updatedConcept.logoComposition = selections.logoComposition
+    }
+    if (!keepCurrentItems.has("add-location") && selections.locationVariation) {
+      const nameBeforeLocation = updatedConcept.brandName
+      const v = selections.locationVariation
+      const parts = v.display.split('\n')
+      updatedConcept.brandName = v.display.replace('\n', ' ')
+      updatedConcept.logoComposition = {
+        ...updatedConcept.logoComposition,
+        style: v.style,
+        lines: [parts[0] || "", parts[1] || ""],
+        punctuation: v.punctuation !== "none" ? v.punctuation : "none",
+        punctuationPosition: "none",
+        tracking: v.tracking,
+        case: "title",
+      }
+      updatedConcept.locationAdded = true
+      updatedConcept.originalNameBeforeLocation = nameBeforeLocation
+      updatedConcept.originalDisplayWithLocation = undefined
+    }
+    if (!keepCurrentItems.has("remove-location") && selections.removeVariation) {
+      const lines = updatedConcept.logoComposition.lines
+      const displayBeforeRemoval = lines[1]?.trim()
+        ? `${lines[0]}\n${lines[1]}`
+        : updatedConcept.brandName
+      const v = selections.removeVariation
+      updatedConcept.brandName = v.display
+      updatedConcept.logoComposition = {
+        ...updatedConcept.logoComposition,
+        style: v.style,
+        lines: [v.display, ""],
+      }
+      updatedConcept.locationAdded = false
+      updatedConcept.originalNameBeforeLocation = undefined
+      updatedConcept.originalDisplayWithLocation = displayBeforeRemoval
     }
 
     const isLocationCombined = nameChanged && selections.name!.startsWith(concept.brandName + " ")
@@ -253,8 +319,11 @@ export function RefinementModal({
     if (item === "colors") return !!selections.colorPalette
     if (item === "fonts") return !!selections.fonts
     if (item === "logo") return !!selections.logoComposition
-    if (item === "add-location" || item === "remove-location") {
-      return keepCurrentItems.has("name") || !!selections.name
+    if (item === "add-location") {
+      return keepCurrentItems.has("add-location") || !!selections.locationVariation
+    }
+    if (item === "remove-location") {
+      return keepCurrentItems.has("remove-location") || !!selections.removeVariation
     }
     return true
   })
@@ -263,7 +332,7 @@ export function RefinementModal({
     return `p-7 border-2 cursor-pointer transition-all duration-200 ${
       selected
         ? "border-terracotta bg-paper"
-        : "border-transparent bg-paper hover:border-stone/40 hover:-translate-y-0.5"
+        : "border-transparent bg-paper hover:border-terracotta/50 hover:-translate-y-0.5"
     }`
   }
 
@@ -333,15 +402,22 @@ export function RefinementModal({
             <div className="space-y-0">
               {REFINEMENT_OPTIONS.map(option => {
                 const isSelected = selectedItems.includes(option.id)
+                const isDisabled =
+                  (option.id === "add-location" && hasLocationInName) ||
+                  (option.id === "remove-location" && !hasLocationInName)
                 return (
                   <div key={option.id}>
                     <div
-                      className="flex items-center gap-4 py-5 border-b border-ink-light/60 cursor-pointer group"
-                      onClick={() => toggleItem(option.id)}
+                      className={`flex items-center gap-4 py-5 border-b border-ink-light/60 transition-opacity ${
+                        isDisabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer group"
+                      }`}
+                      onClick={() => !isDisabled && toggleItem(option.id)}
                     >
                       <div className={`size-4 border flex items-center justify-center flex-shrink-0 transition-all ${
                         isSelected
                           ? "border-terracotta bg-terracotta"
+                          : isDisabled
+                          ? "border-stone-light/40"
                           : "border-stone-light group-hover:border-paper"
                       }`}>
                         {isSelected && (
@@ -351,7 +427,7 @@ export function RefinementModal({
                         )}
                       </div>
                       <div className="flex flex-col">
-                        <span className={`text-sm tracking-wide transition-colors ${isSelected ? "text-paper" : "text-stone-light group-hover:text-paper"}`}>
+                        <span className={`text-sm tracking-wide transition-colors ${isSelected ? "text-paper" : isDisabled ? "text-stone-light/40" : "text-stone-light group-hover:text-paper"}`}>
                           {option.label}
                         </span>
                         {option.description && (
@@ -751,6 +827,111 @@ export function RefinementModal({
                         >
                           <div style={{ width: "60%" }}>
                             <WordmarkSVG composition={comp} color={concept.wordmarkColor} headingFont={concept.fonts.heading} />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ADD LOCATION OPTIONS */}
+            {refinementResults?.locationVariations && refinementResults.locationVariations.length > 0 && (
+              <div>
+                <p className="section-label-accent mb-5">Add Location</p>
+                <div className="grid grid-cols-2 gap-3 items-start">
+                  <div>
+                    <div
+                      onClick={() => selectKeepCurrent("add-location")}
+                      className={`cursor-pointer transition-all duration-200 border-2 ${keepCurrentItems.has("add-location") ? "border-terracotta" : "border-transparent hover:border-terracotta/50"}`}
+                    >
+                      <div
+                        className="flex items-center justify-center p-6"
+                        style={{ backgroundColor: concept.colors[0], aspectRatio: "1", minHeight: "200px" }}
+                      >
+                        <div style={{ width: "70%" }}>
+                          <WordmarkSVG composition={concept.logoComposition} color={concept.wordmarkColor} headingFont={concept.fonts.heading} />
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-[10px] tracking-[0.18em] uppercase text-terracotta mt-2 text-center">Current</p>
+                  </div>
+
+                  {refinementResults.locationVariations.map((variation, i) => {
+                    const parts = variation.display.split('\n')
+                    const compositionForPreview: LogoComposition = {
+                      style: variation.style,
+                      lines: [parts[0] || "", parts[1] || ""],
+                      punctuation: variation.punctuation !== "none" ? variation.punctuation : "none",
+                      punctuationPosition: "none",
+                      weight: concept.logoComposition.weight,
+                      tracking: variation.tracking,
+                      case: "title",
+                    }
+                    const isSelected = selections.locationVariation === variation && !keepCurrentItems.has("add-location")
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => selectAlternative("add-location", variation)}
+                        className={`cursor-pointer transition-all duration-200 border-2 ${isSelected ? "border-terracotta" : "border-transparent hover:border-terracotta/50"}`}
+                      >
+                        <div
+                          className="flex items-center justify-center p-6"
+                          style={{ backgroundColor: concept.colors[0], aspectRatio: "1", minHeight: "200px" }}
+                        >
+                          <div style={{ width: "70%" }}>
+                            <WordmarkSVG composition={compositionForPreview} color={concept.wordmarkColor} headingFont={concept.fonts.heading} />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* REMOVE LOCATION OPTIONS */}
+            {refinementResults?.removeVariations && refinementResults.removeVariations.length > 0 && (
+              <div>
+                <p className="section-label-accent mb-5">Remove Location</p>
+                <div className="grid grid-cols-2 gap-3 items-start">
+                  <div>
+                    <div
+                      onClick={() => selectKeepCurrent("remove-location")}
+                      className={`cursor-pointer transition-all duration-200 border-2 ${keepCurrentItems.has("remove-location") ? "border-terracotta" : "border-transparent hover:border-terracotta/50"}`}
+                    >
+                      <div
+                        className="flex items-center justify-center p-6"
+                        style={{ backgroundColor: concept.colors[0], aspectRatio: "1", minHeight: "200px" }}
+                      >
+                        <div style={{ width: "70%" }}>
+                          <WordmarkSVG composition={concept.logoComposition} color={concept.wordmarkColor} headingFont={concept.fonts.heading} />
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-[10px] tracking-[0.18em] uppercase text-terracotta mt-2 text-center">Current</p>
+                  </div>
+
+                  {refinementResults.removeVariations.map((variation, i) => {
+                    const compositionForPreview: LogoComposition = {
+                      ...concept.logoComposition,
+                      style: variation.style,
+                      lines: [variation.display, ""],
+                    }
+                    const isSelected = selections.removeVariation === variation && !keepCurrentItems.has("remove-location")
+                    return (
+                      <div
+                        key={i}
+                        onClick={() => selectAlternative("remove-location", variation)}
+                        className={`cursor-pointer transition-all duration-200 border-2 ${isSelected ? "border-terracotta" : "border-transparent hover:border-terracotta/50"}`}
+                      >
+                        <div
+                          className="flex items-center justify-center p-6"
+                          style={{ backgroundColor: concept.colors[0], aspectRatio: "1", minHeight: "200px" }}
+                        >
+                          <div style={{ width: "70%" }}>
+                            <WordmarkSVG composition={compositionForPreview} color={concept.wordmarkColor} headingFont={concept.fonts.heading} />
                           </div>
                         </div>
                       </div>

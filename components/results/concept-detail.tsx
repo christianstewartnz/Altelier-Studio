@@ -135,8 +135,8 @@ function DownloadBrandPackageButton({
     }
   }
 
-  // ── Paid state ───────────────────────────────────────────────────────────────
-  if (isPaid) {
+  // ── Paid state — also bypasses for non-trial accounts ───────────────────────
+  if (isPaid || !isFreeTrial) {
     return (
       <div className="flex flex-col items-center gap-2">
         <button
@@ -351,6 +351,9 @@ export function ConceptDetail({
             wordmark_color: updatedConcept.wordmarkColor,
             fonts: updatedConcept.fonts,
             logo_composition: updatedConcept.logoComposition,
+            location_added: updatedConcept.locationAdded ?? false,
+            original_name_before_location: updatedConcept.originalNameBeforeLocation ?? null,
+            original_display_with_location: updatedConcept.originalDisplayWithLocation ?? null,
           })
           .eq("id", updatedConcept.id)
       } catch (err) {

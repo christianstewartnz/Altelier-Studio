@@ -171,7 +171,10 @@ export default function ProjectPage() {
           logoComposition: c.logo_composition,
           voiceSample: c.voice_sample,
           attributes: c.attributes,
-          refinementsAvailable: c.refinements_available ?? 3
+          refinementsAvailable: c.refinements_available ?? 3,
+          locationAdded: c.location_added ?? undefined,
+          originalNameBeforeLocation: c.original_name_before_location ?? undefined,
+          originalDisplayWithLocation: c.original_display_with_location ?? undefined,
         }))
         setConcepts(mapped)
         setShowResults(true)

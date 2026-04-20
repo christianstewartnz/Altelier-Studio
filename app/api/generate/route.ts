@@ -678,8 +678,30 @@ NAMING RULES:
 - Te Reo Māori only when there is a direct, specific, genuine connection 
   to a physical or historical truth of this exact site — never as 
   cultural decoration
-- Never use an existing suburb or street name unless the address 
+- Never use an existing suburb or street name unless the address
   itself IS the creative territory
+
+STREET NUMBER AND ADDRESS-BASED NAMES:
+Using a street number or address as a brand name is only
+acceptable under two conditions — both must be true:
+
+1. The street itself is iconic and widely recognised —
+   a street name that carries cultural weight, prestige,
+   or strong local identity in its own right.
+   Examples where this works: Ponsonby Road, Queen Street,
+   Parnell Road, Oxford Terrace, Lambton Quay.
+   Examples where this does not work: a residential side
+   street, a new subdivision road, any street that requires
+   local knowledge to appreciate.
+
+2. The actual street number from the project brief must
+   be used — never invent a number. If the brief does not
+   include a street number, do not use a number-based name.
+
+If both conditions are not met, do not use an address-based
+approach. The street number alone without an iconic street
+name is never sufficient.
+
 - Never use: Haven, Residence, Pinnacle, Park, Place, Living, One, The,
   Retreat, Sanctuary, Horizon, Vista, Aspect, Edge, Quarter, Gardens,
   Green, Rise, Ridge, Terrace, Lane, Grove, Manor, Estate, Collection,

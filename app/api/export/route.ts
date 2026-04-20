@@ -752,8 +752,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Paywall: project must have been paid
-    if (!p.paid_at) {
+    // Paywall: free-trial users must have paid for this project; regular accounts bypass
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_free_trial")
+      .eq("id", user.id)
+      .single()
+
+    const isFreeTrial = Boolean(profile?.is_free_trial)
+
+    if (isFreeTrial && !p.paid_at) {
       return NextResponse.json({ error: "Payment required" }, { status: 402 })
     }
 

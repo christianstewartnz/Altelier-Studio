@@ -46,6 +46,9 @@ export type BrandConcept = {
   voiceSample: string
   wordmarkColor: string
   refinementsAvailable?: number
+  locationAdded?: boolean
+  originalNameBeforeLocation?: string
+  originalDisplayWithLocation?: string
 }
 
 export type TileData = { rect: DOMRect; color: string; scrollY: number }
