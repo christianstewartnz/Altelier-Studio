@@ -44,6 +44,7 @@ export type BrandConcept = {
   fonts: { heading: string; body: string }
   voiceSample: string
   wordmarkColor: string
+  refinementsAvailable?: number
 }
 
 export type TileData = { rect: DOMRect; color: string; scrollY: number }

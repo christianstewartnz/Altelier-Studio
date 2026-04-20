@@ -14,7 +14,6 @@ export default function ConceptDetailPage() {
   const supabase = createClient()
   const [concept, setConcept] = useState<BrandConcept | null>(null)
   const [loading, setLoading] = useState(true)
-  const [refinementsRemaining, setRefinementsRemaining] = useState(3)
   const [userId, setUserId] = useState<string | null>(null)
   const [isPaid, setIsPaid] = useState(false)
   const [isFreeTrial, setIsFreeTrial] = useState(false)
@@ -49,7 +48,8 @@ export default function ConceptDetailPage() {
         logoText: data.logo_text || data.brand_name,
         logoComposition: data.logo_composition,
         voiceSample: data.voice_sample,
-        attributes: data.attributes
+        attributes: data.attributes,
+        refinementsAvailable: data.refinements_available ?? 3
       })
 
       // Load project paid_at + profile trial flag so the download button
@@ -116,10 +116,6 @@ export default function ConceptDetailPage() {
       onSelect={() => router.push("/dashboard")}
       onRefine={() => {}}
       onGenerateVariations={() => {}}
-      refinementsRemaining={refinementsRemaining}
-      onRefinementUsed={() =>
-        setRefinementsRemaining(prev => prev - 1)
-      }
       defaultIsSelected={true}
       isConfirmed={true}
       isPaid={isPaid}

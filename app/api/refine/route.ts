@@ -1,27 +1,30 @@
 import { NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
-// // import { refineRatelimit } from "@/lib/ratelimit"
 import { createClient } from "@/lib/supabase/server"
 
 const client = new Anthropic()
 
-const REFINE_PROMPT = `
-You are a senior brand strategist refining an existing brand concept 
-for a residential property development in New Zealand or Australia. 
-The creative territory and brand direction are already decided — your 
-job is to generate alternative options for specific elements the user 
-wants to explore further.
+const COMMON_PREAMBLE = `
+You are a senior brand strategist refining an existing brand concept
+for a residential property development in New Zealand or Australia.
+The creative territory and brand direction are already decided — your
+job is to generate 3 alternative options for ONE specific element.
 
 CRITICAL RULES:
-- The brand territory, rationale, and overall direction must remain 
-  consistent across all alternatives. You are refining within the 
+- The brand territory, rationale, and overall direction must remain
+  consistent across all alternatives. You are refining within the
   concept, not replacing it.
-- Do NOT reproduce any names, taglines, colour palettes, font pairings, 
-  or logo compositions that already exist across ALL concepts for this 
+- Do NOT reproduce any names, taglines, colour palettes, font pairings,
+  or logo compositions that already exist across ALL concepts for this
   project — not just the one being refined.
-- Generate exactly 3 alternatives for each requested element.
-- Each alternative must be genuinely different from the others and from 
+- Generate exactly 3 alternatives.
+- Each alternative must be genuinely different from the others and from
   the existing concept — not minor variations of the same idea.
+
+CRITICAL: Return only raw JSON. No markdown. No explanation. No preamble.
+`
+
+const NAME_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
 
 WHAT SEPARATES GREAT PROPERTY NAMES FROM GENERIC ONES:
 
@@ -30,48 +33,54 @@ A great name makes you feel something.
 
 Study these examples and understand WHY they work:
 
-"Verge" — not "Edge" or "Boundary". Verge is the exact point 
-where two worlds meet — urban and residential, old and new, 
-public and private. It implies threshold without stating it. 
+"Verge" — not "Edge" or "Boundary". Verge is the exact point
+where two worlds meet — urban and residential, old and new,
+public and private. It implies threshold without stating it.
 Precise, loaded, one word does everything.
 
-"Schist" — not "Stone" or "Boulder". Schist is the actual geological 
-material of Queenstown. Using it says: we know this place at a molecular 
+"Schist" — not "Stone" or "Boulder". Schist is the actual geological
+material of Queenstown. Using it says: we know this place at a molecular
 level. It rewards people who recognise it and intrigues people who don't.
 
-"Encore" — not "Perform" or "Stage". Encore is a moment — the crowd 
-demanding more. Applied to a Ponsonby apartment it captures the energy 
+"Encore" — not "Perform" or "Stage". Encore is a moment — the crowd
+demanding more. Applied to a Ponsonby apartment it captures the energy
 of returning home to somewhere worthy of celebration.
 
-"Suncroft" — not "Sunny" or "Sunshine". Croft is an old word for a small 
-enclosed field. Suncroft combines warmth and shelter into something that 
+"Suncroft" — not "Sunny" or "Sunshine". Croft is an old word for a small
+enclosed field. Suncroft combines warmth and shelter into something that
 feels like it has always existed — like you discovered it rather than invented it.
 
-"Aho" — not "Light" or "Sunny". Aho is Te Reo Māori for light. It was chosen 
-because the houses are elevated and catch morning light specifically — the word 
+"Aho" — not "Light" or "Sunny". Aho is Te Reo Māori for light. It was chosen
+because the houses are elevated and catch morning light specifically — the word
 connects directly to a physical truth of the site, not just the general area.
 
-"Awa" — not "River" or "Stream". Awa is Te Reo Māori for river. It was chosen 
-because the development sits directly adjacent to the Hutt River — the connection 
+"Awa" — not "River" or "Stream". Awa is Te Reo Māori for river. It was chosen
+because the development sits directly adjacent to the Hutt River — the connection
 is literal and specific, not cultural decoration.
 
 NAME ALTERNATIVE RULES:
 - Must fit the same brand territory and rationale
 - Specific, ownable, evocative — same quality bar as the examples above
-- Different from each other, from the current name, and from ALL other 
+- Different from each other, from the current name, and from ALL other
   concept names in this project
 - 1-2 words maximum
 - Must emerge from the assigned creative territory
-- Te Reo Māori only when there is a direct, specific, genuine connection 
+- Te Reo Māori only when there is a direct, specific, genuine connection
   to a physical or historical truth of this exact site
 - NEVER use: Haven, Residence, Pinnacle, Park, Place, Living, One, The,
   Retreat, Sanctuary, Horizon, Vista, Aspect, Edge, Quarter, Gardens,
   Green, Rise, Ridge, Terrace, Lane, Grove, Manor, Estate, Collection,
   Heights, Point, Road, Street, Valley, Hill, View, Beach
-- NEVER use suffix patterns like -side, -scape, -haus, -co, -works, 
+- NEVER use suffix patterns like -side, -scape, -haus, -co, -works,
   -yard, -field, -wood, -gate
-- NEVER produce names that are minor variations of each other 
+- NEVER produce names that are minor variations of each other
   e.g. "Lightside" → "Sunside" → "Brightside" — these are the same idea
+
+Return ONLY this JSON:
+{ "names": ["Name1", "Name2", "Name3"] }
+`
+
+const TAGLINE_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
 
 TAGLINE ALTERNATIVE RULES:
 - Must fit the same brand voice and territory
@@ -79,27 +88,47 @@ TAGLINE ALTERNATIVE RULES:
 - 3 distinct creative approaches — not three versions of the same line
 - Max 8 words each
 
+Return ONLY this JSON:
+{ "taglines": ["Tagline 1", "Tagline 2", "Tagline 3"] }
+`
+
+const COLORS_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
+
 COLOUR PALETTE ALTERNATIVE RULES:
 Think like an interior designer or a fashion house art director.
-The palette should feel like it belongs to this specific brand 
+The palette should feel like it belongs to this specific brand
 world — not like it was generated by an algorithm.
 
-- Must feel consistent with the brand territory but be genuinely 
-  different from the existing palette — different colour families, 
+- Must feel consistent with the brand territory but be genuinely
+  different from the existing palette — different colour families,
   not just slightly adjusted hex values
 - Each palette has exactly 5 hex colours
-- Must include a wordmarkColor that creates a considered brand 
+- Must include a wordmarkColor that creates a considered brand
   impression on colors[0] — not just maximum contrast
-- 3 palettes with genuinely different colour directions that still 
+- 3 palettes with genuinely different colour directions that still
   serve the concept
 - Each must have a dark anchor and a light colour
-- Do not default to near-black for colors[0] — consider deep forest 
-  green, warm terracotta, dusty rose, pale stone, rich navy, burnt 
+- Do not default to near-black for colors[0] — consider deep forest
+  green, warm terracotta, dusty rose, pale stone, rich navy, burnt
   sienna, warm cream, slate blue
 - Each palette must include a colorRationale explaining the direction
 
+Return ONLY this JSON:
+{
+  "colorPalettes": [
+    {
+      "colors": ["#hex1","#hex2","#hex3","#hex4","#hex5"],
+      "wordmarkColor": "#hex",
+      "colorRationale": "One sentence explaining this palette direction"
+    }
+  ]
+}
+`
+
+const FONTS_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
+
 FONT PAIRING ALTERNATIVE RULES:
-Select fonts that authentically express this concept's specific 
+Select fonts that authentically express this concept's specific
 emotional territory. Do not default to safe choices.
 
 REFINED SERIF — elegant, quiet, heritage:
@@ -135,25 +164,31 @@ PAIRING RULES:
 - Pair heading font with body font from a different category
 - Do not repeat any font from the existing concept or other concepts
 - Return exact Google Fonts names as they appear on fonts.google.com
-- For weight-contrast and mixed-weight-inline styles choose fonts 
+- For weight-contrast and mixed-weight-inline styles choose fonts
   with genuine light (200-300) and bold (700-800) weights
+
+Return ONLY this JSON:
+{ "fontPairings": [{ "heading": "Font Name", "body": "Font Name" }] }
+`
+
+const LOGO_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
 
 LOGO COMPOSITION ALTERNATIVE RULES:
 
 ABSOLUTE RULE — NEVER SPLIT A SINGLE WORD:
 This is the most common and most damaging error in logo composition.
-A single word must NEVER be split across two lines or have spaces 
+A single word must NEVER be split across two lines or have spaces
 inserted within it.
 
 WRONG: lines: ["JOHN", "SONVILLE"]
 WRONG: lines: ["J O H N S O N V I L L E"]
 CORRECT: lines: ["JOHNSONVILLE", ""]
 
-If the brand name is a single word it must appear complete and 
-unbroken on lines[0]. lines[1] must be empty string "" or a 
+If the brand name is a single word it must appear complete and
+unbroken on lines[0]. lines[1] must be empty string "" or a
 completely separate meaningful word — never a fragment of the brand name.
 
-Two-word brand names may be split across lines[0] and lines[1] 
+Two-word brand names may be split across lines[0] and lines[1]
 only if each line contains a complete standalone word.
 
 COMPOSITION + NAME LENGTH MATCHING:
@@ -165,35 +200,21 @@ COMPOSITION + NAME LENGTH MATCHING:
 - For names longer than 8 characters avoid oversized-crop and ultrawide
 
 Available styles:
-inline-clean, inline-ruled, stacked-ruled, stacked-punctuation, 
-stacked-weighted, offset-subtitle, weight-contrast, scale-contrast, 
+inline-clean, inline-ruled, stacked-ruled, stacked-punctuation,
+stacked-weighted, offset-subtitle, weight-contrast, scale-contrast,
 ultrawide, oversized-crop, mixed-weight-inline, left-editorial
 
-- 3 different composition styles — all different from each other 
+- 3 different composition styles — all different from each other
   and from the current concept's style
 - Include full logoComposition object for each with:
   style, lines, punctuation, punctuationPosition,
   weight, tracking, case
-- Do not default to light weight and wide tracking — choose based 
+- Do not default to light weight and wide tracking — choose based
   on the brand personality
 - Vary case across the 3 alternatives — not all upper
 
-Return a JSON object with only the keys for elements 
-that were requested:
-
+Return ONLY this JSON:
 {
-  "names": ["Name1", "Name2", "Name3"],
-  "taglines": ["Tagline 1", "Tagline 2", "Tagline 3"],
-  "colorPalettes": [
-    { 
-      "colors": ["#hex1","#hex2","#hex3","#hex4","#hex5"],
-      "wordmarkColor": "#hex",
-      "colorRationale": "One sentence explaining this palette direction"
-    }
-  ],
-  "fontPairings": [
-    { "heading": "Font Name", "body": "Font Name" }
-  ],
   "logoCompositions": [
     {
       "style": "inline-clean",
@@ -206,50 +227,23 @@ that were requested:
     }
   ]
 }
-
-Only include keys for elements that were requested.
-CRITICAL: Return only raw JSON. No markdown. 
-No explanation. No preamble.
 `
 
-export async function POST(request: Request) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+const SYSTEM_PROMPTS: Record<string, string> = {
+  name: NAME_SYSTEM_PROMPT,
+  tagline: TAGLINE_SYSTEM_PROMPT,
+  colors: COLORS_SYSTEM_PROMPT,
+  fonts: FONTS_SYSTEM_PROMPT,
+  logo: LOGO_SYSTEM_PROMPT,
+}
 
-  if (!user) {
-    return NextResponse.json(
-      { error: "Unauthorised" },
-      { status: 401 }
-    )
-  }
-
-  // const { success, limit, reset, remaining } =
-  //   await refineRatelimit.limit(user.id)
-
-  // if (!success) {
-  //   return NextResponse.json(
-  //     {
-  //       error: "Daily refinement limit reached. You can refine again tomorrow.",
-  //       limit,
-  //       reset,
-  //       remaining
-  //     },
-  //     { status: 429 }
-  //   )
-  // }
-
-  try {
-    const { concept, selectedItems, contextInputs, allConcepts } =
-      await request.json()
-
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2000,
-      system: REFINE_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `
+function buildUserMessage(
+  item: string,
+  concept: any,
+  feedback: string,
+  allConcepts: any[]
+): string {
+  return `
 Here is the current brand concept:
 
 BRAND NAME: ${concept.brandName}
@@ -269,27 +263,80 @@ ${allConcepts.map((c: any) => `
 - Fonts: ${c.fonts.heading} / ${c.fonts.body}
 - Logo style: ${c.logoComposition.style}
 `).join("")}
-The user wants to refine these elements:
-${selectedItems.map((item: string) => `
-- ${item.toUpperCase()}
-  User feedback: ${contextInputs[item] || "No specific feedback provided"}
-`).join("")}
+The user wants to refine: ${item.toUpperCase()}
+User feedback: ${feedback || "No specific feedback provided"}
 
-Generate exactly 3 alternatives for each requested 
-element. Return only valid JSON, no markdown, 
-no explanation.
-          `
-        }
-      ]
-    })
+Generate exactly 3 alternatives. Return only valid JSON, no markdown, no explanation.
+  `.trim()
+}
 
-    const content = response.content[0]
-    if (content.type !== "text") {
-      throw new Error("Unexpected response type")
+export async function POST(request: Request) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorised" }, { status: 401 })
+  }
+
+  try {
+    const { concept, conceptId, selectedItems, contextInputs, allConcepts = [] } =
+      await request.json()
+
+    // Check this concept's remaining refinements
+    const { data: conceptRow, error: fetchError } = await supabase
+      .from("concepts")
+      .select("refinements_available")
+      .eq("id", conceptId)
+      .eq("user_id", user.id)
+      .single()
+
+    if (fetchError || !conceptRow) {
+      return NextResponse.json({ error: "Concept not found" }, { status: 404 })
     }
 
-    const results = JSON.parse(content.text)
-    return NextResponse.json(results)
+    const remaining = conceptRow.refinements_available ?? 3
+
+    if (remaining <= 0) {
+      return NextResponse.json(
+        { error: "No refinements remaining for this concept" },
+        { status: 403 }
+      )
+    }
+
+    // One sequential API call per selected item
+    const results: Record<string, unknown> = {}
+
+    for (const item of selectedItems) {
+      const systemPrompt = SYSTEM_PROMPTS[item]
+      if (!systemPrompt) continue
+
+      const response = await client.messages.create({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1200,
+        system: systemPrompt,
+        messages: [
+          {
+            role: "user",
+            content: buildUserMessage(item, concept, contextInputs[item] || "", allConcepts)
+          }
+        ]
+      })
+
+      const content = response.content[0]
+      if (content.type !== "text") continue
+
+      const partial = JSON.parse(content.text)
+      Object.assign(results, partial)
+    }
+
+    // Decrement only after all calls succeed
+    const newRemaining = remaining - 1
+    await supabase
+      .from("concepts")
+      .update({ refinements_available: newRemaining })
+      .eq("id", conceptId)
+
+    return NextResponse.json({ ...results, refinementsRemaining: newRemaining })
 
   } catch (error) {
     console.error("Refinement error:", error)

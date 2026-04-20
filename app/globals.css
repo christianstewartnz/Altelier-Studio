@@ -38,6 +38,9 @@
   /* Cream — Warm off-white for forms/content */
   --cream: #F8F6F2;
 
+  /* Sand — Warm mid-tone between cream and espresso, for overlays */
+  --sand: #E5DDD5;
+
   /* Paper — Clean white */
   --paper: #FFFFFF;
 
@@ -175,6 +178,7 @@
   --color-stone: var(--stone);
   --color-stone-light: var(--stone-light);
   --color-cream: var(--cream);
+  --color-sand: var(--sand);
   --color-paper: var(--paper);
   --color-terracotta: var(--terracotta);
   --color-terracotta-dark: var(--terracotta-dark);
@@ -227,9 +231,9 @@
     @apply absolute -bottom-px left-0 right-0 h-0.5 bg-ink;
   }
 
-  /* Section header — 13px spaced caps, deep green (for PROJECT, PLACE, DIRECTION) */
+  /* Section header — large display serif, terracotta (for PROJECT, PLACE, DIRECTION in review) */
   .section-header {
-    @apply text-[13px] tracking-[0.2em] uppercase font-medium text-ink;
+    @apply font-serif text-2xl text-terracotta tracking-tight;
   }
 
   /* Field label — 12px spaced caps, muted (for Location, Development Type, etc.) */

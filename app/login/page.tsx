@@ -10,6 +10,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [animating, setAnimating] = useState(false)
+  const [panelExpanded, setPanelExpanded] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -27,13 +29,37 @@ export default function LoginPage() {
       setError(error.message)
       setLoading(false)
     } else {
-      router.push("/")
-      router.refresh()
+      const isDesktop = window.innerWidth >= 768
+      if (isDesktop) {
+        setTimeout(() => {
+          setAnimating(true)
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => setPanelExpanded(true))
+          })
+          setTimeout(() => {
+            window.location.href = "/"
+          }, 520)
+        }, 600)
+      } else {
+        router.push("/")
+        router.refresh()
+      }
     }
   }
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
+
+      {/* Closing animation overlay — expands espresso panel across full viewport */}
+      {animating && (
+        <div
+          className="fixed top-0 left-0 h-screen bg-ink grain-texture z-50"
+          style={{
+            width: panelExpanded ? '100vw' : '50vw',
+            transition: 'width 500ms ease-in-out',
+          }}
+        />
+      )}
 
       {/* Left — espresso brand panel (desktop) / header (mobile) */}
       <div className="bg-ink text-paper grain-texture md:w-1/2 flex flex-col items-start justify-between px-10 py-12 md:px-16 md:py-20 md:sticky md:top-0 md:h-screen">

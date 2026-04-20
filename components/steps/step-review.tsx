@@ -1,5 +1,8 @@
 "use client"
 
+// TODO: Set DISABLE_PAYWALL_FOR_TESTING to false before deploying to production.
+const DISABLE_PAYWALL_FOR_TESTING = true
+
 import { useEffect, useRef } from "react"
 import Script from "next/script"
 import { Button } from "@/components/ui/button"
@@ -79,9 +82,8 @@ export function StepReview({
   const redirectedRef = useRef(false)
 
   useEffect(() => {
-    // Trial-eligible users never open the Fungies overlay here, so we
-    // don't need the post-checkout polling or SDK listeners.
-    if (isPaid || isTrialEligible) return
+    // Trial-eligible users and testing-mode users never open the Fungies overlay.
+    if (isPaid || isTrialEligible || DISABLE_PAYWALL_FOR_TESTING) return
 
     const redirectToSuccess = () => {
       if (redirectedRef.current) return
@@ -162,8 +164,8 @@ export function StepReview({
         <div className="mx-auto max-w-3xl px-6">
           <div className="space-y-0">
             {/* Project Overview Section */}
-            <section className="border-b border-border py-10 first:pt-0">
-              <div className="flex items-center justify-between mb-8">
+            <section className="border-b border-border py-12 first:pt-0">
+              <div className="flex items-center justify-between mb-10">
                 <h2 className="section-header">Project</h2>
                 <Button
                   variant="ghost"
@@ -178,21 +180,21 @@ export function StepReview({
               <dl className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                   <dt className="field-label">Location</dt>
-                  <dd className="field-value">{projectOverview.location}</dd>
+                  <dd className="field-value sm:text-right">{projectOverview.location}</dd>
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                   <dt className="field-label">Development Type</dt>
-                  <dd className="field-value">{projectOverview.developmentType}</dd>
+                  <dd className="field-value sm:text-right">{projectOverview.developmentType}</dd>
                 </div>
                 {projectOverview.numberOfHomes && (
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                     <dt className="field-label">Scale</dt>
-                    <dd className="field-value">{projectOverview.numberOfHomes}</dd>
+                    <dd className="field-value sm:text-right">{projectOverview.numberOfHomes}</dd>
                   </div>
                 )}
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                   <dt className="field-label">Target Market</dt>
-                  <dd className="field-value">
+                  <dd className="field-value sm:text-right">
                     {Array.isArray(projectOverview.targetMarket)
                       ? projectOverview.targetMarket.join(", ")
                       : projectOverview.targetMarket}
@@ -200,7 +202,7 @@ export function StepReview({
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                   <dt className="field-label">Price Positioning</dt>
-                  <dd className="field-value">{projectOverview.pricePositioning}</dd>
+                  <dd className="field-value sm:text-right">{projectOverview.pricePositioning}</dd>
                 </div>
                 {projectOverview.additionalInfo && (
                   <div>
@@ -212,8 +214,8 @@ export function StepReview({
             </section>
 
             {/* Site Character Section */}
-            <section className="border-b border-border py-10">
-              <div className="flex items-center justify-between mb-8">
+            <section className="border-b border-border py-12">
+              <div className="flex items-center justify-between mb-10">
                 <h2 className="section-header">Place</h2>
                 <Button
                   variant="ghost"
@@ -226,17 +228,10 @@ export function StepReview({
                 </Button>
               </div>
               <dl className="space-y-6">
-                <div>
-                  <dt className="field-label mb-3">Site Qualities</dt>
-                  <dd className="flex flex-wrap gap-2">
-                    {siteCharacter.qualities.map((quality) => (
-                      <span
-                        key={quality}
-                        className="px-3 py-1.5 bg-paper text-foreground font-serif text-[15px] border border-border"
-                      >
-                        {siteQualityLabels[quality] || quality}
-                      </span>
-                    ))}
+                <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
+                  <dt className="field-label">Site Qualities</dt>
+                  <dd className="field-value sm:text-right">
+                    {siteCharacter.qualities.map((q) => siteQualityLabels[q] || q).join(", ")}
                   </dd>
                 </div>
                 <div>
@@ -247,12 +242,12 @@ export function StepReview({
                 </div>
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                   <dt className="field-label">Desired Tone</dt>
-                  <dd className="field-value">{siteCharacter.desiredTone}</dd>
+                  <dd className="field-value sm:text-right">{siteCharacter.desiredTone}</dd>
                 </div>
                 {siteCharacter.attachments.length > 0 && (
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                     <dt className="field-label">Attachments</dt>
-                    <dd className="field-value">
+                    <dd className="field-value sm:text-right">
                       {siteCharacter.attachments.length} file{siteCharacter.attachments.length !== 1 ? "s" : ""} uploaded
                     </dd>
                   </div>
@@ -267,8 +262,8 @@ export function StepReview({
             </section>
 
             {/* Brand Ambition Section */}
-            <section className="py-10">
-              <div className="flex items-center justify-between mb-8">
+            <section className="py-12">
+              <div className="flex items-center justify-between mb-10">
                 <h2 className="section-header">Direction</h2>
                 <Button
                   variant="ghost"
@@ -295,14 +290,14 @@ export function StepReview({
                 )}
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                   <dt className="field-label">Brand Direction</dt>
-                  <dd className="field-value">
+                  <dd className="field-value sm:text-right">
                     {brandDirectionLabels[brandAmbition.direction] || brandAmbition.direction}
                   </dd>
                 </div>
                 {brandAmbition.wordsToAvoid && (
                   <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                     <dt className="field-label">Words to Avoid</dt>
-                    <dd className="field-value italic">{brandAmbition.wordsToAvoid}</dd>
+                    <dd className="field-value sm:text-right italic">{brandAmbition.wordsToAvoid}</dd>
                   </div>
                 )}
                 {brandAmbition.additionalInfo && (
@@ -324,7 +319,7 @@ export function StepReview({
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Previous
               </Button>
-              {isPaid || isTrialEligible ? (
+              {isPaid || isTrialEligible || DISABLE_PAYWALL_FOR_TESTING ? (
                 <Button
                   onClick={onGenerate}
                   className="h-14 px-10 text-base font-medium bg-terracotta text-paper hover:bg-terracotta-dark transition-all duration-200"

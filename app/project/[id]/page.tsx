@@ -29,8 +29,10 @@ export default function ProjectPage() {
   const [showResults, setShowResults] = useState(false)
   const [selectedConcept, setSelectedConcept] = useState<BrandConcept | null>(null)
   const [concepts, setConcepts] = useState<BrandConcept[]>([])
-  const [hasSeenInstructions, setHasSeenInstructions] = useState(false)
-  const [refinementsRemaining, setRefinementsRemaining] = useState(3)
+  const [hasSeenInstructions, setHasSeenInstructions] = useState(() => {
+    if (typeof window === "undefined") return false
+    return localStorage.getItem("atelier_seen_instructions") === "true"
+  })
   const [loading, setLoading] = useState(true)
   const [projectName, setProjectName] = useState("")
   const [userId, setUserId] = useState<string | null>(null)
@@ -161,7 +163,8 @@ export default function ProjectPage() {
           logoText: c.logo_text || c.brand_name,
           logoComposition: c.logo_composition,
           voiceSample: c.voice_sample,
-          attributes: c.attributes
+          attributes: c.attributes,
+          refinementsAvailable: c.refinements_available ?? 3
         }))
         setConcepts(mapped)
         setShowResults(true)
@@ -489,16 +492,15 @@ export default function ProjectPage() {
       <ConceptDetail
         concept={selectedConcept}
         projectId={projectId}
+        allConcepts={concepts}
         userId={userId ?? undefined}
         onBack={handleBackToResults}
         onGoToDashboard={handleStartOver}
         onSelect={handleSelectConcept}
-        onRefine={() => {}}
-        onGenerateVariations={() => {}}
-        refinementsRemaining={refinementsRemaining}
-        onRefinementUsed={() =>
-          setRefinementsRemaining(prev => prev - 1)
+        onRefine={(updatedConcept) =>
+          setConcepts(prev => prev.map(c => c.id === updatedConcept.id ? updatedConcept : c))
         }
+        onGenerateVariations={() => {}}
         defaultIsSelected={confirmedConceptId === selectedConcept.id}
         isConfirmed={confirmedConceptId !== null}
         isPaid={isPaid}
@@ -515,7 +517,10 @@ export default function ProjectPage() {
         onViewConcept={handleViewConcept}
         onStartOver={handleStartOver}
         hasSeenInstructions={hasSeenInstructions}
-        onDismissInstructions={() => setHasSeenInstructions(true)}
+        onDismissInstructions={() => {
+          localStorage.setItem("atelier_seen_instructions", "true")
+          setHasSeenInstructions(true)
+        }}
         contractionData={tileData ?? undefined}
         onContractionComplete={() => setTileData(null)}
         confirmedConceptId={confirmedConceptId ?? undefined}

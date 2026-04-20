@@ -223,13 +223,12 @@ function DownloadBrandPackageButton({
 type ConceptDetailProps = {
   concept: BrandConcept
   projectId: string
+  allConcepts?: BrandConcept[]
   onBack: () => void
   onGoToDashboard: () => void
   onSelect: (concept: BrandConcept) => void
   onRefine: (concept: BrandConcept) => void
   onGenerateVariations: (concept: BrandConcept) => void
-  refinementsRemaining: number
-  onRefinementUsed: () => void
   defaultIsSelected?: boolean
   isConfirmed?: boolean
   userId?: string
@@ -241,13 +240,12 @@ type ConceptDetailProps = {
 export function ConceptDetail({
   concept,
   projectId,
+  allConcepts = [],
   onBack,
   onGoToDashboard,
   onSelect,
   onRefine,
   onGenerateVariations,
-  refinementsRemaining,
-  onRefinementUsed,
   defaultIsSelected,
   isConfirmed = false,
   userId,
@@ -256,8 +254,8 @@ export function ConceptDetail({
   tileData,
 }: ConceptDetailProps) {
   const [currentConcept, setCurrentConcept] = useState(concept)
+  const [refinementsAvailable, setRefinementsAvailable] = useState(concept.refinementsAvailable ?? 3)
   const [showRefinement, setShowRefinement] = useState(false)
-  const [isApplying, setIsApplying] = useState(false)
   const [showConfirmSelection, setShowConfirmSelection] = useState(false)
   const [confirmChecked, setConfirmChecked] = useState(false)
   const [showCongratulations, setShowCongratulations] = useState(false)
@@ -315,14 +313,34 @@ export function ConceptDetail({
     }
   }, [headingFont, bodyFont])
 
-  function handleApplyRefinements(updatedConcept: BrandConcept) {
+  async function handleApplyRefinements(updatedConcept: BrandConcept) {
+    // Update concept first so the hero remounts with the new colours during the FLIP animation
+    setCurrentConcept(updatedConcept)
     setShowRefinement(false)
-    setIsApplying(true)
-    onRefinementUsed()
-    setTimeout(() => {
-      setCurrentConcept(updatedConcept)
-      setIsApplying(false)
-    }, 1500)
+
+    // Persist refined fields back to the database so subsequent
+    // refinements (and page reloads) use the latest values.
+    if (updatedConcept.id) {
+      try {
+        const supabase = createClient()
+        await supabase
+          .from("concepts")
+          .update({
+            brand_name: updatedConcept.brandName,
+            tagline: updatedConcept.tagline,
+            colors: updatedConcept.colors,
+            wordmark_color: updatedConcept.wordmarkColor,
+            fonts: updatedConcept.fonts,
+            logo_composition: updatedConcept.logoComposition,
+          })
+          .eq("id", updatedConcept.id)
+      } catch (err) {
+        console.error("Failed to persist refinement:", err)
+      }
+    }
+
+    // Notify parent to update its concepts array so allConcepts stays fresh.
+    onRefine(updatedConcept)
   }
 
   function handleBack() {
@@ -355,18 +373,23 @@ export function ConceptDetail({
         </div>
       </header>
 
-      {/* ── ALWAYS-VISIBLE BACK BUTTON ── */}
-      <button
-        onClick={isConfirmed ? onGoToDashboard : handleBack}
-        className="fixed top-0 right-0 z-[51] flex items-center gap-2 text-sm hover:opacity-70 transition-opacity h-16 md:h-20 px-6"
-        style={{ color: headerVisible ? "#A89880" : heroTextColor }}
-      >
-        <ArrowLeft className="w-4 h-4" />
-        {isConfirmed ? "Dashboard" : "All Concepts"}
-      </button>
+      {/* ── ALWAYS-VISIBLE BACK BUTTON — hidden when refinement modal is open ── */}
+      {!showRefinement && (
+        <button
+          onClick={isConfirmed ? onGoToDashboard : handleBack}
+          className="fixed top-0 right-0 z-[51] flex items-center gap-2 text-sm hover:opacity-70 transition-opacity h-16 md:h-20 px-6"
+          style={{ color: headerVisible ? "#A89880" : heroTextColor }}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          {isConfirmed ? "Dashboard" : "All Concepts"}
+        </button>
+      )}
 
-      {/* ── HERO — primary colour fills screen (overlay already animated it in) ── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
+      {/* ── HERO — primary colour fills screen ── */}
+      <section
+        className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
+        style={{ backgroundColor: currentConcept.colors[0] }}
+      >
         <div
           className="absolute inset-0 grain-texture"
           style={{ backgroundColor: currentConcept.colors[0] }}
@@ -374,7 +397,7 @@ export function ConceptDetail({
 
         {/* Content — fades out on exit, fades in on entry */}
         <div
-          className="animate-fade-in relative z-10 flex flex-col items-center text-center px-6 w-full max-w-4xl mx-auto pt-20"
+          className="animate-fade-in relative z-10 flex flex-col items-center text-center px-6 w-full max-w-4xl mx-auto pt-20 pb-20"
           style={{
             animationDuration: "0.5s",
             animationFillMode: "both",
@@ -630,7 +653,7 @@ export function ConceptDetail({
 
       {/* ── VOICE SAMPLE ── */}
       {currentConcept.voiceSample?.trim() && (
-        <section className="py-24 md:py-32 bg-paper">
+        <section className="pt-24 pb-44 md:pt-32 md:pb-56 bg-cream">
           <div className="mx-auto max-w-4xl px-6">
             <p className="section-label-accent mb-12">Voice Sample</p>
             <div className="relative pl-8 md:pl-12">
@@ -653,7 +676,7 @@ export function ConceptDetail({
               <>
                 <button
                   onClick={() => setShowRefinement(true)}
-                  disabled={refinementsRemaining === 0}
+                  disabled={refinementsAvailable === 0}
                   className="px-6 py-3 bg-transparent border border-ink text-ink text-[12px] tracking-[0.15em] uppercase font-medium transition-colors duration-200 hover:bg-ink hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Refine this concept
@@ -680,33 +703,15 @@ export function ConceptDetail({
         </div>
       </div>
 
-      {/* ── APPLYING OVERLAY ── */}
-      {isApplying && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-cream">
-          <p className="font-serif text-3xl text-foreground tracking-tight mb-8 text-center">
-            Applying your refinements...
-          </p>
-          <style>{`
-            @keyframes wave {
-              0%, 100% { transform: translateY(0px); opacity: 0.4; }
-              50% { transform: translateY(-8px); opacity: 1; }
-            }
-          `}</style>
-          <div className="flex items-center justify-center gap-2">
-            <span className="block w-2 h-2 bg-ink" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0s" }} />
-            <span className="block w-2 h-2 bg-ink" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.2s" }} />
-            <span className="block w-2 h-2 bg-ink" style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.4s" }} />
-          </div>
-        </div>
-      )}
-
       {/* ── REFINEMENT MODAL ── */}
       {showRefinement && (
         <RefinementModal
           concept={currentConcept}
-          refinementsRemaining={refinementsRemaining}
+          allConcepts={allConcepts}
+          refinementsRemaining={refinementsAvailable}
           onClose={() => setShowRefinement(false)}
           onApplyRefinements={handleApplyRefinements}
+          onRefinementGenerated={(remaining) => setRefinementsAvailable(remaining)}
         />
       )}
 

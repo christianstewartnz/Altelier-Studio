@@ -3,6 +3,9 @@ import Anthropic from "@anthropic-ai/sdk"
 // import { generateRatelimit } from "@/lib/ratelimit"
 import { createClient } from "@/lib/supabase/server"
 
+// TODO: Set DISABLE_PAYWALL_FOR_TESTING to false before deploying to production.
+const DISABLE_PAYWALL_FOR_TESTING = true
+
 const client = new Anthropic()
 
 const EDITORIAL_LUXURY = [
@@ -115,7 +118,7 @@ export async function POST(request: Request) {
     // Paywall with trial-bypass. The trial is consumed atomically here —
     // one successful /api/generate call per trial profile — so generation
     // and trial-consumption cannot drift apart.
-    if (!project.paid_at) {
+    if (!project.paid_at && !DISABLE_PAYWALL_FOR_TESTING) {
       const { data: profile } = await supabase
         .from("profiles")
         .select("is_free_trial, free_trial_used")
