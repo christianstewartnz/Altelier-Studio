@@ -8,6 +8,11 @@ const DISABLE_PAYWALL_FOR_TESTING = true
 
 const client = new Anthropic()
 
+const STAGE_1_MODEL = 'claude-opus-4-7' // always Opus 4.7
+const STAGE_2_MODEL = process.env.AI_MODEL_TIER === 'production'
+  ? 'claude-opus-4-6'
+  : 'claude-sonnet-4-6'
+
 const EDITORIAL_LUXURY = [
   "Cormorant Garamond", "Playfair Display", "Bodoni Moda", "Italiana",
   "Cinzel", "Gloock", "Fraunces", "IM Fell English", "DM Serif Display", "Cormorant"
@@ -238,7 +243,7 @@ BRAND AMBITION
       : strategyText
 
     const strategyResponse = await client.messages.create({
-      model: "claude-sonnet-4-6",
+      model: STAGE_1_MODEL,
       max_tokens: 1000,
       system: STRATEGY_PROMPT,
       messages: [
@@ -335,7 +340,7 @@ Using the same style as another concept is not acceptable.
     : ""
 
   const response = await client.messages.create({
-    model: "claude-sonnet-4-6",
+    model: STAGE_2_MODEL,
     max_tokens: 2000,
     system: CONCEPT_PROMPT,
     messages: [

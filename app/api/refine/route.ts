@@ -4,6 +4,10 @@ import { createClient } from "@/lib/supabase/server"
 
 const client = new Anthropic()
 
+const REFINEMENT_MODEL = process.env.AI_MODEL_TIER === 'production'
+  ? 'claude-opus-4-6'
+  : 'claude-sonnet-4-6'
+
 const COMMON_PREAMBLE = `
 You are a senior brand strategist refining an existing brand concept
 for a residential property development in New Zealand or Australia.
@@ -382,7 +386,7 @@ export async function POST(request: Request) {
       if (!systemPrompt) continue
 
       const response = await client.messages.create({
-        model: "claude-sonnet-4-6",
+        model: REFINEMENT_MODEL,
         max_tokens: 1200,
         system: systemPrompt,
         messages: [
