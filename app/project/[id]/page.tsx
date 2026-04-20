@@ -344,15 +344,22 @@ export default function ProjectPage() {
     }, 6000)
 
     try {
+      const formData = new FormData()
+      formData.append("projectId", projectId)
+      formData.append("projectOverview", JSON.stringify(projectOverview))
+      formData.append("siteCharacter", JSON.stringify({
+        qualities: siteCharacter.qualities,
+        desiredTone: siteCharacter.desiredTone,
+        siteContext: siteCharacter.siteContext,
+      }))
+      formData.append("brandAmbition", JSON.stringify(brandAmbition))
+      for (const file of siteCharacter.attachments) {
+        formData.append("attachments", file)
+      }
+
       const response = await fetch("/api/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          projectId,
-          projectOverview,
-          siteCharacter,
-          brandAmbition
-        })
+        body: formData
       })
 
       if (!response.ok) {

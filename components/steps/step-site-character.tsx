@@ -172,11 +172,11 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
             <div className="space-y-6">
               <div>
                 <Label className="field-label">
-                  Project Visuals & Documents
+                  Project Visuals & References
                   <span className="text-stone-light font-normal ml-2 text-[11px] normal-case tracking-normal">(Optional)</span>
                 </Label>
                 <p className="text-sm text-stone mt-2">
-                  Renders, site photos, architectural references or resource consent documents.
+                  Architectural renders or marketing visuals. Images and PDFs accepted — max 5MB per file.
                 </p>
               </div>
 
@@ -190,7 +190,7 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                   Click to upload or drag and drop
                 </p>
                 <p className="text-xs text-stone">
-                  Images and PDFs up to 10MB
+                  Images and PDFs — max 5MB per file
                 </p>
                 <input
                   ref={fileInputRef}

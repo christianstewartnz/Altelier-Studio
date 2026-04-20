@@ -234,9 +234,9 @@ export function StepReview({
                     {siteCharacter.qualities.map((q) => siteQualityLabels[q] || q).join(", ")}
                   </dd>
                 </div>
-                <div>
-                  <dt className="field-label mb-2">Site Context</dt>
-                  <dd className="field-value whitespace-pre-wrap">
+                <div className="pb-2">
+                  <dt className="field-label mb-3">Site Context</dt>
+                  <dd className="border-l-2 border-terracotta/30 pl-4 font-serif text-[16px] italic text-stone leading-relaxed whitespace-pre-wrap">
                     {siteCharacter.siteContext}
                   </dd>
                 </div>
@@ -277,15 +277,19 @@ export function StepReview({
               </div>
               <dl className="space-y-6">
                 {brandAmbition.buyerFeeling && (
-                  <div>
-                    <dt className="field-label mb-2">Buyer Feeling</dt>
-                    <dd className="field-value">{brandAmbition.buyerFeeling}</dd>
+                  <div className="pb-2">
+                    <dt className="field-label mb-3">Buyer Feeling</dt>
+                    <dd className="border-l-2 border-terracotta/30 pl-4 font-serif text-[16px] italic text-stone leading-relaxed">
+                      {brandAmbition.buyerFeeling}
+                    </dd>
                   </div>
                 )}
                 {brandAmbition.pointOfDifference && (
-                  <div>
-                    <dt className="field-label mb-2">Point of Difference</dt>
-                    <dd className="field-value">{brandAmbition.pointOfDifference}</dd>
+                  <div className="pb-2">
+                    <dt className="field-label mb-3">Point of Difference</dt>
+                    <dd className="border-l-2 border-terracotta/30 pl-4 font-serif text-[16px] italic text-stone leading-relaxed">
+                      {brandAmbition.pointOfDifference}
+                    </dd>
                   </div>
                 )}
                 <div className="flex flex-col sm:flex-row sm:justify-between gap-1">

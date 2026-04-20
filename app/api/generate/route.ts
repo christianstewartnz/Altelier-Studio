@@ -91,7 +91,12 @@ export async function POST(request: Request) {
   // }
 
   try {
-    const { projectId, projectOverview, siteCharacter, brandAmbition } = await request.json()
+    const formData = await request.formData()
+    const projectId = formData.get("projectId") as string
+    const projectOverview = JSON.parse(formData.get("projectOverview") as string)
+    const siteCharacter = JSON.parse(formData.get("siteCharacter") as string)
+    const brandAmbition = JSON.parse(formData.get("brandAmbition") as string)
+    const attachmentFiles = formData.getAll("attachments") as File[]
 
     if (!projectId) {
       return NextResponse.json(
@@ -179,6 +184,59 @@ BRAND AMBITION
     const sessionStyles = pickSessionStyles()
     const { sessionFonts } = sessionStyles
 
+    // Build attachment content blocks for Stage 1 only
+    const MAX_FILE_SIZE = 5 * 1024 * 1024
+    type ContentBlock =
+      | { type: "text"; text: string }
+      | { type: "image"; source: { type: "base64"; media_type: "image/jpeg" | "image/png" | "image/webp" | "image/gif"; data: string } }
+      | { type: "document"; source: { type: "base64"; media_type: "application/pdf"; data: string } }
+
+    const attachmentBlocks: ContentBlock[] = []
+
+    if (attachmentFiles.length > 0) {
+      const imageFiles = attachmentFiles.filter(f => f.type.startsWith("image/"))
+      const pdfFiles = attachmentFiles.filter(f => f.type === "application/pdf")
+
+      if (imageFiles.length > 0) {
+        attachmentBlocks.push({
+          type: "text",
+          text: "The following images are architectural renders or marketing visuals provided by the developer. Use these to understand the architectural character and aesthetic direction of the development. Do not make literal material or colour references in naming or brand language. Extract feeling, strategic direction, and visual character — think like a brand strategist interpreting visuals, not an AI describing them."
+        })
+        for (const file of imageFiles) {
+          if (file.size > MAX_FILE_SIZE) {
+            console.warn(`Skipping ${file.name} — exceeds 5MB limit (${file.size} bytes)`)
+            continue
+          }
+          const buffer = await file.arrayBuffer()
+          const base64 = Buffer.from(buffer).toString("base64")
+          const mediaType = (file.type || "image/jpeg") as "image/jpeg" | "image/png" | "image/webp" | "image/gif"
+          attachmentBlocks.push({ type: "image", source: { type: "base64", media_type: mediaType, data: base64 } })
+        }
+      }
+
+      if (pdfFiles.length > 0) {
+        attachmentBlocks.push({
+          type: "text",
+          text: "The following PDF contains architectural renders or marketing visuals provided by the developer. Extract any relevant context about the development's design intent, visual character, or aesthetic direction that would inform brand strategy."
+        })
+        for (const file of pdfFiles) {
+          if (file.size > MAX_FILE_SIZE) {
+            console.warn(`Skipping ${file.name} — exceeds 5MB limit (${file.size} bytes)`)
+            continue
+          }
+          const buffer = await file.arrayBuffer()
+          const base64 = Buffer.from(buffer).toString("base64")
+          attachmentBlocks.push({ type: "document", source: { type: "base64", media_type: "application/pdf", data: base64 } })
+        }
+      }
+    }
+
+    const strategyText = `Here is the project brief:\n\n${userBrief}\n\nCOMPOSITION STYLES AVAILABLE THIS SESSION:\nYou have exactly three composition styles to work with across the three concepts. Assign one to each territory based on which fits best with that territory's character.\n\nBold/Expressive style available: ${sessionStyles.bold}\nArchitectural/Structured style available: ${sessionStyles.architectural}\nRefined/Elegant style available: ${sessionStyles.refined}\n\nEach territory must be assigned a different style from this list. All three must be used exactly once.\nInclude the assigned style in each territory object as the assignedStyle field.\n\nIdentify three distinct creative territories and assign one composition style to each. Return only valid JSON, no markdown, no explanation.`
+
+    const strategyContent = attachmentBlocks.length > 0
+      ? [...attachmentBlocks, { type: "text" as const, text: strategyText }]
+      : strategyText
+
     const strategyResponse = await client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 1000,
@@ -186,17 +244,18 @@ BRAND AMBITION
       messages: [
         {
           role: "user",
-          content: `Here is the project brief:\n\n${userBrief}\n\nCOMPOSITION STYLES AVAILABLE THIS SESSION:\nYou have exactly three composition styles to work with across the three concepts. Assign one to each territory based on which fits best with that territory's character.\n\nBold/Expressive style available: ${sessionStyles.bold}\nArchitectural/Structured style available: ${sessionStyles.architectural}\nRefined/Elegant style available: ${sessionStyles.refined}\n\nEach territory must be assigned a different style from this list. All three must be used exactly once.\nInclude the assigned style in each territory object as the assignedStyle field.\n\nIdentify three distinct creative territories and assign one composition style to each. Return only valid JSON, no markdown, no explanation.`
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          content: strategyContent as any
         }
       ]
     })
 
-    const strategyContent = strategyResponse.content[0]
-    if (strategyContent.type !== "text") {
+    const strategyResponseBlock = strategyResponse.content[0]
+    if (strategyResponseBlock.type !== "text") {
       throw new Error("Unexpected response from strategy call")
     }
 
-    const territories = JSON.parse(strategyContent.text) as Territory[]
+    const territories = JSON.parse(strategyResponseBlock.text) as Territory[]
 
     // --------------------------------------------------------
     // STAGE 2 — THREE SEQUENTIAL CREATIVE CALLS
