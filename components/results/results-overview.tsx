@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 import { getContrastColor } from "@/lib/color-utils"
@@ -173,11 +174,30 @@ export function ResultsOverview({
   const [expandingId, setExpandingId] = useState<string | null>(null)
   const [expansion, setExpansion] = useState<ExpansionState | null>(null)
   const [showContraction, setShowContraction] = useState(!!contractionData)
+  const [headerVisible, setHeaderVisible] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const lastScrollY = useRef(0)
   const colorBoxRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  useEffect(() => { setMounted(true) }, [])
 
   // Always start at top on mount (covers both fresh load and back-navigation)
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
+  }, [])
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentY = window.scrollY
+      if (currentY === 0) {
+        setHeaderVisible(false)
+      } else if (currentY < lastScrollY.current) {
+        setHeaderVisible(true)
+      }
+      lastScrollY.current = currentY
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   useEffect(() => {
@@ -238,24 +258,45 @@ export function ResultsOverview({
         />
       )}
 
-      {/* Sticky header */}
-      <header className="sticky top-0 z-50 bg-ink text-paper grain-texture">
+      {/* Scroll-controlled header */}
+      <header
+        className="fixed top-0 left-0 right-0 z-50 bg-ink text-paper grain-texture transition-opacity duration-300"
+        style={{
+          opacity: headerVisible ? 1 : 0,
+          pointerEvents: headerVisible ? "auto" : "none",
+        }}
+      >
         <div className="mx-auto max-w-[1600px] px-6 relative z-10">
-          <div className="flex items-center justify-between h-16 md:h-20">
+          <div className="flex items-center h-16 md:h-20">
             <div className="flex items-baseline gap-2">
               <span className="font-serif text-2xl md:text-3xl tracking-tight">{APP_NAME}</span>
               <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">{APP_SUBTITLE}</span>
             </div>
-            <button
-              onClick={onStartOver}
-              className="flex items-center gap-2 text-sm text-stone-light hover:text-paper transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Dashboard
-            </button>
           </div>
         </div>
       </header>
+
+      {/* Always-visible Dashboard button — portal ensures fixed positioning is never broken by ancestor transforms */}
+      {mounted && createPortal(
+        <button
+          onClick={onStartOver}
+          className="flex items-center gap-2 text-sm hover:opacity-70 transition-colors duration-300"
+          style={{
+            position: "fixed",
+            top: 0,
+            right: 0,
+            zIndex: 9998,
+            height: "80px",
+            paddingLeft: "24px",
+            paddingRight: "24px",
+            color: headerVisible ? "#A89880" : "#3D2412",
+          }}
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Dashboard
+        </button>,
+        document.body
+      )}
 
       {/* Section heading */}
       <div className="mx-auto max-w-[1600px] px-4 pt-16 pb-12">

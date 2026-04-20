@@ -26,6 +26,10 @@ CRITICAL: Return only raw JSON. No markdown. No explanation. No preamble.
 
 const NAME_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
 
+You are approaching this as a senior brand strategist at a top creative agency.
+Your alternatives must match the calibre and strategic depth of the original
+name — not feel like a brainstorm list.
+
 WHAT SEPARATES GREAT PROPERTY NAMES FROM GENERIC ONES:
 
 A bad name describes something.
@@ -58,23 +62,47 @@ connects directly to a physical truth of the site, not just the general area.
 because the development sits directly adjacent to the Hutt River — the connection
 is literal and specific, not cultural decoration.
 
-NAME ALTERNATIVE RULES:
-- Must fit the same brand territory and rationale
-- Specific, ownable, evocative — same quality bar as the examples above
-- Different from each other, from the current name, and from ALL other
-  concept names in this project
-- 1-2 words maximum
-- Must emerge from the assigned creative territory
-- Te Reo Māori only when there is a direct, specific, genuine connection
-  to a physical or historical truth of this exact site
-- NEVER use: Haven, Residence, Pinnacle, Park, Place, Living, One, The,
-  Retreat, Sanctuary, Horizon, Vista, Aspect, Edge, Quarter, Gardens,
-  Green, Rise, Ridge, Terrace, Lane, Grove, Manor, Estate, Collection,
-  Heights, Point, Road, Street, Valley, Hill, View, Beach
-- NEVER use suffix patterns like -side, -scape, -haus, -co, -works,
-  -yard, -field, -wood, -gate
-- NEVER produce names that are minor variations of each other
-  e.g. "Lightside" → "Sunside" → "Brightside" — these are the same idea
+YOUR TASK — HOW TO APPROACH THIS:
+
+1. Study the full concept rationale, attributes, and strategic territory carefully.
+   Understand WHY the current name works and what makes it ownable and specific
+   to this concept. Read the project brief and grasp the physical reality of the
+   site, the buyer, and the emotional world this brand lives in.
+
+2. Generate alternatives that belong to the same strategic territory and emotional
+   world as the original concept. A buyer reading any of these names alongside the
+   brand rationale should feel they make complete sense together — they should feel
+   inevitable, not random.
+
+3. Names should feel discovered, not invented — they should surprise the client
+   slightly while feeling completely inevitable once explained.
+
+WHAT NAMES MUST BE:
+- Short: 1-2 words maximum
+- Completely ownable — specific to this place, this concept, this buyer
+- Physically or emotionally specific — rooted in a material, moment, feeling,
+  or precise quality that connects directly to this site and concept rationale
+- Evocative of place, feeling, or material — never abstract or generic
+- Consistent with the concept's brand territory — if the concept is warm and
+  coastal, names must feel warm and coastal; if bold and architectural, names
+  must feel bold and architectural
+- Te Reo Māori only when there is a direct, specific, genuine connection to a
+  physical or historical truth of this exact site
+
+WHAT NAMES MUST NEVER BE:
+- Obvious thematic word associations (coastal brief → sea words, forest brief →
+  tree words — that is the first thing anyone would think of, not a brand name)
+- Generic property development language: Rise, Pinnacle, Haven, Retreat, Views,
+  Edge, Peak, Aspect, Horizon, Vista, Quarter, Gardens, Green, Ridge, Terrace,
+  Lane, Grove, Manor, Estate, Collection, Heights, Point, Valley, Hill, Beach,
+  Park, Place, Living, One, The, Sanctuary, Residence
+- Names that could apply to any development anywhere
+- Adjectives used as names
+- Names that feel like they belong to a different concept's territory — if the
+  concept is warm and intimate, don't generate names that feel corporate or cold
+- Minor variations of each other (e.g. "Lightside" → "Sunside" → "Brightside")
+- Names using suffix patterns: -side, -scape, -haus, -co, -works, -yard,
+  -field, -wood, -gate
 
 Return ONLY this JSON:
 { "names": ["Name1", "Name2", "Name3"] }
@@ -82,11 +110,39 @@ Return ONLY this JSON:
 
 const TAGLINE_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
 
-TAGLINE ALTERNATIVE RULES:
-- Must fit the same brand voice and territory
-- Similar energy to the original but a genuinely different angle
-- 3 distinct creative approaches — not three versions of the same line
-- Max 8 words each
+You are approaching this as a senior brand strategist at a top creative agency.
+Your alternatives must match the calibre and strategic depth of the original
+tagline — not feel like a brainstorm list.
+
+YOUR TASK — HOW TO APPROACH THIS:
+
+1. Study the full concept rationale, voice sample, attributes, and brand territory
+   carefully. Understand the specific emotional register, rhythm, and point of view
+   that makes this brand's voice distinct from any other development.
+
+2. Generate alternatives that stay true to the same brand voice and strategic
+   territory. Each tagline should feel like it was written by the same author for
+   the same brand — different angle, same world.
+
+3. Taglines should feel discovered not written — the right line for this specific
+   concept, not a generic property tagline that could belong to any project.
+
+WHAT TAGLINES MUST BE:
+- True to the concept's brand voice and emotional territory
+- Specific to this brand world — a buyer who read the rationale should feel
+  the tagline is inevitable
+- Genuinely different creative angles — not three versions of the same line
+- Concise: maximum 8 words
+- Consistent in tone with the concept's attributes and voiceSample
+
+WHAT TAGLINES MUST NEVER BE:
+- Generic property clichés (find your place, come home, live differently,
+  discover your next chapter, where life begins, more than a home)
+- Lines that belong to a different brand territory — if the concept is bold
+  and architectural, don't write soft and pastoral lines; if warm and intimate,
+  don't write corporate and aspirational lines
+- Three variations of the same idea with different words
+- Taglines that could appear on any development in any city
 
 Return ONLY this JSON:
 { "taglines": ["Tagline 1", "Tagline 2", "Tagline 3"] }
@@ -241,21 +297,36 @@ function buildUserMessage(
   item: string,
   concept: any,
   feedback: string,
-  allConcepts: any[]
+  allConcepts: any[],
+  projectBrief?: any
 ): string {
+  const briefSection = projectBrief ? `
+PROJECT BRIEF:
+Location: ${projectBrief.location || "—"}
+Target Market: ${Array.isArray(projectBrief.targetMarket) ? projectBrief.targetMarket.join(", ") : projectBrief.targetMarket || "—"}
+Price Positioning: ${projectBrief.pricePositioning || "—"}
+Site Context: ${projectBrief.siteContext || "—"}
+Desired Tone: ${projectBrief.desiredTone || "—"}
+Brand Direction: ${projectBrief.brandDirection || "—"}
+Point of Difference: ${projectBrief.pointOfDifference || "—"}
+Buyer Feeling: ${projectBrief.buyerFeeling || "—"}
+` : ""
+
   return `
 Here is the current brand concept:
 
+CONCEPT TITLE: ${concept.conceptTitle || "—"}
 BRAND NAME: ${concept.brandName}
 TAGLINE: ${concept.tagline}
 RATIONALE: ${concept.rationale}
+COLOR RATIONALE: ${concept.colorRationale || "—"}
+ATTRIBUTES: ${Array.isArray(concept.attributes) ? concept.attributes.join(", ") : concept.attributes || "—"}
+VOICE SAMPLE: ${concept.voiceSample || "—"}
 COLOURS: ${concept.colors.join(", ")}
 WORDMARK COLOUR: ${concept.wordmarkColor}
 FONTS: ${concept.fonts.heading} / ${concept.fonts.body}
-ATTRIBUTES: ${concept.attributes.join(", ")}
-VOICE SAMPLE: ${concept.voiceSample}
 LOGO STYLE: ${concept.logoComposition.style}
-
+${briefSection}
 EXISTING CONCEPTS IN THIS PROJECT — DO NOT REPRODUCE ANY OF THESE:
 ${allConcepts.map((c: any) => `
 - Name: ${c.brandName}
@@ -279,7 +350,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { concept, conceptId, selectedItems, contextInputs, allConcepts = [] } =
+    const { concept, conceptId, selectedItems, contextInputs, allConcepts = [], projectBrief } =
       await request.json()
 
     // Check this concept's remaining refinements
@@ -317,7 +388,7 @@ export async function POST(request: Request) {
         messages: [
           {
             role: "user",
-            content: buildUserMessage(item, concept, contextInputs[item] || "", allConcepts)
+            content: buildUserMessage(item, concept, contextInputs[item] || "", allConcepts, projectBrief)
           }
         ]
       })

@@ -6,7 +6,12 @@
       "Bash(node -e \"const fm = require\\('./node_modules/framer-motion/dist/cjs/index.js'\\); console.log\\(typeof fm.motion, typeof fm.LayoutGroup, typeof fm.AnimatePresence, typeof fm.useScroll, typeof fm.useMotionValueEvent\\)\")",
       "Bash(xargs grep *)",
       "Bash(npm install *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:community.vercel.com)",
+      "Bash(npm show *)",
+      "Bash(node -e \"const v=require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\); const versions=JSON.parse\\(v\\); console.log\\(versions.filter\\(x=>x.startsWith\\('16.'\\)\\).slice\\(-10\\).join\\('\\\\n'\\)\\)\")"
     ]
   }
 }

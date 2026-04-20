@@ -220,10 +220,22 @@ function DownloadBrandPackageButton({
   )
 }
 
+type ProjectBrief = {
+  location?: string
+  targetMarket?: string | string[]
+  pricePositioning?: string
+  siteContext?: string
+  desiredTone?: string
+  brandDirection?: string
+  pointOfDifference?: string
+  buyerFeeling?: string
+}
+
 type ConceptDetailProps = {
   concept: BrandConcept
   projectId: string
   allConcepts?: BrandConcept[]
+  projectBrief?: ProjectBrief
   onBack: () => void
   onGoToDashboard: () => void
   onSelect: (concept: BrandConcept) => void
@@ -241,6 +253,7 @@ export function ConceptDetail({
   concept,
   projectId,
   allConcepts = [],
+  projectBrief,
   onBack,
   onGoToDashboard,
   onSelect,
@@ -328,6 +341,10 @@ export function ConceptDetail({
           .update({
             brand_name: updatedConcept.brandName,
             tagline: updatedConcept.tagline,
+            rationale: updatedConcept.rationale,
+            voice_sample: updatedConcept.voiceSample,
+            attributes: updatedConcept.attributes,
+            color_rationale: updatedConcept.colorRationale,
             colors: updatedConcept.colors,
             wordmark_color: updatedConcept.wordmarkColor,
             fonts: updatedConcept.fonts,
@@ -708,6 +725,7 @@ export function ConceptDetail({
         <RefinementModal
           concept={currentConcept}
           allConcepts={allConcepts}
+          projectBrief={projectBrief}
           refinementsRemaining={refinementsAvailable}
           onClose={() => setShowRefinement(false)}
           onApplyRefinements={handleApplyRefinements}

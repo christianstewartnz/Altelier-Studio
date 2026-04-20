@@ -17,6 +17,16 @@ export default function ConceptDetailPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [isPaid, setIsPaid] = useState(false)
   const [isFreeTrial, setIsFreeTrial] = useState(false)
+  const [projectBrief, setProjectBrief] = useState<{
+    location?: string
+    targetMarket?: string | string[]
+    pricePositioning?: string
+    siteContext?: string
+    desiredTone?: string
+    brandDirection?: string
+    pointOfDifference?: string
+    buyerFeeling?: string
+  } | undefined>(undefined)
 
   useEffect(() => {
     async function loadConcept() {
@@ -52,15 +62,32 @@ export default function ConceptDetailPage() {
         refinementsAvailable: data.refinements_available ?? 3
       })
 
-      // Load project paid_at + profile trial flag so the download button
-      // can pick the right Fungies overlay URL and whether to show it at all.
+      // Load project paid_at + brief fields for refinement context
       const { data: project } = await supabase
         .from("projects")
-        .select("paid_at")
+        .select("paid_at, suburb_city, location, target_market, price_positioning, site_context, desired_tone, brand_direction, point_of_difference, buyer_feeling")
         .eq("id", projectId)
         .maybeSingle()
 
       setIsPaid(Boolean(project?.paid_at))
+
+      if (project) {
+        setProjectBrief({
+          location: project.suburb_city || project.location || undefined,
+          targetMarket: (() => {
+            const v = project.target_market
+            if (!v) return undefined
+            if (Array.isArray(v)) return v
+            try { const p = JSON.parse(v); return Array.isArray(p) ? p : [v] } catch { return [v] }
+          })(),
+          pricePositioning: project.price_positioning || undefined,
+          siteContext: project.site_context || undefined,
+          desiredTone: project.desired_tone || undefined,
+          brandDirection: project.brand_direction || undefined,
+          pointOfDifference: project.point_of_difference || undefined,
+          buyerFeeling: project.buyer_feeling || undefined,
+        })
+      }
 
       if (user) {
         const { data: profile } = await supabase
@@ -81,14 +108,7 @@ export default function ConceptDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center 
-      justify-center">
-        <style>{`
-          @keyframes wave {
-            0%, 100% { transform: translateY(0px); opacity: 0.4; }
-            50% { transform: translateY(-8px); opacity: 1; }
-          }
-        `}</style>
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="flex gap-2">
           <span className="block w-2 h-2 rounded-full bg-foreground"
             style={{ animation: "wave 1.2s ease-in-out infinite",
@@ -110,6 +130,7 @@ export default function ConceptDetailPage() {
     <ConceptDetail
       concept={concept}
       projectId={projectId}
+      projectBrief={projectBrief}
       userId={userId ?? undefined}
       onBack={() => router.push("/dashboard")}
       onGoToDashboard={() => router.push("/dashboard")}

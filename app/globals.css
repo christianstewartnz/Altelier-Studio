@@ -3,6 +3,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@keyframes wave {
+  0%, 100% { transform: translateY(0px); opacity: 0.3; }
+  50% { transform: translateY(-8px); opacity: 1; }
+}
+
 /*
   ATELIER STUDIO — Editorial Design System
   =========================================

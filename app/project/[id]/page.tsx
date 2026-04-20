@@ -29,10 +29,7 @@ export default function ProjectPage() {
   const [showResults, setShowResults] = useState(false)
   const [selectedConcept, setSelectedConcept] = useState<BrandConcept | null>(null)
   const [concepts, setConcepts] = useState<BrandConcept[]>([])
-  const [hasSeenInstructions, setHasSeenInstructions] = useState(() => {
-    if (typeof window === "undefined") return false
-    return localStorage.getItem("atelier_seen_instructions") === "true"
-  })
+  const [hasSeenInstructions, setHasSeenInstructions] = useState(false)
   const [loading, setLoading] = useState(true)
   const [projectName, setProjectName] = useState("")
   const [userId, setUserId] = useState<string | null>(null)
@@ -71,6 +68,10 @@ export default function ProjectPage() {
     wordsToAvoid: "",
     additionalInfo: ""
   })
+
+  useEffect(() => {
+    setHasSeenInstructions(localStorage.getItem("atelier_seen_instructions") === "true")
+  }, [])
 
   useEffect(() => {
     async function loadProject() {
@@ -116,11 +117,12 @@ export default function ProjectPage() {
         location: project.suburb_city || project.location || "",
         developmentType: project.development_type || "",
         numberOfHomes: project.number_of_homes || "",
-        targetMarket: project.target_market 
-          ? (Array.isArray(project.target_market) 
-            ? project.target_market 
-            : [project.target_market])
-          : [],
+        targetMarket: (() => {
+          const v = project.target_market
+          if (!v) return []
+          if (Array.isArray(v)) return v
+          try { const p = JSON.parse(v); return Array.isArray(p) ? p : [v] } catch { return [v] }
+        })(),
         pricePositioning: project.price_positioning || "",
         additionalInfo: project.additional_info || ""
       }))
@@ -460,24 +462,14 @@ export default function ProjectPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center 
-      justify-center">
-        <style>{`
-          @keyframes wave {
-            0%, 100% { transform: translateY(0px); opacity: 0.4; }
-            50% { transform: translateY(-8px); opacity: 1; }
-          }
-        `}</style>
-        <div className="flex gap-2">
-          <span className="block w-2 h-2 rounded-full bg-foreground"
-            style={{ animation: "wave 1.2s ease-in-out infinite",
-            animationDelay: "0s" }} />
-          <span className="block w-2 h-2 rounded-full bg-foreground"
-            style={{ animation: "wave 1.2s ease-in-out infinite",
-            animationDelay: "0.2s" }} />
-          <span className="block w-2 h-2 rounded-full bg-foreground"
-            style={{ animation: "wave 1.2s ease-in-out infinite",
-            animationDelay: "0.4s" }} />
+      <div className="min-h-screen bg-ink grain-texture flex items-center justify-center">
+        <div className="flex gap-2.5">
+          <span className="block w-2 h-2 bg-terracotta"
+            style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0s" }} />
+          <span className="block w-2 h-2 bg-terracotta"
+            style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.2s" }} />
+          <span className="block w-2 h-2 bg-terracotta"
+            style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.4s" }} />
         </div>
       </div>
     )
@@ -493,6 +485,16 @@ export default function ProjectPage() {
         concept={selectedConcept}
         projectId={projectId}
         allConcepts={concepts}
+        projectBrief={{
+          location: projectOverview.location,
+          targetMarket: projectOverview.targetMarket,
+          pricePositioning: projectOverview.pricePositioning,
+          siteContext: siteCharacter.siteContext,
+          desiredTone: siteCharacter.desiredTone,
+          brandDirection: brandAmbition.direction,
+          pointOfDifference: brandAmbition.pointOfDifference,
+          buyerFeeling: brandAmbition.buyerFeeling,
+        }}
         userId={userId ?? undefined}
         onBack={handleBackToResults}
         onGoToDashboard={handleStartOver}

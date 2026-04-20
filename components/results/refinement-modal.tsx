@@ -27,9 +27,21 @@ type RefinementSelections = {
   logoComposition?: LogoComposition
 }
 
+type ProjectBrief = {
+  location?: string
+  targetMarket?: string | string[]
+  pricePositioning?: string
+  siteContext?: string
+  desiredTone?: string
+  brandDirection?: string
+  pointOfDifference?: string
+  buyerFeeling?: string
+}
+
 type RefinementModalProps = {
   concept: BrandConcept
   allConcepts?: BrandConcept[]
+  projectBrief?: ProjectBrief
   refinementsRemaining: number
   onClose: () => void
   onApplyRefinements: (updatedConcept: BrandConcept) => void
@@ -55,6 +67,7 @@ const ELEMENT_LABELS: Record<string, string> = {
 export function RefinementModal({
   concept,
   allConcepts = [],
+  projectBrief,
   refinementsRemaining,
   onClose,
   onApplyRefinements,
@@ -68,6 +81,7 @@ export function RefinementModal({
   const [selections, setSelections] = useState<RefinementSelections>({})
   const [keepCurrentItems, setKeepCurrentItems] = useState<Set<string>>(new Set())
   const [closing, setClosing] = useState(false)
+  const [isApplying, setIsApplying] = useState(false)
 
   const elementsLabel = selectedItems.map(id => ELEMENT_LABELS[id] || id).join(" & ")
 
@@ -110,7 +124,7 @@ export function RefinementModal({
       const response = await fetch("/api/refine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ concept, conceptId: concept.id, selectedItems, contextInputs, allConcepts })
+        body: JSON.stringify({ concept, conceptId: concept.id, selectedItems, contextInputs, allConcepts, projectBrief })
       })
       const data = await response.json()
       if (!response.ok) {
@@ -146,17 +160,20 @@ export function RefinementModal({
     })
   }
 
-  function handleApply() {
+  async function handleApply() {
     const updatedConcept = { ...concept }
 
-    if (!keepCurrentItems.has("name") && selections.name) {
-      updatedConcept.brandName = selections.name
-      const newLines = selections.name.includes(" ")
-        ? selections.name.split(" ").slice(0, 2)
-        : [selections.name, updatedConcept.logoComposition.lines[1] || ""]
+    const nameChanged = !keepCurrentItems.has("name") && !!selections.name
+    const taglineChanged = !keepCurrentItems.has("tagline") && !!selections.tagline
+
+    if (nameChanged) {
+      updatedConcept.brandName = selections.name!
+      const newLines = selections.name!.includes(" ")
+        ? selections.name!.split(" ").slice(0, 2)
+        : [selections.name!, updatedConcept.logoComposition.lines[1] || ""]
       updatedConcept.logoComposition = { ...updatedConcept.logoComposition, lines: newLines }
     }
-    if (!keepCurrentItems.has("tagline") && selections.tagline) updatedConcept.tagline = selections.tagline
+    if (taglineChanged) updatedConcept.tagline = selections.tagline!
     if (!keepCurrentItems.has("colors") && selections.colorPalette) {
       updatedConcept.colors = selections.colorPalette.colors
       updatedConcept.wordmarkColor = selections.colorPalette.wordmarkColor
@@ -164,6 +181,32 @@ export function RefinementModal({
     if (!keepCurrentItems.has("fonts") && selections.fonts) updatedConcept.fonts = selections.fonts
     if (!keepCurrentItems.has("logo") && selections.logoComposition) {
       updatedConcept.logoComposition = selections.logoComposition
+    }
+
+    if (nameChanged || taglineChanged) {
+      setIsApplying(true)
+      try {
+        const trigger = nameChanged ? "name" : "tagline"
+        const res = await fetch("/api/refine/coherence", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ concept: updatedConcept, trigger }),
+        })
+        if (res.ok) {
+          const rewritten = await res.json()
+          if (trigger === "name") {
+            if (rewritten.rationale) updatedConcept.rationale = rewritten.rationale
+            if (rewritten.tagline) updatedConcept.tagline = rewritten.tagline
+            if (rewritten.voiceSample) updatedConcept.voiceSample = rewritten.voiceSample
+          } else {
+            if (rewritten.voiceSample) updatedConcept.voiceSample = rewritten.voiceSample
+          }
+        }
+      } catch {
+        // Non-fatal — apply with the visual changes even if rewrite fails
+      } finally {
+        setIsApplying(false)
+      }
     }
 
     onApplyRefinements(updatedConcept)
@@ -655,10 +698,10 @@ export function RefinementModal({
         <div className="max-w-2xl mx-auto">
           <button
             onClick={handleApply}
-            disabled={!allSelectionsComplete}
+            disabled={!allSelectionsComplete || isApplying}
             className="w-full h-14 text-sm font-medium tracking-[0.12em] uppercase bg-paper text-ink hover:bg-cream disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
           >
-            Apply {elementsLabel}
+            {isApplying ? "Updating concept..." : `Apply ${elementsLabel}`}
           </button>
         </div>
       </div>
