@@ -29,6 +29,8 @@ type RefinementSelections = {
 
 type ProjectBrief = {
   location?: string
+  suburb?: string
+  city?: string
   targetMarket?: string | string[]
   pricePositioning?: string
   siteContext?: string
@@ -49,11 +51,13 @@ type RefinementModalProps = {
 }
 
 const REFINEMENT_OPTIONS = [
-  { id: "name", label: "Name" },
-  { id: "tagline", label: "Marketing Tagline" },
-  { id: "colors", label: "Colour Palette" },
-  { id: "fonts", label: "Font Pairing" },
-  { id: "logo", label: "Logo Composition" }
+  { id: "name", label: "Name", description: "" },
+  { id: "tagline", label: "Marketing Tagline", description: "" },
+  { id: "colors", label: "Colour Palette", description: "" },
+  { id: "fonts", label: "Font Pairing", description: "" },
+  { id: "logo", label: "Logo Composition", description: "" },
+  { id: "add-location", label: "Add Location", description: "Combine the brand name with the suburb or city" },
+  { id: "remove-location", label: "Remove Location", description: "Strip the suburb or city from the brand name" },
 ]
 
 const ELEMENT_LABELS: Record<string, string> = {
@@ -61,7 +65,9 @@ const ELEMENT_LABELS: Record<string, string> = {
   tagline: "Tagline",
   colors: "Palette",
   fonts: "Fonts",
-  logo: "Logo"
+  logo: "Logo",
+  "add-location": "Name",
+  "remove-location": "Name",
 }
 
 export function RefinementModal({
@@ -75,6 +81,7 @@ export function RefinementModal({
 }: RefinementModalProps) {
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [contextInputs, setContextInputs] = useState<Record<string, string>>({})
+  const [locationPreference, setLocationPreference] = useState<"suburb" | "city">("suburb")
   const [isLoading, setIsLoading] = useState(false)
   const [refinementResults, setRefinementResults] = useState<RefinementResults | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -84,6 +91,11 @@ export function RefinementModal({
   const [isApplying, setIsApplying] = useState(false)
 
   const elementsLabel = selectedItems.map(id => ELEMENT_LABELS[id] || id).join(" & ")
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden"
+    return () => { document.body.style.overflow = "" }
+  }, [])
 
   useEffect(() => {
     if (!refinementResults?.fontPairings?.length) return
@@ -124,7 +136,7 @@ export function RefinementModal({
       const response = await fetch("/api/refine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ concept, conceptId: concept.id, selectedItems, contextInputs, allConcepts, projectBrief })
+        body: JSON.stringify({ concept, conceptId: concept.id, selectedItems, contextInputs, allConcepts, projectBrief, locationPreference })
       })
       const data = await response.json()
       if (!response.ok) {
@@ -241,6 +253,9 @@ export function RefinementModal({
     if (item === "colors") return !!selections.colorPalette
     if (item === "fonts") return !!selections.fonts
     if (item === "logo") return !!selections.logoComposition
+    if (item === "add-location" || item === "remove-location") {
+      return keepCurrentItems.has("name") || !!selections.name
+    }
     return true
   })
 
@@ -292,7 +307,7 @@ export function RefinementModal({
           initial={{ x: "100%" }}
           animate={{ x: closing ? "100%" : 0 }}
           transition={panelTransition}
-          className="w-1/2 bg-ink text-paper flex flex-col"
+          className="w-1/2 bg-ink text-paper flex flex-col overflow-hidden"
         >
           {/* Close */}
           <div className="flex justify-end px-8 pt-7 pb-2 flex-shrink-0">
@@ -335,11 +350,45 @@ export function RefinementModal({
                           </svg>
                         )}
                       </div>
-                      <span className={`text-sm tracking-wide transition-colors ${isSelected ? "text-paper" : "text-stone-light group-hover:text-paper"}`}>
-                        {option.label}
-                      </span>
+                      <div className="flex flex-col">
+                        <span className={`text-sm tracking-wide transition-colors ${isSelected ? "text-paper" : "text-stone-light group-hover:text-paper"}`}>
+                          {option.label}
+                        </span>
+                        {option.description && (
+                          <span className={`text-xs transition-colors mt-0.5 ${isSelected ? "text-stone-light" : "text-stone-light/50 group-hover:text-stone-light/70"}`}>
+                            {option.description}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {isSelected && (
+                    {isSelected && option.id === "add-location" && (
+                      <div className="py-4 border-b border-ink-light/60 bg-ink-light/30 -mx-10 px-10">
+                        <p className="text-[11px] tracking-[0.1em] uppercase text-stone-light/60 mb-3">Use</p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={e => { e.stopPropagation(); setLocationPreference("suburb") }}
+                            className={`px-4 py-2 text-xs tracking-wide border transition-colors ${
+                              locationPreference === "suburb"
+                                ? "border-terracotta bg-terracotta/20 text-paper"
+                                : "border-ink-light/60 text-stone-light hover:border-paper hover:text-paper"
+                            }`}
+                          >
+                            Suburb
+                          </button>
+                          <button
+                            onClick={e => { e.stopPropagation(); setLocationPreference("city") }}
+                            className={`px-4 py-2 text-xs tracking-wide border transition-colors ${
+                              locationPreference === "city"
+                                ? "border-terracotta bg-terracotta/20 text-paper"
+                                : "border-ink-light/60 text-stone-light hover:border-paper hover:text-paper"
+                            }`}
+                          >
+                            City
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {isSelected && option.id !== "add-location" && (
                       <div className="py-4 border-b border-ink-light/60 bg-ink-light/30 -mx-10 px-10">
                         <Textarea
                           placeholder={`What don't you like about the current ${option.label.toLowerCase()}? (optional)`}

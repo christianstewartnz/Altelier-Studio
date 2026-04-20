@@ -498,16 +498,21 @@ export default function ProjectPage() {
         concept={selectedConcept}
         projectId={projectId}
         allConcepts={concepts}
-        projectBrief={{
-          location: projectOverview.location,
-          targetMarket: projectOverview.targetMarket,
-          pricePositioning: projectOverview.pricePositioning,
-          siteContext: siteCharacter.siteContext,
-          desiredTone: siteCharacter.desiredTone,
-          brandDirection: brandAmbition.direction,
-          pointOfDifference: brandAmbition.pointOfDifference,
-          buyerFeeling: brandAmbition.buyerFeeling,
-        }}
+        projectBrief={(() => {
+          const parts = (projectOverview.location || "").split(",").map((p: string) => p.trim()).filter(Boolean)
+          return {
+            location: projectOverview.location,
+            suburb: parts[0] || projectOverview.location,
+            city: parts[1] || parts[0] || projectOverview.location,
+            targetMarket: projectOverview.targetMarket,
+            pricePositioning: projectOverview.pricePositioning,
+            siteContext: siteCharacter.siteContext,
+            desiredTone: siteCharacter.desiredTone,
+            brandDirection: brandAmbition.direction,
+            pointOfDifference: brandAmbition.pointOfDifference,
+            buyerFeeling: brandAmbition.buyerFeeling,
+          }
+        })()}
         userId={userId ?? undefined}
         onBack={handleBackToResults}
         onGoToDashboard={handleStartOver}

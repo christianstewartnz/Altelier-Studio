@@ -111,7 +111,7 @@ WHAT NAMES MUST NEVER BE:
 NAMES BANNED FROM OVERUSE:
 The following names have appeared too frequently and must
 never be used in refinements: Datum, Hush, Laurel,
-Allotment, Gather, Reach, Crest, Brine.
+Allotment, Gather, Reach, Crest, Brine, Facet.
 Avoid any name that feels like it belongs on this list —
 if it feels familiar from another development, it probably is.
 
@@ -134,12 +134,17 @@ comes to mind when reading the brief. Ask yourself: is this
 the most obvious word that connects to this brief detail?
 If yes, go deeper.
 
-SUBURB AND CITY NAME RULE:
-Never append the suburb or city name to the brand name.
-The refined name must stand alone without a location qualifier.
-
-WRONG: "Datum Queenstown", "Tallow Rosewood"
-RIGHT: "Datum", "Tallow"
+LOCATION IN NAMING:
+Including the suburb or city name in the brand name is
+acceptable when it genuinely strengthens the brand —
+when the location itself is a selling point or adds
+specificity that makes the name more ownable.
+Use your creative judgement. Do not force it in,
+but do not avoid it either.
+A location addition works when the place name has
+heritage, weight, or recognition that elevates the
+brand. It does not work when it is simply appended
+to compensate for a weak core name.
 
 MANDATORY NAME SELF-EVALUATION:
 Before finalising each alternative, complete this sentence
@@ -339,12 +344,59 @@ Return ONLY this JSON:
 }
 `
 
+const LOCATION_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
+
+You are generating 3 variations of a brand name combined
+with its location for a residential property development.
+
+The developer wants to explore adding the suburb or city
+name to the brand name. This is a considered branding
+technique when the location itself is a selling point.
+
+WHAT TO GENERATE:
+3 different ways to combine the brand name with the location.
+Try different combination styles:
+- Style 1: Name + Location with no punctuation (e.g. Tallow Rosewood)
+- Style 2: Name comma Location (e.g. Tallow, Rosewood)
+- Style 3: Name dash Location (e.g. Tallow — Rosewood)
+
+The combination should feel intentional — not like a
+label was appended. The location should elevate the name.
+The standalone name is always shown as Keep Current —
+do not include it in your 3 alternatives.
+
+Return ONLY this JSON:
+{ "names": ["Variation 1", "Variation 2", "Variation 3"] }
+`
+
+const REMOVE_LOCATION_SYSTEM_PROMPT = `${COMMON_PREAMBLE}
+
+The current brand name includes a location suffix.
+The developer wants to explore removing it and using
+just the core brand name.
+
+WHAT TO GENERATE:
+3 versions of the name with the location removed.
+- Option 1: exact core name with location stripped
+- Options 2 and 3: subtle variations if the core name
+  alone feels incomplete — slightly adjusted form of
+  the same word that works better standalone
+
+All 3 must belong to the same brand territory.
+All 3 must pass the buyer test and self-evaluation.
+
+Return ONLY this JSON:
+{ "names": ["Name1", "Name2", "Name3"] }
+`
+
 const SYSTEM_PROMPTS: Record<string, string> = {
   name: NAME_SYSTEM_PROMPT,
   tagline: TAGLINE_SYSTEM_PROMPT,
   colors: COLORS_SYSTEM_PROMPT,
   fonts: FONTS_SYSTEM_PROMPT,
   logo: LOGO_SYSTEM_PROMPT,
+  "add-location": LOCATION_SYSTEM_PROMPT,
+  "remove-location": REMOVE_LOCATION_SYSTEM_PROMPT,
 }
 
 function buildUserMessage(
@@ -404,7 +456,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { concept, conceptId, selectedItems, contextInputs, allConcepts = [], projectBrief } =
+    const { concept, conceptId, selectedItems, contextInputs, allConcepts = [], projectBrief, locationPreference } =
       await request.json()
 
     // Check this concept's remaining refinements
@@ -435,16 +487,33 @@ export async function POST(request: Request) {
       const systemPrompt = SYSTEM_PROMPTS[item]
       if (!systemPrompt) continue
 
+      let userContent: string
+      if (item === "add-location") {
+        const locationStr = locationPreference === "suburb"
+          ? (projectBrief?.suburb || projectBrief?.location || "—")
+          : (projectBrief?.city || projectBrief?.location || "—")
+        userContent = `BRAND NAME: ${concept.brandName}
+LOCATION TO ADD: ${locationStr}
+CONCEPT TERRITORY: ${concept.conceptTitle}
+BRAND RATIONALE: ${concept.rationale}
+
+Generate 3 variations combining the brand name with the location.
+Try no punctuation, comma separator, and dash separator as three styles.`
+      } else if (item === "remove-location") {
+        userContent = `BRAND NAME: ${concept.brandName}
+CONCEPT TERRITORY: ${concept.conceptTitle}
+BRAND RATIONALE: ${concept.rationale}
+
+Generate 3 versions of this name with the location suffix removed.`
+      } else {
+        userContent = buildUserMessage(item, concept, contextInputs[item] || "", allConcepts, projectBrief)
+      }
+
       const response = await client.messages.create({
         model: REFINEMENT_MODEL,
         max_tokens: 1200,
         system: systemPrompt,
-        messages: [
-          {
-            role: "user",
-            content: buildUserMessage(item, concept, contextInputs[item] || "", allConcepts, projectBrief)
-          }
-        ]
+        messages: [{ role: "user", content: userContent }]
       })
 
       const content = response.content[0]

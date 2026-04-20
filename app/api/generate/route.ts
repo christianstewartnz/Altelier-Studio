@@ -10,7 +10,7 @@ const client = new Anthropic()
 
 const STAGE_1_MODEL = 'claude-opus-4-7' // always Opus 4.7
 const STAGE_2_MODEL = process.env.AI_MODEL_TIER === 'production'
-  ? 'claude-opus-4-7'
+  ? 'claude-opus-4-6'
   : 'claude-sonnet-4-6'
 
 const EDITORIAL_LUXURY = [
@@ -707,18 +707,17 @@ any hesitation, the name fails.
 
 Both tests must be passed before a name is used.
 
-SUBURB AND CITY NAME RULE:
-Never append the suburb or city name to the brand name
-by default. The brand name must stand alone without a
-location qualifier.
-
-WRONG: "Datum Queenstown", "Tallow Rosewood",
-       "Fernsby Brisbane"
-RIGHT: "Datum", "Tallow", "Fernsby"
-
-The suburb/city combination is a refinement option
-the user can choose after generation. Generate the
-standalone name only.
+LOCATION IN NAMING:
+Including the suburb or city name in the brand name is
+acceptable when it genuinely strengthens the brand —
+when the location itself is a selling point or adds
+specificity that makes the name more ownable.
+Use your creative judgement. Do not force it in,
+but do not avoid it either.
+A location addition works when the place name has
+heritage, weight, or recognition that elevates the
+brand. It does not work when it is simply appended
+to compensate for a weak core name.
 
 NAMES THAT WILL ALWAYS BE REJECTED:
 - [Nature thing] + [place word]: PearTree, OakRidge, ElmGrove
@@ -732,7 +731,7 @@ NAMES THAT WILL ALWAYS BE REJECTED:
 NAMES THAT ARE BANNED FROM OVERUSE:
 The following names have appeared too frequently in previous
 generations and must never be used: Datum, Hush, Laurel,
-Allotment, Gather, Reach, Crest, Brine.
+Allotment, Gather, Reach, Crest, Brine, Facet.
 Add any name that feels like it belongs on this list —
 if it feels like something you've seen before on a
 development, it probably has been.

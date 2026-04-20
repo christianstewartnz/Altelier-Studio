@@ -222,6 +222,8 @@ function DownloadBrandPackageButton({
 
 type ProjectBrief = {
   location?: string
+  suburb?: string
+  city?: string
   targetMarket?: string | string[]
   pricePositioning?: string
   siteContext?: string

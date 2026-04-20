@@ -19,6 +19,8 @@ export default function ConceptDetailPage() {
   const [isFreeTrial, setIsFreeTrial] = useState(false)
   const [projectBrief, setProjectBrief] = useState<{
     location?: string
+    suburb?: string
+    city?: string
     targetMarket?: string | string[]
     pricePositioning?: string
     siteContext?: string
@@ -72,8 +74,12 @@ export default function ConceptDetailPage() {
       setIsPaid(Boolean(project?.paid_at))
 
       if (project) {
+        const locationStr = project.suburb_city || project.location || ""
+        const locationParts = locationStr.split(",").map((p: string) => p.trim()).filter(Boolean)
         setProjectBrief({
-          location: project.suburb_city || project.location || undefined,
+          location: locationStr || undefined,
+          suburb: locationParts[0] || locationStr || undefined,
+          city: locationParts[1] || locationParts[0] || locationStr || undefined,
           targetMarket: (() => {
             const v = project.target_market
             if (!v) return undefined
