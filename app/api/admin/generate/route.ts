@@ -78,7 +78,12 @@ export async function POST(request: Request) {
       throw new Error("Unexpected response from strategy call")
     }
 
-    const territories = JSON.parse(strategyContent.text) as Territory[]
+    const cleanedStrategy = strategyContent.text
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim()
+    const territories = JSON.parse(cleanedStrategy) as Territory[]
 
     const concept1 = await generateConcept(userBrief(brief), territories[0], [], "A", [])
     const concept2 = await generateConcept(
@@ -182,7 +187,12 @@ Return only valid JSON, no markdown, no explanation.
     throw new Error("Unexpected response from concept call")
   }
 
-  return JSON.parse(content.text)
+  const cleaned = content.text
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim()
+  return JSON.parse(cleaned)
 }
 
 type Territory = {

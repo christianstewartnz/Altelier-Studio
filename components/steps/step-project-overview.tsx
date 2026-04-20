@@ -79,11 +79,14 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
               </Label>
               <Input
                 id="location"
-                placeholder="e.g., Paddington, Sydney"
+                placeholder="e.g. Remuera, Auckland or Paddington, Sydney"
                 value={data.location}
                 onChange={(e) => onChange({ ...data, location: e.target.value })}
                 className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
               />
+              <p className="text-sm text-stone mt-2">
+                Include the suburb and city — the more specific the location, the more place-specific your brand will feel.
+              </p>
             </div>
 
             {/* Development Type */}
@@ -118,11 +121,14 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
               </Label>
               <Input
                 id="numberOfHomes"
-                placeholder="e.g., 24 apartments, 120 lots, boutique 8-unit building"
+                placeholder="e.g. 8 boutique townhouses, 50 one and two bedroom apartments, 30 standalone homes"
                 value={data.numberOfHomes}
                 onChange={(e) => onChange({ ...data, numberOfHomes: e.target.value })}
                 className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
               />
+              <p className="text-sm text-stone mt-2">
+                Scale shapes brand personality — a boutique 4-home collection feels different to a 120-lot subdivision.
+              </p>
             </div>
 
             {/* Target Market */}
@@ -131,6 +137,9 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
                 Target Market
                 <span className="text-stone-light font-normal ml-2 text-[11px] normal-case tracking-normal">(Select all that apply)</span>
               </Label>
+              <p className="text-sm text-stone -mt-3">
+                Select all that apply. If you have a primary buyer in mind, they should be first.
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 {targetMarkets.map((market) => {
                   const isSelected = (Array.isArray(data.targetMarket)
@@ -173,6 +182,9 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
               <Label className="field-label">
                 Price Positioning
               </Label>
+              <p className="text-sm text-stone -mt-3">
+                Be honest — over-positioning creates a brand that doesn&apos;t match the product.
+              </p>
               <div className="flex flex-wrap gap-3">
                 {pricePositionings.map((price) => (
                   <button

@@ -11,6 +11,7 @@ import { GeneratingState } from "@/components/generating-state"
 import { WorkflowHeader } from "@/components/workflow-header"
 import { ResultsOverview, type BrandConcept } from "@/components/results/results-overview"
 import { ConceptDetail } from "@/components/results/concept-detail"
+import { BriefInstructionsOverlay } from "@/components/brief-instructions-overlay"
 import type { 
   ProjectOverviewData, 
   SiteCharacterData, 
@@ -38,6 +39,7 @@ export default function ProjectPage() {
   const [isFreeTrial, setIsFreeTrial] = useState(false)
   const [tileData, setTileData] = useState<{ rect: DOMRect; color: string; scrollY: number } | null>(null)
   const [confirmedConceptId, setConfirmedConceptId] = useState<string | null>(null)
+  const [showBriefInstructions, setShowBriefInstructions] = useState(false)
 
   // Guard so the post-payment auto-generate only ever fires once per mount.
   const autoGenerateTriggered = useRef(false)
@@ -71,6 +73,9 @@ export default function ProjectPage() {
 
   useEffect(() => {
     setHasSeenInstructions(localStorage.getItem("atelier_seen_instructions") === "true")
+    if (localStorage.getItem("hasSeenBriefInstructions") !== "true") {
+      setShowBriefInstructions(true)
+    }
   }, [])
 
   useEffect(() => {
@@ -423,6 +428,7 @@ export default function ProjectPage() {
           .eq("id", projectId)
       }
 
+      setHasSeenInstructions(false)
       setShowResults(true)
       window.scrollTo({ top: 0, behavior: "smooth" })
     } catch (error: any) {
@@ -539,10 +545,19 @@ export default function ProjectPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {showBriefInstructions && (
+        <BriefInstructionsOverlay
+          onDismiss={() => {
+            localStorage.setItem("hasSeenBriefInstructions", "true")
+            setShowBriefInstructions(false)
+          }}
+        />
+      )}
       <WorkflowHeader
         currentStep={currentStep}
         onGoToStep={handleGoToStep}
         onStartOver={handleStartOver}
+        onOpenInstructions={() => setShowBriefInstructions(true)}
       />
       <main className="pb-24">
         <div className="relative">
@@ -585,39 +600,6 @@ export default function ProjectPage() {
           )}
         </div>
       </main>
-
-      {process.env.NODE_ENV !== "production" && (isPaid || isTrialEligible) && !isGenerating && !showResults && !selectedConcept && (
-        <button
-          onClick={async () => {
-            setProjectOverview({
-              location: "Ponsonby, Auckland, New Zealand",
-              developmentType: "Residential Apartments",
-              numberOfHomes: "12 boutique apartments",
-              targetMarket: ["Young Professionals", "Investors"],
-              pricePositioning: "Premium",
-              additionalInfo: ""
-            })
-            setSiteCharacter({
-              qualities: ["views", "urban", "architectural"],
-              desiredTone: "Bold and contemporary",
-              siteContext: "Corner site on Ponsonby Road with elevated views over the city. Ground floor retail tenancy creating activation at street level.",
-              attachments: [],
-              additionalInfo: ""
-            })
-            setBrandAmbition({
-              buyerFeeling: "Arrived. Like they own the best address in Auckland.",
-              pointOfDifference: "Only boutique development on Ponsonby Road with ground floor cafe. Architectural design by award winning firm.",
-              direction: "bold-contemporary",
-              wordsToAvoid: "luxury, exclusive, premium",
-              additionalInfo: ""
-            })
-            await handleGenerate()
-          }}
-          className="fixed bottom-6 right-6 z-50 bg-red-500 text-white text-xs px-4 py-2 rounded-full shadow-lg hover:bg-red-600 transition-all opacity-70 hover:opacity-100"
-        >
-          DEV: Quick Generate
-        </button>
-      )}
     </div>
   )
 }

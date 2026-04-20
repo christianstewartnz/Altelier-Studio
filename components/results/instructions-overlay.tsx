@@ -34,6 +34,10 @@ export function InstructionsOverlay({ onDismiss }: { onDismiss: () => void }) {
             3 refinements available per concept
           </p>
 
+          <p className="text-sm text-stone-light leading-relaxed">
+            One refinement option worth knowing about is <span className="text-paper">Add Location</span> — this lets you explore combining your brand name with the suburb or city. For example, a brand named Quatre could become Quatre Queenstown or Quatre — Queenstown. This is a common technique in property branding when the address itself is a selling point. You can try it as one of your refinements on any concept.
+          </p>
+
           <button
             className="w-full h-12 px-8 text-sm font-medium tracking-[0.1em] uppercase bg-terracotta text-paper hover:bg-terracotta-dark transition-colors duration-200 cursor-pointer"
             onClick={onDismiss}

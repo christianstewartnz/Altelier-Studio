@@ -84,11 +84,14 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
               </Label>
               <Input
                 id="buyerFeeling"
-                placeholder="e.g. Arrived. Proud. Like they've discovered something others haven't."
+                placeholder="e.g. Like they finally cracked this suburb without compromising. Proud of the address without being pretentious about it. Like they made a smart, considered choice."
                 value={data.buyerFeeling}
                 onChange={(e) => onChange({ ...data, buyerFeeling: e.target.value })}
                 className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
               />
+              <p className="text-sm text-stone mt-2">
+                This is the most important field in the brief. Don&apos;t describe the development — describe the emotion. What should a buyer feel the moment they first hear the name?
+              </p>
             </div>
 
             {/* Point of Difference */}
@@ -98,11 +101,14 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
               </Label>
               <Input
                 id="pointOfDifference"
-                placeholder="e.g. Only boutique development on this street. Larger section sizes than comparable projects."
+                placeholder="e.g. Only 8 homes on a street of 200. Larger sections than any comparable project nearby. The only development in this suburb with a communal garden."
                 value={data.pointOfDifference}
                 onChange={(e) => onChange({ ...data, pointOfDifference: e.target.value })}
                 className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
               />
+              <p className="text-sm text-stone mt-2">
+                What would make someone choose this over the development on the next street? Be specific — &lsquo;better quality&rsquo; and &lsquo;great location&rsquo; don&apos;t count.
+              </p>
             </div>
 
             {/* Brand Directions */}
@@ -110,6 +116,9 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
               <Label className="field-label">
                 Choose a Direction
               </Label>
+              <p className="text-sm text-stone -mt-3">
+                Choose the territory that feels closest to your vision. This is a creative starting point — the AI will develop it specifically for your project.
+              </p>
               <div className="grid gap-4">
                 {brandDirections.map((direction) => {
                   const isSelected = data.direction === direction.id
@@ -164,13 +173,13 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
               </Label>
               <Input
                 id="wordsToAvoid"
-                placeholder="e.g., luxe, exclusive, paradise, oasis"
+                placeholder="e.g. luxury, exclusive, premium, prestige, paradise, oasis, haven"
                 value={data.wordsToAvoid}
                 onChange={(e) => onChange({ ...data, wordsToAvoid: e.target.value })}
                 className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
               />
-              <p className="text-xs text-stone">
-                List any words or phrases you&apos;d prefer we don&apos;t use in naming or messaging.
+              <p className="text-sm text-stone mt-2">
+                Adding words to avoid pushes the AI toward more unexpected, ownable naming. What terms feel overused or wrong for this project?
               </p>
             </div>
 
@@ -182,12 +191,15 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
               </Label>
               <Textarea
                 id="additionalInfo"
-                placeholder="Share any brands, projects or aesthetics you admire, plus any other thoughts, constraints or preferences we should know before generating."
+                placeholder="e.g. We love the branding Time & Place did for Aura in Brisbane. The project has a strong architectural story — the façade uses raw concrete and brass detailing. The developer wants something that will still feel relevant in 20 years."
                 value={data.additionalInfo}
                 onChange={(e) => onChange({ ...data, additionalInfo: e.target.value })}
                 rows={4}
                 className="px-0 py-4 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors resize-none"
               />
+              <p className="text-sm text-stone mt-2">
+                Brands you admire, architectural references, developer preferences, or anything else that gives us creative direction. The more context the better.
+              </p>
             </div>
 
             {/* Navigation */}

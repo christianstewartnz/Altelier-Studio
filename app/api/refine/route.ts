@@ -108,6 +108,56 @@ WHAT NAMES MUST NEVER BE:
 - Names using suffix patterns: -side, -scape, -haus, -co, -works, -yard,
   -field, -wood, -gate
 
+NAMES BANNED FROM OVERUSE:
+The following names have appeared too frequently and must
+never be used in refinements: Datum, Hush, Laurel,
+Allotment, Gather, Reach, Crest, Brine.
+Avoid any name that feels like it belongs on this list —
+if it feels familiar from another development, it probably is.
+
+THE LITERAL CONNECTION TRAP:
+The most common refinement failure is a name that has a
+connection to the brief but the connection is too direct.
+
+These would be rejected:
+- Quiet street → "Hush" (too literal, sounds like a beauty brand)
+- Hedge-lined street → "Laurel" (too literal, sounds like a
+  retirement village)
+- Communal garden → "Allotment" (too literal, sounds like a
+  vegetable patch)
+- Any word that could be a scented candle, a café, or a
+  wellness retreat
+
+The connection between the brief and the name should be
+oblique, layered, and surprising — not the first word that
+comes to mind when reading the brief. Ask yourself: is this
+the most obvious word that connects to this brief detail?
+If yes, go deeper.
+
+SUBURB AND CITY NAME RULE:
+Never append the suburb or city name to the brand name.
+The refined name must stand alone without a location qualifier.
+
+WRONG: "Datum Queenstown", "Tallow Rosewood"
+RIGHT: "Datum", "Tallow"
+
+MANDATORY NAME SELF-EVALUATION:
+Before finalising each alternative, complete this sentence
+internally: "[Name] is the right name for this specific
+project because [specific reason tied to this brief and
+concept territory]."
+
+The answer must be specific — not generic.
+"Hush is right because the street is quiet" fails.
+"Schist is right because it is the actual geological
+material of Queenstown's landscape" passes.
+
+Then apply the buyer test: would a proud homeowner say
+this address confidently at a dinner party, to their bank,
+and to their friends? Any hesitation means the name fails.
+
+Both tests must pass before a name is included.
+
 Return ONLY this JSON:
 { "names": ["Name1", "Name2", "Name3"] }
 `
@@ -400,7 +450,12 @@ export async function POST(request: Request) {
       const content = response.content[0]
       if (content.type !== "text") continue
 
-      const partial = JSON.parse(content.text)
+      const cleanedText = content.text
+        .replace(/^```json\s*/i, '')
+        .replace(/^```\s*/i, '')
+        .replace(/```\s*$/i, '')
+        .trim()
+      const partial = JSON.parse(cleanedText)
       Object.assign(results, partial)
     }
 

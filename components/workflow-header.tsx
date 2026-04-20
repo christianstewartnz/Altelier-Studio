@@ -7,6 +7,7 @@ type WorkflowHeaderProps = {
   onGoToStep: (step: number) => void
   onStartOver: () => void
   onLogout?: () => void
+  onOpenInstructions?: () => void
 }
 
 const steps = [
@@ -16,9 +17,9 @@ const steps = [
   { number: 4, label: "Review" }
 ]
 
-export function WorkflowHeader({ currentStep, onGoToStep, onStartOver }: WorkflowHeaderProps) {
+export function WorkflowHeader({ currentStep, onGoToStep, onStartOver, onOpenInstructions }: WorkflowHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 bg-ink text-paper grain-texture">
+    <header className="sticky top-0 z-[70] bg-ink text-paper grain-texture">
       <div className="mx-auto max-w-6xl px-6 relative z-10">
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo — top left */}
@@ -90,14 +91,25 @@ export function WorkflowHeader({ currentStep, onGoToStep, onStartOver }: Workflo
             </span>
           </div>
 
-          {/* Dashboard — top right */}
-          <button
-            onClick={onStartOver}
-            className="flex items-center gap-2 text-sm text-stone-light hover:opacity-70 transition-opacity"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Dashboard
-          </button>
+          {/* Right controls */}
+          <div className="flex items-center gap-3">
+            {onOpenInstructions && (
+              <button
+                onClick={onOpenInstructions}
+                title="Brief instructions"
+                className="w-7 h-7 flex items-center justify-center border border-stone text-stone-light text-xs font-medium hover:border-stone-light hover:text-paper transition-colors"
+              >
+                ?
+              </button>
+            )}
+            <button
+              onClick={onStartOver}
+              className="flex items-center gap-2 text-sm text-stone-light hover:opacity-70 transition-opacity"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Dashboard
+            </button>
+          </div>
         </div>
 
         {/* Mobile Progress Bar */}

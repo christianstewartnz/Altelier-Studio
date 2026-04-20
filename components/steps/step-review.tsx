@@ -159,6 +159,52 @@ export function StepReview({
         </div>
       </section>
 
+      {/* Brief Quality Score */}
+      {(() => {
+        let pts = 0
+        if (projectOverview.location) pts += 10
+        if (projectOverview.developmentType) pts += 10
+        const tm = Array.isArray(projectOverview.targetMarket)
+          ? projectOverview.targetMarket
+          : projectOverview.targetMarket
+            ? [projectOverview.targetMarket]
+            : []
+        if (tm.length > 0) pts += 10
+        if (projectOverview.pricePositioning) pts += 10
+        if (siteCharacter.siteContext && siteCharacter.siteContext.trim().split(/\s+/).length > 20) pts += 15
+        if (siteCharacter.qualities.length >= 3) pts += 10
+        if (brandAmbition.buyerFeeling && brandAmbition.buyerFeeling.trim().split(/\s+/).length > 15) pts += 15
+        if (brandAmbition.pointOfDifference && brandAmbition.pointOfDifference.trim().split(/\s+/).length > 15) pts += 15
+        if (brandAmbition.wordsToAvoid) pts += 5
+        if (siteCharacter.attachments.length > 0) pts += 10
+        if (brandAmbition.additionalInfo) pts += 10
+        const pct = Math.round((pts / 120) * 100)
+        const label =
+          pct <= 40
+            ? "Brief needs more detail — add more specifics for better results"
+            : pct <= 70
+              ? "Good brief — a few more details will improve your results"
+              : pct <= 90
+                ? "Strong brief — you should get great results"
+                : "Excellent brief — your concepts will be highly specific to this project"
+        return (
+          <section className="bg-cream border-b border-border">
+            <div className="mx-auto max-w-3xl px-6 py-8">
+              <div className="flex items-center justify-between mb-3">
+                <p className="section-label-accent">{label}</p>
+                <span className="text-sm font-medium text-foreground">{pct}%</span>
+              </div>
+              <div className="h-1.5 bg-border w-full">
+                <div
+                  className="h-full bg-terracotta transition-all duration-500"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          </section>
+        )
+      })()}
+
       {/* Review Section — warm off-white background */}
       <section className="py-16 md:py-20 bg-cream">
         <div className="mx-auto max-w-3xl px-6">

@@ -183,6 +183,11 @@ export function RefinementModal({
       updatedConcept.logoComposition = selections.logoComposition
     }
 
+    const isLocationCombined = nameChanged && selections.name!.startsWith(concept.brandName + " ")
+    const locationPart = isLocationCombined
+      ? selections.name!.slice(concept.brandName.length).trim()
+      : null
+
     if (nameChanged || taglineChanged) {
       setIsApplying(true)
       try {
@@ -200,6 +205,23 @@ export function RefinementModal({
             if (rewritten.voiceSample) updatedConcept.voiceSample = rewritten.voiceSample
           } else {
             if (rewritten.voiceSample) updatedConcept.voiceSample = rewritten.voiceSample
+          }
+        }
+
+        if (isLocationCombined) {
+          const locRes = await fetch("/api/refine/coherence", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              concept: updatedConcept,
+              trigger: "location",
+              brandPart: concept.brandName,
+              locationPart,
+            }),
+          })
+          if (locRes.ok) {
+            const locData = await locRes.json()
+            if (locData.logoComposition) updatedConcept.logoComposition = locData.logoComposition
           }
         }
       } catch {

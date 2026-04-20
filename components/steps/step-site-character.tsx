@@ -104,6 +104,9 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                 Site Qualities
                 <span className="text-stone-light font-normal ml-2 text-[11px] normal-case tracking-normal">(Select all that apply)</span>
               </Label>
+              <p className="text-sm text-stone -mt-3">
+                Select the qualities that genuinely define this site — not aspirational ones. Authentic character produces better brands.
+              </p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {siteQualities.map((quality) => {
                   const isSelected = data.qualities.includes(quality.id)
@@ -135,12 +138,15 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
               </Label>
               <Textarea
                 id="siteContext"
-                placeholder="e.g. Corner site elevated above street level with harbour views. Former orchard land adjacent to popular cycling trail."
+                placeholder="e.g. Elevated corner site with unobstructed morning sun and views across the valley. End of a quiet residential street surrounded by established gardens and character villas. Two blocks from the beach."
                 value={data.siteContext}
                 onChange={(e) => onChange({ ...data, siteContext: e.target.value })}
                 rows={4}
                 className="px-0 py-4 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors resize-none"
               />
+              <p className="text-sm text-stone mt-2">
+                Describe this site to someone who has never been there. What would they notice first? What makes it feel different to other sites nearby? The more specific, the better.
+              </p>
             </div>
 
             {/* Desired Tone */}
@@ -148,6 +154,9 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
               <Label className="field-label">
                 Desired Tone / Feeling
               </Label>
+              <p className="text-sm text-stone -mt-3">
+                Choose the tone that feels true to the product — not what you wish it was.
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 {tones.map((tone) => (
                   <button
@@ -176,7 +185,7 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                   <span className="text-stone-light font-normal ml-2 text-[11px] normal-case tracking-normal">(Optional)</span>
                 </Label>
                 <p className="text-sm text-stone mt-2">
-                  Architectural renders or marketing visuals. Images and PDFs accepted — max 5MB per file.
+                  Architectural renders or marketing visuals only. Developments with visual references produce noticeably better brand concepts.
                 </p>
               </div>
 

@@ -10,7 +10,7 @@ const client = new Anthropic()
 
 const STAGE_1_MODEL = 'claude-opus-4-7' // always Opus 4.7
 const STAGE_2_MODEL = process.env.AI_MODEL_TIER === 'production'
-  ? 'claude-opus-4-6'
+  ? 'claude-opus-4-7'
   : 'claude-sonnet-4-6'
 
 const EDITORIAL_LUXURY = [
@@ -106,6 +106,17 @@ export async function POST(request: Request) {
     if (!projectId) {
       return NextResponse.json(
         { error: "Missing projectId" },
+        { status: 400 }
+      )
+    }
+
+    const location = (projectOverview.location || "").trim()
+    const siteContext = (siteCharacter.siteContext || "").trim()
+    const buyerFeeling = (brandAmbition.buyerFeeling || "").trim()
+
+    if (location.length < 3 || siteContext.length < 10 || buyerFeeling.length < 10) {
+      return NextResponse.json(
+        { error: "Please complete your brief before generating concepts" },
         { status: 400 }
       )
     }
@@ -244,7 +255,7 @@ BRAND AMBITION
 
     const strategyResponse = await client.messages.create({
       model: STAGE_1_MODEL,
-      max_tokens: 1000,
+      max_tokens: 4000,
       system: STRATEGY_PROMPT,
       messages: [
         {
@@ -260,7 +271,12 @@ BRAND AMBITION
       throw new Error("Unexpected response from strategy call")
     }
 
-    const territories = JSON.parse(strategyResponseBlock.text) as Territory[]
+    const cleanedStrategy = strategyResponseBlock.text
+      .replace(/^```json\s*/i, '')
+      .replace(/^```\s*/i, '')
+      .replace(/```\s*$/i, '')
+      .trim()
+    const territories = JSON.parse(cleanedStrategy) as Territory[]
 
     // --------------------------------------------------------
     // STAGE 2 — THREE SEQUENTIAL CREATIVE CALLS
@@ -341,7 +357,7 @@ Using the same style as another concept is not acceptable.
 
   const response = await client.messages.create({
     model: STAGE_2_MODEL,
-    max_tokens: 2000,
+    max_tokens: 3000,
     system: CONCEPT_PROMPT,
     messages: [
       {
@@ -429,7 +445,12 @@ Return only valid JSON, no markdown, no explanation.
     throw new Error("Unexpected response from concept call")
   }
 
-  return JSON.parse(content.text)
+  const cleaned = content.text
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim()
+  return JSON.parse(cleaned)
 }
 
 // --------------------------------------------------------
@@ -501,9 +522,18 @@ THE THREE TERRITORIES MUST BE GENUINELY DIFFERENT:
 - Different visual worlds — each should suggest a 
   completely different colour, typography, and 
   composition approach
-- Different naming approaches — one might suggest a 
-  single evocative word, another a cultural reference, 
+- Different naming approaches — one might suggest a
+  single evocative word, another a cultural reference,
   another a physical truth
+
+HEADING FONT DIVERSITY:
+The three composition styles you assign must suggest
+clearly different typographic personalities. When the
+concept calls develop these territories, each must
+end up with a different heading font. Flag in your
+territory rationale if a territory strongly suggests
+a specific typographic category so the concept
+calls can be diverse.
 
 TERRITORY SOURCES TO CONSIDER:
 - A specific physical truth about this exact site
@@ -655,14 +685,77 @@ NAMING RULES:
   Green, Rise, Ridge, Terrace, Lane, Grove, Manor, Estate, Collection,
   Heights, Point, Road, Street, Valley, Hill, View, Beach
 
+MANDATORY NAME SELF-EVALUATION:
+Before finalising each name, complete this sentence
+internally: "[Name] is the right name for this specific
+project because [specific reason tied to this brief]."
+
+The answer must be specific to this project — not generic.
+"Hush is right because the street is quiet" fails —
+that could apply to any quiet street anywhere.
+"Schist is right because it is the actual geological
+material found in Queenstown's landscape" passes —
+it is specific, ownable, and rewards recognition.
+
+If you cannot complete the sentence specifically,
+the name is not good enough. Generate a different one.
+
+Then apply the buyer test: would a proud homeowner
+say this address confidently at a dinner party,
+to their bank, and to their friends? If there is
+any hesitation, the name fails.
+
+Both tests must be passed before a name is used.
+
+SUBURB AND CITY NAME RULE:
+Never append the suburb or city name to the brand name
+by default. The brand name must stand alone without a
+location qualifier.
+
+WRONG: "Datum Queenstown", "Tallow Rosewood",
+       "Fernsby Brisbane"
+RIGHT: "Datum", "Tallow", "Fernsby"
+
+The suburb/city combination is a refinement option
+the user can choose after generation. Generate the
+standalone name only.
+
 NAMES THAT WILL ALWAYS BE REJECTED:
 - [Nature thing] + [place word]: PearTree, OakRidge, ElmGrove
 - [Adjective] + [generic noun]: BrightHomes, FreshLiving, ClearView
 - Any word that could be a scented candle, a cafe, or a wellness retreat
 - Any name a generic developer could have come up with without reading this brief
-- NEVER use suffix patterns like -side, -scape, -haus, -co, -works, 
-  -yard, -field, -wood, -gate — these are the most overused patterns 
+- NEVER use suffix patterns like -side, -scape, -haus, -co, -works,
+  -yard, -field, -wood, -gate — these are the most overused patterns
   in property naming and signal lazy thinking.
+
+NAMES THAT ARE BANNED FROM OVERUSE:
+The following names have appeared too frequently in previous
+generations and must never be used: Datum, Hush, Laurel,
+Allotment, Gather, Reach, Crest, Brine.
+Add any name that feels like it belongs on this list —
+if it feels like something you've seen before on a
+development, it probably has been.
+
+THE LITERAL CONNECTION TRAP:
+The most common naming failure is a name that has a
+connection to the brief but the connection is too direct.
+
+These names would be rejected:
+- Quiet street in the brief → "Hush" (too literal, sounds like
+  a beauty brand)
+- Hedge-lined street → "Laurel" (too literal, sounds like
+  a retirement village)
+- Communal garden → "Allotment" (too literal, sounds like
+  a vegetable patch)
+- East-facing site → "East Gilt" (too literal and
+  geographically generic)
+
+The connection between the brief and the name should be
+oblique, layered, and surprising — not the first word
+that comes to mind when reading a feature of the brief.
+Ask yourself: is this the most obvious word that connects
+to this brief detail? If yes, go deeper.
 
 COLOUR RULES — FULL CREATIVE CONTROL:
 You have complete creative freedom with colour palettes.
