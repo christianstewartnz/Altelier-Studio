@@ -10,6 +10,11 @@ const nextConfig = {
   // pdfkit and archiver read files from node_modules at runtime —
   // exclude them from bundling so Node resolves paths correctly.
   serverExternalPackages: ['pdfkit', 'archiver'],
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '25mb',
+    },
+  },
 }
 
 export default nextConfig

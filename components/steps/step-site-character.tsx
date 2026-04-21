@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef } from "react"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -42,8 +42,12 @@ const tones = [
   "Timeless classic"
 ]
 
+const MAX_FILE_MB = 10
+const MAX_TOTAL_MB = 20
+
 export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSiteCharacterProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
 
   const toggleQuality = (qualityId: string) => {
     const qualities = data.qualities.includes(qualityId)
@@ -54,12 +58,24 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    if (files.length > 0) {
-      onChange({ ...data, attachments: [...data.attachments, ...files] })
+    if (fileInputRef.current) fileInputRef.current.value = ""
+    if (files.length === 0) return
+
+    const oversized = files.find(f => f.size > MAX_FILE_MB * 1024 * 1024)
+    if (oversized) {
+      setUploadError(`"${oversized.name}" exceeds the ${MAX_FILE_MB}MB per-file limit.`)
+      return
     }
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+
+    const existingTotal = data.attachments.reduce((sum, f) => sum + f.size, 0)
+    const newTotal = files.reduce((sum, f) => sum + f.size, existingTotal)
+    if (newTotal > MAX_TOTAL_MB * 1024 * 1024) {
+      setUploadError(`Total attachments cannot exceed ${MAX_TOTAL_MB}MB. Please use smaller or fewer images.`)
+      return
     }
+
+    setUploadError(null)
+    onChange({ ...data, attachments: [...data.attachments, ...files] })
   }
 
   const removeAttachment = (index: number) => {
@@ -199,7 +215,7 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                   Click to upload or drag and drop
                 </p>
                 <p className="text-xs text-stone">
-                  Images and PDFs — max 5MB per file
+                  Images and PDFs — max 10MB per file, 20MB total
                 </p>
                 <input
                   ref={fileInputRef}
@@ -210,6 +226,10 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                   className="hidden"
                 />
               </div>
+
+              {uploadError && (
+                <p className="text-xs text-red-500 mt-2">{uploadError}</p>
+              )}
 
               {/* Uploaded Files */}
               {data.attachments.length > 0 && (

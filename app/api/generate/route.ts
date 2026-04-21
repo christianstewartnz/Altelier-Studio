@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
+import sharp from "sharp"
 // import { generateRatelimit } from "@/lib/ratelimit"
 import { createClient } from "@/lib/supabase/server"
 
@@ -203,7 +204,7 @@ BRAND AMBITION
     const { sessionFonts } = sessionStyles
 
     // Build attachment content blocks for Stage 1 only
-    const MAX_FILE_SIZE = 5 * 1024 * 1024
+    const MAX_FILE_SIZE = 10 * 1024 * 1024
     type ContentBlock =
       | { type: "text"; text: string }
       | { type: "image"; source: { type: "base64"; media_type: "image/jpeg" | "image/png" | "image/webp" | "image/gif"; data: string } }
@@ -222,13 +223,12 @@ BRAND AMBITION
         })
         for (const file of imageFiles) {
           if (file.size > MAX_FILE_SIZE) {
-            console.warn(`Skipping ${file.name} — exceeds 5MB limit (${file.size} bytes)`)
+            console.warn(`Skipping ${file.name} — exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit (${file.size} bytes)`)
             continue
           }
           const buffer = await file.arrayBuffer()
-          const base64 = Buffer.from(buffer).toString("base64")
-          const mediaType = (file.type || "image/jpeg") as "image/jpeg" | "image/png" | "image/webp" | "image/gif"
-          attachmentBlocks.push({ type: "image", source: { type: "base64", media_type: mediaType, data: base64 } })
+          const { data, mediaType } = await compressImageForClaude(buffer)
+          attachmentBlocks.push({ type: "image", source: { type: "base64", media_type: mediaType, data } })
         }
       }
 
@@ -273,12 +273,11 @@ BRAND AMBITION
       throw new Error("Unexpected response from strategy call")
     }
 
-    const cleanedStrategy = strategyResponseBlock.text
-      .replace(/^```json\s*/i, '')
-      .replace(/^```\s*/i, '')
-      .replace(/```\s*$/i, '')
-      .trim()
-    const territories = JSON.parse(cleanedStrategy) as Territory[]
+    const rawStrategy = strategyResponseBlock.text
+    const sStart = rawStrategy.indexOf('[')
+    const sEnd = rawStrategy.lastIndexOf(']')
+    if (sStart === -1 || sEnd === -1) throw new Error("No JSON array found in strategy response")
+    const territories = JSON.parse(rawStrategy.slice(sStart, sEnd + 1)) as Territory[]
 
     // --------------------------------------------------------
     // STAGE 2 — THREE SEQUENTIAL CREATIVE CALLS
@@ -447,12 +446,11 @@ Return only valid JSON, no markdown, no explanation.
     throw new Error("Unexpected response from concept call")
   }
 
-  const cleaned = content.text
-    .replace(/^```json\s*/i, '')
-    .replace(/^```\s*/i, '')
-    .replace(/```\s*$/i, '')
-    .trim()
-  return JSON.parse(cleaned)
+  const raw = content.text
+  const start = raw.indexOf('{')
+  const end = raw.lastIndexOf('}')
+  if (start === -1 || end === -1) throw new Error("No JSON object found in concept response")
+  return JSON.parse(raw.slice(start, end + 1))
 }
 
 // --------------------------------------------------------
@@ -794,11 +792,14 @@ accent that makes the whole palette sing.
 The only question to ask is: does this palette feel true to this 
 concept's territory and emotional world?
 
-Do not default to near-black for colors[0] on every concept. 
-Variety across the three concepts is essential. Consider: deep 
-forest green, warm terracotta, dusty rose, pale stone, rich navy, 
-burnt sienna, warm cream, slate blue — any could be the right 
-anchor for the right concept.
+Do not default to near-black for colors[0] on every concept.
+The primary colour should emerge from the brief and territory —
+ask what colour world this specific project, location, and
+buyer suggests. A hillside Wellington development, a coastal
+Miramar apartment, and a Brisbane family subdivision should
+each suggest completely different colour starting points.
+Consider the full spectrum — there is no default palette
+for any brief type.
 
 colors[0] will be used as the primary logo background in all 
 brand applications. It can be any colour — dark, light, or 
@@ -810,16 +811,34 @@ sits on top of colors[0]. This must be readable but should be
 a considered and intentional design decision, not just maximum 
 contrast. 
 
-Examples of considered wordmark colour choices:
-- Near-black background + warm gold text
-- Deep navy background + pale cream text
-- Terracotta background + off-white text
-- Pale stone background + dark charcoal text
-- Forest green background + warm brass text
-- Pure white background + deep charcoal text
-- Black background + burnt orange text
+The wordmark colour should be chosen to reinforce the
+brand personality — not default to maximum contrast.
+It can be any colour from the palette or a complementary
+colour that creates the right brand impression. Consider
+what colour combination feels true to this specific concept's
+emotional world.
 
-The wordmark colour should reinforce the brand personality.
+PALETTE ORIGINALITY CHECK:
+Before finalising a palette, complete this sentence
+internally: "This palette feels right for this specific
+project because [reason tied directly to this brief,
+location, or buyer]."
+
+If the answer references general categories like "warm
+and earthy for a community project" or "dark and
+sophisticated for a premium development" — the palette
+is too generic. The answer must be specific to THIS brief.
+
+Also ask: would this palette closely resemble any of
+these three overused template palettes?
+- Light/editorial: pale cream primary, dark anchor, warm gold accent
+- Terracotta/warm: burnt orange primary, cream secondary, dark green accent
+- Dark/industrial: near-black primary, terracotta accent, grey secondary
+
+If your palette closely resembles any of these three,
+it is not original enough. Generate something genuinely
+different — a palette that could only belong to this
+specific project.
 
 FONT RULES:
 Your heading font has been assigned to you above — you must use it. 
@@ -990,5 +1009,34 @@ Return a single JSON object with this exact structure:
   "attributes": ["Attribute1", "Attribute2", "Attribute3", "Attribute4", "Attribute5"]
 }
 
-CRITICAL: Return only the raw JSON object. No markdown. No explanation. No preamble.
-`
+CRITICAL: Return only the raw JSON object. No markdown. No explanation. No preamble.`
+
+// --------------------------------------------------------
+// IMAGE COMPRESSION
+// Anthropic's API rejects base64 images over 5MB. Resize and
+// re-encode to JPEG until the payload fits.
+// --------------------------------------------------------
+async function compressImageForClaude(buffer: ArrayBuffer): Promise<{ data: string; mediaType: "image/jpeg" }> {
+  // The API enforces a 5MB limit on the base64 string, not the raw bytes.
+  // Base64 expands by ~33%, so we target 3.7MB raw (≈4.9MB base64).
+  const LIMIT_B64 = 4.9 * 1024 * 1024
+  const meta = await sharp(Buffer.from(buffer)).metadata()
+  let width = meta.width ?? 1920
+  let quality = 85
+
+  while (true) {
+    const compressed = await sharp(Buffer.from(buffer))
+      .resize(width, undefined, { withoutEnlargement: true })
+      .jpeg({ quality })
+      .toBuffer()
+    const b64 = compressed.toString("base64")
+    if (b64.length <= LIMIT_B64 || (width <= 800 && quality <= 60)) {
+      return { data: b64, mediaType: "image/jpeg" }
+    }
+    if (quality > 60) {
+      quality -= 15
+    } else {
+      width = Math.round(width * 0.75)
+    }
+  }
+}
