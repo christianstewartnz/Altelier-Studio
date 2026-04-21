@@ -672,6 +672,7 @@ represents their project with integrity?
 
 NAMING RULES:
 - 1-2 words maximum
+- Default to two words unless a single-word name is exceptionally strong
 - Must feel specific and ownable
 - Must emerge from the assigned creative territory — not from generic 
   property naming conventions
@@ -680,6 +681,44 @@ NAMING RULES:
   cultural decoration
 - Never use an existing suburb or street name unless the address
   itself IS the creative territory
+
+APPROVED NAME STRUCTURES:
+
+All names must fall into ONE of the following structures:
+
+1. Refined single word (rare, high bar)
+   - Must feel grounded and real, not abstract
+   - Example: "Aro", "Vela", "Elm", "Arden"
+
+2. Paired name (preferred)
+   - Word + soft qualifier
+   - Example: "Aro Residences", "Vela Apartments", "Arden Collective"
+
+3. Place-informed identity (use carefully)
+   - The place should add character, not act as a label
+   - Avoid defaulting to suburb + building type
+
+   Better examples:
+   - "Ponsonby Atelier"
+   - "Aro House"
+   - "Parnell Collection"
+
+   Weak examples (never acceptable):
+   - "Khandallah Apartments"
+   - "Miramar Residences"
+   - "Karori Living"
+
+CRITICAL:
+The place name should elevate the brand, not compensate for a weak core name.
+If the name only works because of the suburb being added, it is not strong enough.
+
+4. Invented but natural-sounding name
+   - Must feel like a real word, not constructed
+   - Example: "Velora", "Ardelle"
+
+CRITICAL:
+If using a single word, it must pass a much higher bar.
+If unsure, default to a two-word structure.
 
 STREET NUMBER AND ADDRESS-BASED NAMES:
 Using a street number or address as a brand name is only
@@ -708,6 +747,16 @@ name is never sufficient.
   Heights, Point, Road, Street, Valley, Hill, View, Beach
 
 MANDATORY NAME SELF-EVALUATION:
+NAME GENERATION PROCESS (CRITICAL):
+1. Generate 5 candidate names that follow all rules
+2. Critically evaluate each against:
+   - Real-world believability
+   - Distinctiveness
+   - Fit to this specific territory
+3. Select ONLY the strongest name
+4. Discard the rest completely
+
+Do not present multiple options. Only return the final selected name.
 Before finalising each name, complete this sentence
 internally: "[Name] is the right name for this specific
 project because [specific reason tied to this brief]."
@@ -729,6 +778,24 @@ any hesitation, the name fails.
 
 Both tests must be passed before a name is used.
 
+REAL-WORLD BELIEVABILITY TEST (CRITICAL):
+
+Before finalising the name, test it against real-world developer behaviour:
+
+- Does this sound like a name that could realistically exist on a billboard in Sydney, Melbourne, or Auckland today?
+- Would a conservative but design-aware developer feel confident approving this?
+- Does it feel like a property development, not a fashion label, tech startup, or art project?
+
+If the name feels too abstract, too conceptual, or disconnected from property branding norms, it must be rejected.
+
+Names like "Brim", "Covert", "Facet", "Axis" often fail this test — 
+they sound like brand experiments, not real developments.
+
+The name must balance:
+- Distinctiveness
+- AND category familiarity
+
+If it leans too far toward abstraction, reject it.
 LOCATION IN NAMING:
 Including the suburb or city name in the brand name is
 acceptable when it genuinely strengthens the brand —
@@ -741,11 +808,51 @@ heritage, weight, or recognition that elevates the
 brand. It does not work when it is simply appended
 to compensate for a weak core name.
 
+FORBIDDEN NAMING BEHAVIOUR:
+
+Do NOT generate names by:
+- Synonym substitution (Edge → Verge, Height → Rise)
+- Architectural element extraction (Facade → Facia, Roof → Brim)
+- Direct feature translation (Elevated → Verandah, Close to shops → Central)
+
+These are shallow transformations and result in weak names.
+
+Instead:
+- Move one level UP (emotion, identity, lifestyle)
+- Or one level SIDEWAYS (cultural, linguistic, material reference)
+
+PHONETIC DIRECTION (IMPORTANT):
+
+Prefer names with:
+- Soft vowel sounds (A, E, O)
+- Flowing, elegant pronunciation
+- 2–3 syllables
+- European / Latin influence where appropriate
+
+Avoid:
+- Harsh, abrupt, or overly technical words
+- Words that feel industrial or construction-related
+
+Examples of preferred feel:
+"Aro", "Vela", "Elara", "Arden", "Sora", "Luma"
+
+The name should sound natural when spoken aloud in a sales context
+
 NAMES THAT WILL ALWAYS BE REJECTED:
 - [Nature thing] + [place word]: PearTree, OakRidge, ElmGrove
 - [Adjective] + [generic noun]: BrightHomes, FreshLiving, ClearView
 - Any word that could be a scented candle, a cafe, or a wellness retreat
 - Any name a generic developer could have come up with without reading this brief
+
+REJECT NAMES THAT FEEL LIKE:
+
+- Construction terminology: Facia, Brim, Beam, Frame
+- Vague abstract nouns: Axis, Form, Shift, Base
+- Overly conceptual branding: Covert, Oblique, Liminal
+- Anything that sounds like a design studio, fashion label, or tech startup
+
+If the name could plausibly be a creative agency, it is not acceptable.
+
 - NEVER use suffix patterns like -side, -scape, -haus, -co, -works,
   -yard, -field, -wood, -gate — these are the most overused patterns
   in property naming and signal lazy thinking.
@@ -777,6 +884,21 @@ oblique, layered, and surprising — not the first word
 that comes to mind when reading a feature of the brief.
 Ask yourself: is this the most obvious word that connects
 to this brief detail? If yes, go deeper.
+
+INPUT PRIORITISATION:
+
+Not all details in the brief are equally important.
+
+Ignore:
+- Generic phrases like "close to shops", "elevated site", "great location"
+- Functional descriptions that could apply to any development
+
+Focus only on:
+- Distinctive physical truths
+- Emotional positioning of the buyer
+- Architectural intent
+
+If a detail could apply to 1000 other developments, it must NOT influence the name.
 
 COLOUR RULES — FULL CREATIVE CONTROL:
 You have complete creative freedom with colour palettes.
@@ -818,12 +940,49 @@ colour that creates the right brand impression. Consider
 what colour combination feels true to this specific concept's
 emotional world.
 
-PALETTE ORIGINALITY CHECK:
-Before finalising a palette, complete this sentence
-internally: "This palette feels right for this specific
-project because [reason tied directly to this brief,
-location, or buyer]."
+COLOUR STRATEGY (CRITICAL):
 
+Each concept must adopt a distinct colour strategy — not just a different palette.
+
+Choose ONE of the following strategies and commit to it fully:
+
+1. Contextual (expected but refined)
+   - Draws from the natural or urban surroundings
+   - Must elevate beyond the obvious (not default blue/green)
+
+2. Contrast (deliberately unexpected)
+   - Intentionally contrasts the environment
+   - Example: warm mineral tones for a coastal site, or soft neutrals for an urban site
+
+3. Material-led
+   - Inspired by architectural materials (stone, concrete, timber, metal)
+   - Feels grounded and tactile rather than environmental
+
+4. Emotional / lifestyle-driven
+   - Based on how the buyer should feel, not where the project is
+   - Example: calm, energetic, nostalgic, refined
+
+5. Editorial / fashion-led
+   - Feels like a magazine or fashion brand
+   - Not tied to place — tied to taste and curation
+
+CRITICAL:
+Across the three concepts, each must use a different colour strategy.
+
+PALETTE ORIGINALITY TEST (STRICT):
+
+Reject the palette if:
+
+- It matches a common property template (coastal blue, bush green, urban black)
+- It would not look out of place on 5 other developments in this city
+- It feels safe rather than intentional
+
+A strong palette should feel:
+- Slightly unexpected
+- Specific to this concept
+- Memorable after one viewing
+
+If the palette feels predictable, regenerate.
 If the answer references general categories like "warm
 and earthy for a community project" or "dark and
 sophisticated for a premium development" — the palette
@@ -839,6 +998,40 @@ If your palette closely resembles any of these three,
 it is not original enough. Generate something genuinely
 different — a palette that could only belong to this
 specific project.
+
+CROSS-INDUSTRY INSPIRATION:
+
+Draw colour inspiration from outside property:
+
+- Fashion (seasonal palettes, tonal layering)
+- Hospitality (restaurants, boutique hotels)
+- Editorial (magazines, publishing)
+- Art and photography
+
+Do not limit thinking to property development norms.
+
+PALETTE CONSTRUCTION RULE:
+
+Each palette must be built around a clear anchor colour.
+
+- colors[0] = the defining colour of the brand
+- The remaining colours must support and elevate this anchor
+
+The anchor colour should feel like a confident creative decision, not a safe default.
+
+Before finalising, ask:
+"Is this a colour a developer would hesitate slightly before approving, but ultimately love because it feels distinctive?"
+
+COLOUR DIFFERENTIATION — MANDATORY:
+
+The other concepts in this set must have clearly different colour worlds.
+
+Do not use:
+- Similar base hues
+- Similar light/dark balance
+- Similar temperature (all warm or all cool)
+
+Each concept should be instantly distinguishable at a glance based on colour alone.
 
 FONT RULES:
 Your heading font has been assigned to you above — you must use it. 
