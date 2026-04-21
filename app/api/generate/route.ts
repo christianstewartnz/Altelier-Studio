@@ -3,6 +3,8 @@ import Anthropic from "@anthropic-ai/sdk"
 // import { generateRatelimit } from "@/lib/ratelimit"
 import { createClient } from "@/lib/supabase/server"
 
+export const maxDuration = 300
+
 // TODO: Set DISABLE_PAYWALL_FOR_TESTING to false before deploying to production.
 const DISABLE_PAYWALL_FOR_TESTING = true
 

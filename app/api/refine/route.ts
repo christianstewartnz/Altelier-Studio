@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
 import { createClient } from "@/lib/supabase/server"
 
+export const maxDuration = 300
+
 const client = new Anthropic()
 
 const REFINEMENT_MODEL = process.env.AI_MODEL_TIER === 'production'
