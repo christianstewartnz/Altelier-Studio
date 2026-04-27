@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 type BriefInstructionsOverlayProps = {
   onDismiss: () => void
@@ -8,12 +8,12 @@ const points = [
   {
     number: "01",
     heading: "BE SPECIFIC ABOUT THE SITE",
-    body: "The physical reality of the site is your most powerful creative asset. Orientation, views, boundaries, surroundings — the more specific, the more ownable your brand."
+    body: "The physical reality of the site is your most powerful creative asset. Orientation, views, boundaries, surroundings -- the more specific, the more ownable your brand."
   },
   {
     number: "02",
     heading: "DESCRIBE THE EMOTION, NOT THE PRODUCT",
-    body: "The buyer feeling field is the most important in the brief. Don't say 'good value' — say what you want buyers to feel the moment they first hear the name."
+    body: "The buyer feeling field is the most important in the brief. Don't say 'good value' -- say what you want buyers to feel the moment they first hear the name."
   },
   {
     number: "03",
@@ -34,7 +34,7 @@ const points = [
 
 export function BriefInstructionsOverlay({ onDismiss }: BriefInstructionsOverlayProps) {
   return (
-    <div className="fixed inset-0 z-[60] overflow-y-auto bg-ink grain-texture">
+    <div className="fixed inset-0 z-[60] overflow-y-auto bg-[#14110F] grain-texture">
       <div className="min-h-full flex items-center justify-center px-6 py-16 pt-32 md:pt-36">
         <div className="w-full max-w-xl text-paper">
           {/* Header */}
@@ -49,7 +49,7 @@ export function BriefInstructionsOverlay({ onDismiss }: BriefInstructionsOverlay
           <div className="space-y-8 mb-12">
             {points.map((point) => (
               <div key={point.number} className="flex gap-6">
-                <span className="font-serif text-2xl text-terracotta flex-shrink-0 leading-tight">
+                <span className="font-serif text-2xl text-[#B5281C] flex-shrink-0 leading-tight">
                   {point.number}
                 </span>
                 <div>
@@ -69,10 +69,10 @@ export function BriefInstructionsOverlay({ onDismiss }: BriefInstructionsOverlay
             <p className="field-label text-stone-light mb-4">ABOUT YOUR BRIEF SCORE</p>
             <p className="text-sm text-stone-light leading-relaxed">
               When you reach the review step you will see a brief quality score. This score measures
-              how much useful information your brief contains — the higher the score, the more specific
+              how much useful information your brief contains -- the higher the score, the more specific
               and considered your brand concepts will be. A score above 70% consistently produces strong,
               distinctive results. The score is based on the depth of your site context, buyer feeling,
-              and point of difference — the three fields that matter most to the AI.
+              and point of difference -- the three fields that matter most to the AI.
             </p>
           </div>
 
@@ -84,9 +84,9 @@ export function BriefInstructionsOverlay({ onDismiss }: BriefInstructionsOverlay
           {/* Dismiss button */}
           <button
             onClick={onDismiss}
-            className="w-full h-14 px-8 text-sm font-medium tracking-[0.1em] uppercase bg-paper text-ink hover:bg-cream transition-colors duration-200"
+            className="w-full h-14 px-8 text-sm font-medium tracking-[0.1em] uppercase bg-[#F8F8F8] text-ink hover:bg-[#FAF9F7] transition-colors duration-200"
           >
-            Start My Brief →
+            Start My Brief â†’
           </button>
         </div>
       </div>

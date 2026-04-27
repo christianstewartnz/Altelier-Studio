@@ -8,6 +8,7 @@ import { StepSiteCharacter } from "@/components/steps/step-site-character"
 import { StepBrandAmbition } from "@/components/steps/step-brand-ambition"
 import { StepReview } from "@/components/steps/step-review"
 import { GeneratingState } from "@/components/generating-state"
+import { NameSelection } from "@/components/name-selection"
 import { WorkflowHeader } from "@/components/workflow-header"
 import { ResultsOverview, type BrandConcept } from "@/components/results/results-overview"
 import { ConceptDetail } from "@/components/results/concept-detail"
@@ -27,6 +28,10 @@ export default function ProjectPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatingMessage, setGeneratingMessage] = useState("Reading your brief...")
+  const [isGeneratingNames, setIsGeneratingNames] = useState(false)
+  const [showNameSelection, setShowNameSelection] = useState(false)
+  const [generatedNames, setGeneratedNames] = useState<Array<{ name: string; rationale: string; territory: string }>>([])
+  const [chosenName, setChosenName] = useState<{ name: string; rationale: string; territory: string } | null>(null)
   const [showResults, setShowResults] = useState(false)
   const [selectedConcept, setSelectedConcept] = useState<BrandConcept | null>(null)
   const [concepts, setConcepts] = useState<BrandConcept[]>([])
@@ -274,7 +279,7 @@ export default function ProjectPage() {
     }
 
     setIsPaid(true)
-    await handleGenerate()
+    await handleGenerateNames()
   }
 
   async function saveStepToDatabase(step: number) {
@@ -331,7 +336,49 @@ export default function ProjectPage() {
     }
   }
 
-  const handleGenerate = async () => {
+  const handleGenerateNames = async () => {
+    setIsGeneratingNames(true)
+    try {
+      const formData = new FormData()
+      formData.append("projectId", projectId)
+      formData.append("projectOverview", JSON.stringify(projectOverview))
+      formData.append("siteCharacter", JSON.stringify({
+        qualities: siteCharacter.qualities,
+        desiredTone: siteCharacter.desiredTone,
+        siteContext: siteCharacter.siteContext,
+      }))
+      formData.append("brandAmbition", JSON.stringify(brandAmbition))
+
+      const response = await fetch("/api/generate-names", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        alert(err.error || "Name generation failed. Please try again.")
+        setIsGeneratingNames(false)
+        return
+      }
+
+      const data = await response.json()
+      setGeneratedNames(data.names)
+      setShowNameSelection(true)
+    } catch (error) {
+      console.error("Name generation failed:", error)
+      alert("Name generation failed. Please try again.")
+    } finally {
+      setIsGeneratingNames(false)
+    }
+  }
+
+  const handleNameSelected = async (chosen: { name: string; rationale: string; territory: string }) => {
+    setChosenName(chosen)
+    setShowNameSelection(false)
+    await handleGenerate(chosen)
+  }
+
+  const handleGenerate = async (selectedName?: { name: string; rationale: string; territory: string }) => {
     setIsGenerating(true)
 
     const messages = [
@@ -364,6 +411,9 @@ export default function ProjectPage() {
       for (const file of siteCharacter.attachments) {
         formData.append("attachments", file)
       }
+      if (selectedName) {
+        formData.append("chosenName", JSON.stringify(selectedName))
+      }
 
       const response = await fetch("/api/generate", {
         method: "POST",
@@ -381,6 +431,7 @@ export default function ProjectPage() {
           alert(err.error || "Generation failed. Please try again.")
         }
         setIsGenerating(false)
+        if (selectedName) setShowNameSelection(true)
         return
       }
 
@@ -478,21 +529,36 @@ export default function ProjectPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-ink grain-texture flex items-center justify-center">
+      <div className="min-h-screen bg-[#14110F] grain-texture flex items-center justify-center">
         <div className="flex gap-2.5">
-          <span className="block w-2 h-2 bg-terracotta"
+          <span className="block w-2 h-2 bg-[#B5281C]"
             style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0s" }} />
-          <span className="block w-2 h-2 bg-terracotta"
+          <span className="block w-2 h-2 bg-[#B5281C]"
             style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.2s" }} />
-          <span className="block w-2 h-2 bg-terracotta"
+          <span className="block w-2 h-2 bg-[#B5281C]"
             style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.4s" }} />
         </div>
       </div>
     )
   }
 
+  if (isGeneratingNames) {
+    return <GeneratingState mode="names" message="" />
+  }
+
+  if (showNameSelection) {
+    return (
+      <NameSelection
+        projectName={projectName}
+        names={generatedNames}
+        onNameSelected={handleNameSelected}
+        isGenerating={isGenerating}
+      />
+    )
+  }
+
   if (isGenerating) {
-    return <GeneratingState message={generatingMessage} />
+    return <GeneratingState mode="concepts" message={generatingMessage} />
   }
 
   if (selectedConcept) {
@@ -563,6 +629,7 @@ export default function ProjectPage() {
       )}
       <WorkflowHeader
         currentStep={currentStep}
+        projectName={projectName}
         onGoToStep={handleGoToStep}
         onStartOver={handleStartOver}
         onOpenInstructions={() => setShowBriefInstructions(true)}
@@ -599,7 +666,7 @@ export default function ProjectPage() {
               brandAmbition={brandAmbition}
               onGoToStep={handleGoToStep}
               onPrevious={handlePrevious}
-              onGenerate={handleGenerate}
+              onGenerate={handleGenerateNames}
               projectId={projectId}
               userId={userId ?? undefined}
               isPaid={isPaid}

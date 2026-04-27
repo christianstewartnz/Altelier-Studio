@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { AppHeader } from "@/components/app-header"
 import { WordmarkSVG } from "@/components/results/wordmark-svg"
 import type { LogoComposition } from "@/components/results/results-overview"
 
@@ -809,11 +810,17 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
+      <AppHeader
+        breadcrumbs={[
+          { label: "Projects", href: "/dashboard" },
+          { label: "Admin" },
+        ]}
+      />
+
+      <div className="mx-auto max-w-6xl px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-xl font-semibold text-foreground">Admin</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Internal tool — restricted access</p>
+          <h1 className="font-serif text-4xl tracking-tight text-foreground">Admin</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Internal tool — restricted access</p>
         </div>
 
         {/* Tabs */}

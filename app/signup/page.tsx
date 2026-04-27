@@ -1,9 +1,9 @@
-"use client"
+﻿"use client"
 
 import { Suspense, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"
-import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
+import { Logo } from "@/components/logo"
 
 function SignupForm() {
   const [email, setEmail] = useState("")
@@ -69,22 +69,21 @@ function SignupForm() {
     return (
       <div className="min-h-screen flex flex-col md:flex-row">
         {/* Left panel */}
-        <div className="bg-ink text-paper grain-texture md:w-1/2 flex flex-col items-start justify-between px-10 py-12 md:px-16 md:py-20 md:sticky md:top-0 md:h-screen">
-          <div className="flex items-baseline gap-2">
-            <span className="font-serif text-2xl md:text-3xl tracking-tight">{APP_NAME}</span>
-            <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">{APP_SUBTITLE}</span>
-          </div>
-          <div className="hidden md:block">
+        <div className="relative text-[#FEFFEF] md:w-1/2 flex flex-col items-start justify-between px-10 py-12 md:px-16 md:py-20 md:sticky md:top-0 md:h-screen overflow-hidden">
+          <img src="/images/auth-building.avif" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[75%_0%]" />
+          <div className="absolute inset-0" style={{ backgroundColor: '#12263A', opacity: 0.6 }} />
+          <Logo reversed height={48} className="relative z-10" />
+          <div className="hidden md:block relative z-10">
             <p className="font-serif text-4xl lg:text-5xl xl:text-6xl tracking-tight text-balance leading-[1.1] mb-6">
               Your brand starts here.
             </p>
             <div className="divider-editorial" />
           </div>
-          <div className="hidden md:block" />
+          <div className="hidden md:block relative z-10" />
         </div>
 
-        {/* Right — success message */}
-        <div className="bg-cream md:w-1/2 flex flex-col justify-center px-10 py-16 md:px-16 md:py-20">
+        {/* Right -- success message */}
+        <div className="bg-[#FAF9F7] md:w-1/2 flex flex-col justify-center px-10 py-16 md:px-16 md:py-20">
           <div className="w-full max-w-sm mx-auto">
             <h1 className="font-serif text-4xl md:text-5xl tracking-tight text-foreground mb-3">
               Check your email
@@ -112,23 +111,22 @@ function SignupForm() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
 
-      {/* Left — brand panel */}
-      <div className="bg-ink text-paper grain-texture md:w-1/2 flex flex-col items-start justify-between px-10 py-12 md:px-16 md:py-20 md:sticky md:top-0 md:h-screen">
-        <div className="flex items-baseline gap-2">
-          <span className="font-serif text-2xl md:text-3xl tracking-tight">{APP_NAME}</span>
-          <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">{APP_SUBTITLE}</span>
-        </div>
-        <div className="hidden md:block">
+      {/* Left -- brand panel */}
+      <div className="relative text-[#FEFFEF] md:w-1/2 flex flex-col items-start justify-between px-10 py-12 md:px-16 md:py-20 md:sticky md:top-0 md:h-screen overflow-hidden">
+        <img src="/images/auth-building.avif" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[75%_0%]" />
+        <div className="absolute inset-0" style={{ backgroundColor: '#12263A', opacity: 0.6 }} />
+        <Logo reversed height={48} className="relative z-10" />
+        <div className="hidden md:block relative z-10">
           <p className="font-serif text-4xl lg:text-5xl xl:text-6xl tracking-tight text-balance leading-[1.1] mb-6">
             Your brand starts here.
           </p>
           <div className="divider-editorial" />
         </div>
-        <div className="hidden md:block" />
+        <div className="hidden md:block relative z-10" />
       </div>
 
-      {/* Right — form panel */}
-      <div className="bg-cream md:w-1/2 flex flex-col justify-center px-10 py-16 md:px-16 md:py-20">
+      {/* Right -- form panel */}
+      <div className="bg-[#FAF9F7] md:w-1/2 flex flex-col justify-center px-10 py-16 md:px-16 md:py-20">
         <div className="w-full max-w-sm mx-auto">
 
           {/* Heading */}
@@ -149,7 +147,7 @@ function SignupForm() {
                 onChange={e => setFullName(e.target.value)}
                 placeholder="Your name"
                 required
-                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-[#B5281C] transition-colors"
               />
             </div>
 
@@ -160,7 +158,7 @@ function SignupForm() {
                 value={company}
                 onChange={e => setCompany(e.target.value)}
                 placeholder="Your company or studio"
-                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-[#B5281C] transition-colors"
               />
             </div>
 
@@ -172,7 +170,7 @@ function SignupForm() {
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
-                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-[#B5281C] transition-colors"
               />
             </div>
 
@@ -185,13 +183,13 @@ function SignupForm() {
                 placeholder="••••••••"
                 required
                 minLength={8}
-                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+                className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-[#B5281C] transition-colors"
               />
               <p className="text-xs text-stone mt-1">Minimum 8 characters</p>
             </div>
 
             {error && (
-              <p className="text-sm text-terracotta">{error}</p>
+              <p className="text-sm text-[#B5281C]">{error}</p>
             )}
 
             {/* Terms checkbox */}
@@ -200,7 +198,7 @@ function SignupForm() {
               onClick={() => setAgreedToTerms(!agreedToTerms)}
             >
               <div className={`w-5 h-5 border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
-                agreedToTerms ? "border-ink bg-ink" : "border-border"
+                agreedToTerms ? "border-ink bg-[#14110F]" : "border-border"
               }`}>
                 {agreedToTerms && (
                   <svg className="w-3 h-3 text-paper" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -233,7 +231,7 @@ function SignupForm() {
             <button
               type="submit"
               disabled={loading || !agreedToTerms}
-              className="w-full h-14 text-base font-medium bg-ink text-paper hover:bg-ink-light disabled:opacity-40 transition-all duration-200"
+              className="w-full h-14 text-base font-medium bg-[#14110F] text-paper hover:bg-[#14110F]-light disabled:opacity-40 transition-all duration-200"
             >
               {loading ? "Creating account..." : "Create Account"}
             </button>

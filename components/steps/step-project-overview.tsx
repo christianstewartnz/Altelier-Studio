@@ -1,5 +1,6 @@
-"use client"
+﻿"use client"
 
+import { BriefStepHero } from "@/components/steps/brief-step-hero"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -53,23 +54,14 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
 
   return (
     <div className="animate-fade-up">
-      {/* Hero Section — Editorial impact with grain texture */}
-      <section className="bg-ink text-paper py-16 md:py-24 grain-texture">
-        <div className="mx-auto max-w-3xl px-6 relative z-10">
-          <div className="max-w-xl">
-            <p className="step-label text-stone-light mb-6">Step 01</p>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight mb-6 text-balance leading-[1.1]">
-              Tell us about your project
-            </h1>
-            <p className="text-lg text-stone-light leading-relaxed max-w-md">
-              The foundation for a distinctive brand direction starts here.
-            </p>
-          </div>
-        </div>
-      </section>
+      <BriefStepHero
+        step="Step 01"
+        title="Tell us about your project"
+        description="The foundation for a distinctive brand direction starts here."
+      />
 
-      {/* Form Section — warm off-white background */}
-      <section className="py-16 md:py-20 bg-cream">
+      {/* Form Section -- warm off-white background */}
+      <section className="py-16 md:py-20 bg-[#FAF9F7]">
         <div className="mx-auto max-w-3xl px-6">
           <div className="space-y-16">
             {/* Location */}
@@ -82,10 +74,10 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
                 placeholder="e.g. Remuera, Auckland or Paddington, Sydney"
                 value={data.location}
                 onChange={(e) => onChange({ ...data, location: e.target.value })}
-                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
+                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-[#B5281C] transition-colors"
               />
               <p className="text-sm text-stone mt-2">
-                Include the suburb and city — the more specific the location, the more place-specific your brand will feel.
+                Include the suburb and city -- the more specific the location, the more place-specific your brand will feel.
               </p>
             </div>
 
@@ -103,8 +95,8 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
                     className={`
                       px-5 py-4 text-sm text-left transition-all duration-200 border
                       ${data.developmentType === type
-                        ? "bg-ink text-paper border-ink"
-                        : "bg-paper border-border text-foreground hover:border-terracotta"
+                        ? "bg-[#14110F] text-paper border-ink"
+                        : "bg-[#F8F8F8] border-border text-foreground hover:border-[#B5281C]"
                       }
                     `}
                   >
@@ -124,10 +116,10 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
                 placeholder="e.g. 8 boutique townhouses, 50 one and two bedroom apartments, 30 standalone homes"
                 value={data.numberOfHomes}
                 onChange={(e) => onChange({ ...data, numberOfHomes: e.target.value })}
-                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
+                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-[#B5281C] transition-colors"
               />
               <p className="text-sm text-stone mt-2">
-                Scale shapes brand personality — a boutique 4-home collection feels different to a 120-lot subdivision.
+                Scale shapes brand personality -- a boutique 4-home collection feels different to a 120-lot subdivision.
               </p>
             </div>
 
@@ -165,8 +157,8 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
                       className={`
                         px-5 py-4 text-sm text-left transition-all duration-200 border
                         ${isSelected
-                          ? "bg-ink text-paper border-ink"
-                          : "bg-paper border-border text-foreground hover:border-terracotta"
+                          ? "bg-[#14110F] text-paper border-ink"
+                          : "bg-[#F8F8F8] border-border text-foreground hover:border-[#B5281C]"
                         }
                       `}
                     >
@@ -183,7 +175,7 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
                 Price Positioning
               </Label>
               <p className="text-sm text-stone -mt-3">
-                Be honest — over-positioning creates a brand that doesn&apos;t match the product.
+                Be honest -- over-positioning creates a brand that doesn&apos;t match the product.
               </p>
               <div className="flex flex-wrap gap-3">
                 {pricePositionings.map((price) => (
@@ -194,8 +186,8 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
                     className={`
                       px-6 py-3 text-sm transition-all duration-200 border
                       ${data.pricePositioning === price
-                        ? "bg-ink text-paper border-ink"
-                        : "bg-paper border-border text-foreground hover:border-terracotta"
+                        ? "bg-[#14110F] text-paper border-ink"
+                        : "bg-[#F8F8F8] border-border text-foreground hover:border-[#B5281C]"
                       }
                     `}
                   >
@@ -210,7 +202,7 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
               <Button
                 onClick={onNext}
                 disabled={!isValid}
-                className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light disabled:opacity-40 transition-all duration-200 group"
+                className="h-14 px-10 text-base font-medium bg-[#14110F] text-paper hover:bg-[#14110F]-light disabled:opacity-40 transition-all duration-200 group"
               >
                 Continue
                 <ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />

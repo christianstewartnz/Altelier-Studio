@@ -1,9 +1,9 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { ArrowLeft, ArrowRight } from "lucide-react"
-import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
+import { Logo } from "@/components/logo"
 import { getContrastColor } from "@/lib/color-utils"
 import { WordmarkSVG } from "./wordmark-svg"
 import { InstructionsOverlay } from "./instructions-overlay"
@@ -228,7 +228,7 @@ export function ResultsOverview({
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-screen bg-[#FAF9F7]">
       {!hasSeenInstructions && (
         <InstructionsOverlay onDismiss={onDismissInstructions} />
       )}
@@ -249,7 +249,7 @@ export function ResultsOverview({
         />
       )}
 
-      {/* Contraction overlay — reverse of entry */}
+      {/* Contraction overlay -- reverse of entry */}
       {showContraction && contractionData && (
         <ContractingColorOverlay
           color={contractionData.color}
@@ -263,7 +263,7 @@ export function ResultsOverview({
 
       {/* Scroll-controlled header */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 bg-ink text-paper grain-texture transition-opacity duration-300"
+        className="fixed top-0 left-0 right-0 z-50 bg-[#FAF9F7] text-[#14110F] border-b border-[#B5281C] transition-opacity duration-300"
         style={{
           opacity: headerVisible ? 1 : 0,
           pointerEvents: headerVisible ? "auto" : "none",
@@ -271,15 +271,12 @@ export function ResultsOverview({
       >
         <div className="mx-auto max-w-[1600px] px-6 relative z-10">
           <div className="flex items-center h-16 md:h-20">
-            <div className="flex items-baseline gap-2">
-              <span className="font-serif text-2xl md:text-3xl tracking-tight">{APP_NAME}</span>
-              <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">{APP_SUBTITLE}</span>
-            </div>
+            <Logo height={44} />
           </div>
         </div>
       </header>
 
-      {/* Always-visible Dashboard button — portal ensures fixed positioning is never broken by ancestor transforms */}
+      {/* Always-visible Dashboard button -- portal ensures fixed positioning is never broken by ancestor transforms */}
       {mounted && createPortal(
         <button
           onClick={onStartOver}
@@ -292,7 +289,7 @@ export function ResultsOverview({
             height: "80px",
             paddingLeft: "24px",
             paddingRight: "24px",
-            color: headerVisible ? "#A89880" : "#3D2412",
+            color: "#14110F",
           }}
         >
           <ArrowLeft className="w-4 h-4" />
@@ -320,7 +317,7 @@ export function ResultsOverview({
               return (
                 <article
                   key={concept.id}
-                  className="animate-fade-up group flex flex-col bg-paper border border-border overflow-hidden cursor-pointer"
+                  className="animate-fade-up group flex flex-col bg-[#F8F8F8] border border-border overflow-hidden cursor-pointer"
                   style={{
                     animationDelay: `${index * 0.15}s`,
                     animationFillMode: "both",
@@ -331,7 +328,7 @@ export function ResultsOverview({
                   }}
                   onClick={() => handleTileClick(concept, index)}
                 >
-                  {/* Top Section — primary colour with ref for getBoundingClientRect */}
+                  {/* Top Section -- primary colour with ref for getBoundingClientRect */}
                   <div
                     ref={el => { colorBoxRefs.current[index] = el }}
                     className="grain-texture flex items-center justify-center p-8 relative z-10"
@@ -351,7 +348,7 @@ export function ResultsOverview({
                     </div>
                   </div>
 
-                  {/* Middle Section — colour palette bands */}
+                  {/* Middle Section -- colour palette bands */}
                   <div className="flex flex-col">
                     {concept.colors.map((color, colorIndex) => (
                       <div
@@ -361,7 +358,7 @@ export function ResultsOverview({
                       >
                         <span
                           className="text-[10px] tracking-[0.2em] uppercase font-medium"
-                          style={{ color: isLightColor(color) ? "#3D2412" : "#FFFFFF" }}
+                          style={{ color: isLightColor(color) ? "#14110F" : "#FEFFEF" }}
                         >
                           {color}
                         </span>
@@ -369,7 +366,7 @@ export function ResultsOverview({
                     ))}
                   </div>
 
-                  {/* Bottom Section — typography specimen & CTA */}
+                  {/* Bottom Section -- typography specimen & CTA */}
                   <div className="flex-1 p-6 lg:p-8 flex flex-col justify-between gap-6">
                     <div className="space-y-4">
                       <p className="text-[11px] tracking-[0.2em] uppercase font-medium text-stone">
@@ -406,7 +403,7 @@ export function ResultsOverview({
                         px-5 py-4 bg-transparent border border-ink text-ink
                         text-[12px] tracking-[0.15em] uppercase font-medium
                         transition-all duration-200
-                        hover:bg-ink hover:text-paper
+                        hover:bg-[#14110F] hover:text-paper
                       "
                     >
                       <span>Explore this concept</span>

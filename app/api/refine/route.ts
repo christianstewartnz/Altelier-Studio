@@ -221,7 +221,7 @@ AVOID OVER-CLEVER NAMING:
 Do not try to outsmart the original name.
 
 If an alternative feels more conceptual, more abstract,
-or more “designed” than the original — reject it.
+or more "designed" than the original — reject it.
 
 Refinement should feel like equal quality, not more clever.
 

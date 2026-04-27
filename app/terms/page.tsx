@@ -1,17 +1,23 @@
-import { APP_NAME } from "@/lib/config"
 import Link from "next/link"
+import { AppHeader } from "@/components/app-header"
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-50 bg-ink text-paper grain-texture">
-        <div className="mx-auto max-w-3xl px-6 py-5">
-          <Link href="/dashboard" className="flex items-baseline gap-2">
-            <span className="font-serif text-2xl tracking-tight">{APP_NAME}</span>
-            <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">Studio</span>
+      <AppHeader
+        breadcrumbs={[
+          { label: "Projects", href: "/dashboard" },
+          { label: "Terms of Service" },
+        ]}
+        actions={(
+          <Link
+            href="/dashboard"
+            className="text-sm text-[#4E473F] transition-colors hover:text-[#B5281C]"
+          >
+            Back to Dashboard
           </Link>
-        </div>
-      </header>
+        )}
+      />
 
       <main className="mx-auto max-w-3xl px-6 py-16">
         <h1 className="font-serif text-4xl text-foreground 

@@ -73,6 +73,70 @@ function pickSessionStyles(): {
   }
 }
 
+function taglinesNearIdentical(a: string, b: string): boolean {
+  if (a.toLowerCase().trim() === b.toLowerCase().trim()) return true
+  const stopWords = new Set(["the", "a", "an", "of", "in", "on", "at", "to", "for", "and", "or", "but"])
+  const words = (s: string) =>
+    s.toLowerCase().split(/\s+/).filter(w => w.length > 3 && !stopWords.has(w))
+  const wordsA = words(a)
+  const wordsB = words(b)
+  if (wordsA.length === 0 || wordsB.length === 0) return false
+  const setA = new Set(wordsA)
+  const overlap = wordsB.filter(w => setA.has(w)).length
+  return overlap / Math.min(wordsA.length, wordsB.length) >= 0.75
+}
+
+async function regenerateTagline(
+  concept: BrandConceptOutput,
+  otherTaglines: string[]
+): Promise<string> {
+  const response = await client.messages.create({
+    model: STAGE_2_MODEL,
+    max_tokens: 100,
+    messages: [{
+      role: "user",
+      content: `Rewrite this property brand tagline so it is completely different in wording and creative angle.
+
+Brand name: ${concept.brandName}
+Brand concept: ${concept.rationale}
+Current tagline (replace this): ${concept.tagline}
+
+These taglines already exist for other concepts — your replacement must differ from all of them:
+${otherTaglines.map(t => `- "${t}"`).join("\n")}
+
+Requirements:
+- 3–8 words
+- Completely different wording and creative angle from the taglines above
+- No generic property marketing language
+- Captures this specific brand concept
+
+Return ONLY the tagline text — no quotes, no punctuation at end, no explanation.`
+    }]
+  })
+  const block = response.content[0]
+  if (block.type !== "text") return concept.tagline
+  return block.text.trim().replace(/^["']|["']$/g, "").replace(/\.$/, "")
+}
+
+async function deduplicateConceptTaglines(concepts: BrandConceptOutput[]): Promise<BrandConceptOutput[]> {
+  const result = [...concepts]
+  for (let j = 1; j < result.length; j++) {
+    for (let i = 0; i < j; i++) {
+      if (taglinesNearIdentical(result[i].tagline, result[j].tagline)) {
+        const otherTaglines = result.filter((_, idx) => idx !== j).map(c => c.tagline)
+        try {
+          const newTagline = await regenerateTagline(result[j], otherTaglines)
+          result[j] = { ...result[j], tagline: newTagline }
+        } catch {
+          // keep original on error
+        }
+        break
+      }
+    }
+  }
+  return result
+}
+
 export async function POST(request: Request) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -105,6 +169,10 @@ export async function POST(request: Request) {
     const siteCharacter = JSON.parse(formData.get("siteCharacter") as string)
     const brandAmbition = JSON.parse(formData.get("brandAmbition") as string)
     const attachmentFiles = formData.getAll("attachments") as File[]
+    const chosenNameRaw = formData.get("chosenName") as string | null
+    const chosenName = chosenNameRaw
+      ? JSON.parse(chosenNameRaw) as { name: string; rationale: string; territory: string }
+      : null
 
     if (!projectId) {
       return NextResponse.json(
@@ -195,6 +263,26 @@ BRAND AMBITION
 - Words to Avoid: ${brandAmbition.wordsToAvoid || "None specified"}
 - References & Additional Thoughts: ${brandAmbition.additionalInfo || "None provided"}
     `
+
+    // --------------------------------------------------------
+    // CHOSEN NAME PATH — skip Stage 1, run Stage 2 in parallel
+    // --------------------------------------------------------
+    if (chosenName) {
+      const sessionStyles = pickSessionStyles()
+      const { sessionFonts } = sessionStyles
+
+      const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
+      const [concept1, concept2, concept3] = await Promise.all([
+        generateConceptFromChosenName(userBrief, chosenName, "A", sessionStyles.bold, sessionFonts.editorial, "Editorial/Luxury"),
+        delay(800).then(() => generateConceptFromChosenName(userBrief, chosenName, "B", sessionStyles.architectural, sessionFonts.contemporary, "Contemporary/Architectural")),
+        delay(1600).then(() => generateConceptFromChosenName(userBrief, chosenName, "C", sessionStyles.refined, sessionFonts.expressive, "Warm/Expressive")),
+      ])
+
+      const deduped = await deduplicateConceptTaglines([concept1, concept2, concept3])
+      const concepts = deduped.map((c, i) => ({ ...c, id: String(i + 1) }))
+
+      return NextResponse.json({ concepts })
+    }
 
     // --------------------------------------------------------
     // STAGE 1 — STRATEGY CALL
@@ -303,10 +391,8 @@ BRAND AMBITION
       sessionFonts.expressive, "Warm/Expressive"
     )
 
-    const concepts = [concept1, concept2, concept3].map((c, i) => ({
-      ...c,
-      id: String(i + 1)
-    }))
+    const deduped = await deduplicateConceptTaglines([concept1, concept2, concept3])
+    const concepts = deduped.map((c, i) => ({ ...c, id: String(i + 1) }))
 
     return NextResponse.json({ concepts })
 
@@ -450,6 +536,140 @@ Return only valid JSON, no markdown, no explanation.
   const start = raw.indexOf('{')
   const end = raw.lastIndexOf('}')
   if (start === -1 || end === -1) throw new Error("No JSON object found in concept response")
+  return JSON.parse(raw.slice(start, end + 1))
+}
+
+// --------------------------------------------------------
+// GENERATE CONCEPT FROM CHOSEN NAME
+// Used when the developer has pre-selected their brand name.
+// Runs in parallel with the other two concept calls.
+// --------------------------------------------------------
+async function generateConceptFromChosenName(
+  brief: string,
+  chosenName: { name: string; rationale: string; territory: string },
+  slot: "A" | "B" | "C",
+  assignedStyle: string,
+  assignedHeadingFont: string,
+  fontGroupName: string
+): Promise<BrandConceptOutput> {
+  const conceptRoleInstructions = {
+    A: `Concept A — Most faithful: Build the visual world that most authentically expresses this name's territory and rationale. The palette, fonts, and composition should feel like the most natural home for this name.
+
+COLOUR DIRECTION — CONCEPT A: Choose the colour palette that most naturally and faithfully expresses this name's territory and rationale. This is the instinctive, first-read colour world for this name. There are no constraints — simply the most honest palette for this concept.`,
+
+    B: `Concept B — Adjacent: Build a visual world related to this name's territory but with a different emotional register. Warmer or cooler, bolder or quieter — but still coherent with the name. A buyer should understand why this visual world belongs to this name.
+
+COLOUR DIRECTION — CONCEPT B: The primary colour family must be completely different from Concept A. If Concept A uses warm sandy or earthy tones — Concept B must not. If Concept A uses dark charcoal or ink — Concept B must not. If Concept A uses cool stone greys — Concept B must not. Shade variations of the same hue family do not count as different — warm sand, khaki, and tan are the same family; terracotta, rust, and burnt orange are the same family; charcoal, slate, and dark grey are the same family. Choose a genuinely different hue, temperature, and emotional register that still makes sense for this name approached from a different angle.`,
+
+    C: `Concept C — Creative stretch: Your most unexpected but still coherent interpretation. Maximum visual variety. Before finalising ask: does this visual world make sense for this name? If you cannot answer yes — go back and adjust until you can.
+
+COLOUR DIRECTION — CONCEPT C: The primary colour family must be completely different from both Concept A and Concept B. Shade variations of the same hue family do not count as different. Before finalising the palette, ask: why does this specific colour world belong to this name? If you cannot answer that question specifically — choose differently. This palette should feel surprising but inevitable — the most unexpected interpretation that still makes visual sense for this name.`,
+  }
+
+  const response = await client.messages.create({
+    model: STAGE_2_MODEL,
+    max_tokens: 3000,
+    system: CONCEPT_PROMPT,
+    messages: [
+      {
+        role: "user",
+        content: `
+Here is the project brief:
+
+${brief}
+
+CHOSEN BRAND NAME: ${chosenName.name}
+NAME RATIONALE: ${chosenName.rationale}
+NAME TERRITORY: ${chosenName.territory}
+
+This name has been chosen by the developer. You must use
+this exact name — do not generate a different name.
+Build the entire visual concept around this name and rationale.
+
+CONCEPT ROLE: ${slot}
+
+${conceptRoleInstructions[slot]}
+
+ASSIGNED COMPOSITION STYLE: ${assignedStyle}
+
+You must use this composition style. It has been
+selected to ensure variety across the three concepts
+in this session. Your creative job is to make it
+feel completely true to this concept through your
+choices of weight, tracking, and case.
+
+ASSIGNED HEADING FONT: ${assignedHeadingFont}
+FONT PERSONALITY GROUP: ${fontGroupName}
+
+You must use ${assignedHeadingFont} as the heading font. It has been
+assigned to ensure typographic variety across the three concepts
+in this session. Your creative job is to make it feel completely
+true to this concept through your weight, tracking, and case choices.
+
+For the body font: choose freely from any category that pairs well
+with ${assignedHeadingFont}. Pair from a different category than
+the heading font.
+
+TYPOGRAPHIC CREATIVE DECISIONS:
+
+WEIGHT — do not default to light:
+- light: refined, editorial, quiet confidence
+- regular: balanced, accessible, considered
+- bold: confident, strong, makes a statement
+Choose based on the brand personality.
+
+TRACKING:
+- tight: bold, confident, words press together
+- normal: balanced, readable, considered
+- wide: refined, spacious, premium breathing room
+- ultrawide: architectural, minimal, graphic
+Do not default to wide or ultrawide every time.
+
+CASE:
+- upper: architectural, confident, graphic strength
+- title: considered, human, warm professionalism
+- lower: approachable, modern, quietly confident
+Do not always choose upper.
+
+LINES:
+For two-word styles (weight-contrast, mixed-weight-inline,
+scale-contrast, stacked-punctuation, stacked-ruled,
+stacked-weighted, left-editorial, offset-subtitle):
+- lines[0] = first word or full brand name
+- lines[1] = second word OR a short meaningful descriptor
+  such as suburb name, material word, or qualifier
+- NEVER split a single word across lines
+
+For single-word styles (inline-clean, inline-ruled,
+ultrawide, oversized-crop):
+- lines[0] = the brand name
+- lines[1] = empty string ""
+
+BRAND NAME USAGE — IMPORTANT:
+The brand name has been chosen by the developer as a standalone name.
+Use it exactly as provided — do not append the suburb, city, or any
+location name to the brand name in the logo composition.
+lines[0] should contain only the chosen brand name.
+lines[1] should be empty string unless the chosen name itself is two words.
+The developer can choose to add a location via the refinement system
+later if they wish. Do not make that decision for them at generation time.
+
+Develop this territory into a complete brand concept.
+Return only valid JSON, no markdown, no explanation.
+        `
+      }
+    ]
+  }, { maxRetries: 4 })
+
+  const content = response.content[0]
+  if (content.type !== "text") {
+    throw new Error("Unexpected response from concept call")
+  }
+
+  const raw = content.text
+  const start = raw.indexOf('{')
+  const end = raw.lastIndexOf('}')
+  if (start === -1 || end === -1) throw new Error("No JSON object found in chosen-name concept response")
   return JSON.parse(raw.slice(start, end + 1))
 }
 

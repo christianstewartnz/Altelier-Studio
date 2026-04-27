@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
-import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
 import { Plus, Download, Search } from "lucide-react"
 import { WordmarkSVG } from "@/components/results/wordmark-svg"
-import { isLightColor } from "@/lib/color-utils"
+import { getContrastColor, isLightColor } from "@/lib/color-utils"
+import { AppHeader } from "@/components/app-header"
 
 type Project = {
   id: string
@@ -82,10 +82,12 @@ export default function DashboardPage() {
     })
   }
 
-  function extractLocation(fullAddress: string): string {
-    const parts = fullAddress.split(",").map(p => p.trim())
-    if (parts.length <= 2) return fullAddress
-    return parts.slice(1).join(", ")
+  function formatProjectDate(value: string) {
+    return new Date(value).toLocaleDateString("en-NZ", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
   }
 
   async function handleCreateProject() {
@@ -154,7 +156,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-ink flex items-center justify-center">
+      <div className="min-h-screen bg-[#14110F] flex items-center justify-center">
         <style>{`
           @keyframes wave {
             0%, 100% { transform: translateY(0px); opacity: 0.4; }
@@ -162,11 +164,11 @@ export default function DashboardPage() {
           }
         `}</style>
         <div className="flex gap-2">
-          <span className="block w-2 h-2 bg-terracotta"
+          <span className="block w-2 h-2 bg-[#B5281C]"
             style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0s" }} />
-          <span className="block w-2 h-2 bg-terracotta"
+          <span className="block w-2 h-2 bg-[#B5281C]"
             style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.2s" }} />
-          <span className="block w-2 h-2 bg-terracotta"
+          <span className="block w-2 h-2 bg-[#B5281C]"
             style={{ animation: "wave 1.2s ease-in-out infinite", animationDelay: "0.4s" }} />
         </div>
       </div>
@@ -190,31 +192,33 @@ export default function DashboardPage() {
   })
 
   return (
-    <div className="min-h-screen bg-cream">
-
-      {/* Header — espresso, grain texture */}
-      <header className="sticky top-0 z-50 bg-ink text-paper grain-texture">
-        <div className="mx-auto max-w-6xl px-6 relative z-10">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            <div className="flex items-baseline gap-2">
-              <span className="font-serif text-2xl md:text-3xl tracking-tight">{APP_NAME}</span>
-              <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">{APP_SUBTITLE}</span>
-            </div>
+    <div className="min-h-screen bg-[#FAF9F7]">
+      <AppHeader
+        breadcrumbs={[
+          { label: "Projects", href: "/dashboard" },
+        ]}
+        actions={(
+          <>
+            <button
+              onClick={() => setShowNewProject(true)}
+              className="hidden h-11 items-center gap-2 border border-[#D7C3B7] px-5 text-sm font-medium text-[#8A3A30] transition-colors hover:border-[#B5281C] hover:bg-[#B5281C] hover:text-[#FEFFEF] sm:flex"
+            >
+              <Plus className="h-4 w-4" />
+              New Project
+            </button>
             <button
               onClick={handleLogout}
-              className="text-sm text-stone-light hover:opacity-70 transition-opacity"
+              className="text-sm text-[#4E473F] transition-colors hover:text-[#B5281C]"
             >
               Sign out
             </button>
-          </div>
-        </div>
-      </header>
+          </>
+        )}
+      />
 
-      {/* Empty state */}
       {projects.length === 0 && (
         <div className="animate-fade-up">
-          {/* Espresso hero */}
-          <section className="bg-ink text-paper py-16 md:py-24 grain-texture">
+          <section className="bg-[#14110F] text-paper py-16 md:py-24 grain-texture">
             <div className="mx-auto max-w-3xl px-6 relative z-10">
               <div className="max-w-xl">
                 <p className="step-label text-stone-light mb-6">Dashboard</p>
@@ -227,12 +231,11 @@ export default function DashboardPage() {
               </div>
             </div>
           </section>
-          {/* CTA area */}
-          <section className="py-16 bg-cream">
+          <section className="py-16 bg-[#FAF9F7]">
             <div className="mx-auto max-w-3xl px-6">
               <button
                 onClick={() => setShowNewProject(true)}
-                className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light transition-all duration-200"
+                className="h-14 px-10 text-base font-medium bg-[#B5281C] text-[#FEFFEF] hover:bg-[#8C1E14] transition-colors duration-200"
               >
                 Create Your First Project
               </button>
@@ -241,191 +244,200 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Projects grid */}
       {projects.length > 0 && (
-        <main className="mx-auto max-w-6xl px-6 py-12">
-          <div className="flex items-end justify-between mb-6">
-            <h1 className="font-serif text-3xl md:text-4xl text-foreground tracking-tight">
-              Your Projects
-            </h1>
-            <button
-              onClick={() => setShowNewProject(true)}
-              className="flex items-center gap-2 h-10 px-5 border border-ink text-ink text-sm font-medium hover:bg-ink hover:text-paper transition-all duration-200"
-            >
-              <Plus className="w-4 h-4" />
-              New Project
-            </button>
-          </div>
-
-          {/* Search + filter row */}
-          <div className="flex gap-3 mb-8">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-light pointer-events-none" />
-              <input
-                type="text"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                placeholder="Search projects…"
-                className="w-full h-10 pl-9 pr-4 bg-paper border border-border text-sm text-foreground placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
-              />
+        <main className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">
+          <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h1 className="font-serif text-4xl tracking-tight text-[#14110F] sm:text-[2.7rem]">
+                Your Projects
+              </h1>
+              <button
+                onClick={() => setShowNewProject(true)}
+                className="mt-4 flex h-11 items-center gap-2 border border-[#D7C3B7] px-4 text-sm font-medium text-[#8A3A30] transition-colors hover:border-[#B5281C] hover:bg-[#B5281C] hover:text-[#FEFFEF] sm:hidden"
+              >
+                <Plus className="h-4 w-4" />
+                New Project
+              </button>
             </div>
-            <select
-              value={locationFilter}
-              onChange={e => setLocationFilter(e.target.value)}
-              className="h-10 px-4 bg-paper border border-border text-sm text-foreground focus:outline-none focus:border-terracotta transition-colors appearance-none pr-8"
-              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}
-            >
-              <option value="">All Locations</option>
-              {locations.map(loc => (
-                <option key={loc} value={loc}>{loc}</option>
-              ))}
-            </select>
+
+            <div className="flex w-full max-w-[640px] flex-col gap-3 sm:flex-row">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#B0A89E]" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search projects..."
+                  className="h-12 w-full border border-[#E4DDD6] bg-[#FCFBF8] pl-11 pr-4 text-sm text-[#14110F] placeholder:text-[#B0A89E] focus:border-[#B5281C] focus:outline-none transition-colors"
+                />
+              </div>
+              <select
+                value={locationFilter}
+                onChange={e => setLocationFilter(e.target.value)}
+                className="h-12 min-w-[220px] appearance-none border border-[#E4DDD6] bg-[#FCFBF8] px-4 pr-10 text-sm text-[#14110F] transition-colors focus:border-[#B5281C] focus:outline-none"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6B6B' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center" }}
+              >
+                <option value="">All Locations</option>
+                {locations.map(loc => (
+                  <option key={loc} value={loc}>{loc}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {visibleProjects.length === 0 && (
-            <p className="text-sm text-stone py-8">No projects match your search.</p>
+            <p className="py-8 text-sm text-stone">No projects match your search.</p>
           )}
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
             {visibleProjects.map(project => {
               const concept = project.selected_concept
-              const bgColor = concept ? concept.colors[0] : "#FFFFFF"
-              const light = concept ? isLightColor(concept.colors[0]) : true
-              const textColor = light ? "#3D2412" : "#F8F6F2"
-              const mutedColor = light ? "rgba(61,36,18,0.5)" : "rgba(248,246,242,0.5)"
-              const dividerColor = light ? "rgba(61,36,18,0.12)" : "rgba(248,246,242,0.12)"
-              const btnSolidBg = light ? "rgba(61,36,18,0.9)" : "rgba(248,246,242,0.92)"
-              const btnSolidText = light ? "#F8F6F2" : "#3D2412"
-              const btnBorderColor = light ? "rgba(61,36,18,0.35)" : "rgba(248,246,242,0.35)"
+              const tileBackground = concept?.colors?.[0] || "#FCFBF8"
+              const tileLight = concept ? isLightColor(tileBackground) : true
+              const tileText = concept ? getContrastColor(tileBackground) : "#14110F"
+              const tileMuted = tileLight ? "rgba(20,17,15,0.42)" : "rgba(248,244,239,0.68)"
+              const tileDivider = tileLight ? "rgba(20,17,15,0.12)" : "rgba(248,244,239,0.18)"
+              const secondaryButtonBorder = tileLight ? "rgba(20,17,15,0.18)" : "rgba(248,244,239,0.28)"
+              const secondaryButtonHover = tileLight ? "rgba(20,17,15,0.05)" : "rgba(248,244,239,0.08)"
+
+              const isInProgress = project.status === "in_progress"
+              const isCompleted = project.status === "completed"
 
               const statusLabel =
-                project.status === "completed" ? "Completed"
-                : project.status === "in_progress" ? "In Progress"
+                isCompleted ? "Completed"
+                : isInProgress ? "In Progress"
                 : "Draft"
 
               return (
                 <div
                   key={project.id}
-                  className="flex items-stretch"
-                  style={{ backgroundColor: bgColor, border: `1px solid ${dividerColor}` }}
+                  className={`overflow-hidden border border-[#E4DDD6] bg-[#FCFBF8] transition-colors duration-200 ${
+                    isInProgress ? "group hover:bg-[#F8EEEB]" : ""
+                  }`}
+                  style={{
+                    backgroundColor: concept ? tileBackground : undefined,
+                    borderColor: concept ? tileDivider : undefined,
+                  }}
                 >
-                  {/* Left: project info + action buttons */}
-                  <div className="flex-1 min-w-0 px-8 py-6 flex flex-col justify-between gap-4">
-                    <div className="min-w-0">
-                      <p
-                        className="text-[10px] tracking-[0.25em] uppercase mb-1.5"
-                        style={{ color: mutedColor }}
-                      >
-                        {statusLabel}
-                      </p>
-                      <h2
-                        className="font-serif text-2xl tracking-tight truncate"
-                        style={{ color: textColor }}
-                      >
-                        {project.project_name}
-                      </h2>
-                      <p className="text-sm mt-0.5 truncate" style={{ color: mutedColor }}>
-                        {(project as any).street_address || project.address}
-                        {((project as any).suburb_city || (project as any).location)
-                          ? `, ${(project as any).suburb_city || (project as any).location}`
-                          : ""}
-                      </p>
-                      <p
-                        className="text-[10px] tracking-[0.15em] uppercase mt-1.5"
-                        style={{ color: mutedColor }}
-                      >
-                        {new Date(project.created_at).toLocaleDateString("en-NZ", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric"
-                        })}
-                      </p>
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="flex gap-2 flex-wrap">
-                      {project.status === "completed" && (
-                        <>
-                          <button
-                            onClick={() => router.push(
-                              `/project/${project.id}/concept/${concept?.id}`
-                            )}
-                            className="h-9 px-5 text-xs font-medium tracking-wide transition-all duration-150"
-                            style={{
-                              backgroundColor: btnSolidBg,
-                              color: btnSolidText,
-                            }}
+                  <div className="grid min-h-[170px] grid-cols-1 lg:grid-cols-[1.5fr_1fr]">
+                    <div className={`flex min-w-0 flex-col justify-between gap-5 px-6 py-6 transition-colors duration-200 sm:px-8 ${
+                      isInProgress ? "border-l-2 border-l-[#B5281C] group-hover:bg-[#F8EEEB]" : ""
+                    }`}
+                    style={{
+                      color: tileText,
+                    }}>
+                      <div className="min-w-0">
+                        <div className="mb-2 flex items-center gap-1.5">
+                          {isInProgress && (
+                            <span
+                              className="inline-block h-1.5 w-1.5 flex-shrink-0"
+                              style={{ backgroundColor: "#B5281C" }}
+                            />
+                          )}
+                          <p
+                            className="text-[10px] uppercase tracking-[0.25em]"
+                            style={{ color: isInProgress ? "#B5281C" : tileMuted }}
                           >
-                            View Brand Concept
-                          </button>
-                          <button
-                            onClick={() => alert("Export coming soon — Phase 2")}
-                            className="h-9 px-5 text-xs font-medium tracking-wide flex items-center gap-1.5 transition-all duration-150"
-                            style={{
-                              border: `1px solid ${btnBorderColor}`,
-                              color: textColor,
-                              backgroundColor: "transparent",
-                            }}
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            Download Package
-                          </button>
-                        </>
-                      )}
-                      {project.status === "in_progress" && (
-                        <button
-                          onClick={() => router.push(`/project/${project.id}`)}
-                          className="h-9 px-5 text-xs font-medium tracking-wide transition-all duration-150"
-                          style={{
-                            backgroundColor: btnSolidBg,
-                            color: btnSolidText,
-                          }}
-                        >
-                          Continue Brief
-                        </button>
-                      )}
-                      {project.status === "draft" && (
-                        <button
-                          onClick={async () => {
-                            await supabase
-                              .from("projects")
-                              .update({ status: "in_progress" })
-                              .eq("id", project.id)
-                            router.push(`/project/${project.id}`)
-                          }}
-                          className="h-9 px-5 text-xs font-medium tracking-wide transition-all duration-150"
-                          style={{
-                            backgroundColor: btnSolidBg,
-                            color: btnSolidText,
-                          }}
-                        >
-                          Create Brand Concept
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                            {statusLabel}
+                          </p>
+                        </div>
 
-                  {/* Vertical divider */}
-                  <div className="w-px self-stretch" style={{ backgroundColor: dividerColor }} />
-
-                  {/* Right: logo */}
-                  <div className="w-64 md:w-80 flex-shrink-0 flex items-center justify-center px-8 py-5">
-                    {concept?.logo_composition ? (
-                      <div className="w-full">
-                        <WordmarkSVG
-                          composition={concept.logo_composition}
-                          color={concept.wordmark_color}
-                          headingFont={concept.fonts.heading}
-                        />
+                        <h2 className="truncate font-serif text-[2rem] leading-none tracking-tight">
+                          {project.project_name}
+                        </h2>
+                        <p className="mt-2 truncate text-sm" style={{ color: tileMuted }}>
+                          {(project as any).street_address || project.address}
+                          {((project as any).suburb_city || (project as any).location)
+                            ? `, ${(project as any).suburb_city || (project as any).location}`
+                            : ""}
+                        </p>
+                        <p className="mt-2 text-[10px] uppercase tracking-[0.22em]" style={{ color: tileMuted }}>
+                          {formatProjectDate(project.created_at)}
+                        </p>
                       </div>
-                    ) : (
-                      <p
-                        className="text-[10px] tracking-[0.25em] uppercase text-center"
-                        style={{ color: mutedColor }}
-                      >
-                        {project.status === "in_progress" ? "In Progress" : "No concept yet"}
-                      </p>
-                    )}
+
+                      <div className="flex flex-wrap gap-2">
+                        {isCompleted && (
+                          <>
+                            <button
+                              onClick={() => router.push(
+                                `/project/${project.id}/concept/${concept?.id}`
+                              )}
+                              className="h-9 border border-[#B5281C] px-4 text-xs font-medium tracking-wide text-[#B5281C] transition-colors duration-150 hover:bg-[#B5281C] hover:text-[#FEFFEF]"
+                            >
+                              View Brand Concept
+                            </button>
+                            <button
+                              onClick={() => alert("Export coming soon — Phase 2")}
+                              className="flex h-9 items-center gap-1.5 px-4 text-xs font-medium tracking-wide transition-colors duration-150"
+                              style={{
+                                border: `1px solid ${secondaryButtonBorder}`,
+                                color: tileText,
+                                backgroundColor: "transparent",
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.backgroundColor = secondaryButtonHover
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.backgroundColor = "transparent"
+                              }}
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              Download Package
+                            </button>
+                          </>
+                        )}
+                        {isInProgress && (
+                          <button
+                            onClick={() => router.push(`/project/${project.id}`)}
+                            className="h-9 bg-[#B5281C] px-4 text-xs font-medium tracking-wide text-[#FEFFEF] transition-colors duration-150 hover:bg-[#8C1E14]"
+                          >
+                            Continue Brief
+                          </button>
+                        )}
+                        {project.status === "draft" && (
+                          <button
+                            onClick={async () => {
+                              await supabase
+                                .from("projects")
+                                .update({ status: "in_progress" })
+                                .eq("id", project.id)
+                              router.push(`/project/${project.id}`)
+                            }}
+                            className="h-9 bg-[#B5281C] px-4 text-xs font-medium tracking-wide text-[#FEFFEF] transition-colors duration-150 hover:bg-[#8C1E14]"
+                          >
+                            Create Brand Concept
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div
+                      className={`flex items-center justify-center border-t border-[#E4DDD6] px-6 py-6 transition-colors duration-200 lg:border-t-0 lg:border-l ${
+                        isInProgress && !concept ? "group-hover:bg-[#F8EEEB]" : ""
+                      }`}
+                      style={{
+                        backgroundColor: isInProgress && !concept ? undefined : tileBackground,
+                        borderColor: concept ? tileDivider : "#E4DDD6",
+                      }}
+                    >
+                      {concept?.logo_composition ? (
+                        <div className="w-full max-w-[280px]">
+                          <WordmarkSVG
+                            composition={concept.logo_composition}
+                            color={concept.wordmark_color}
+                            headingFont={concept.fonts.heading}
+                          />
+                        </div>
+                      ) : (
+                        <p
+                          className="text-[10px] uppercase tracking-[0.25em]"
+                          style={{ color: tileMuted }}
+                        >
+                          {isInProgress ? "In Progress" : "No concept yet"}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
               )
@@ -440,9 +452,9 @@ export default function DashboardPage() {
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
           style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
         >
-          <div className="bg-paper w-full max-w-md border border-border">
+          <div className="bg-[#F8F8F8] w-full max-w-md border border-border">
             {/* Modal header */}
-            <div className="bg-ink text-paper px-8 py-6 grain-texture relative z-10">
+            <div className="bg-[#14110F] text-paper px-8 py-6 grain-texture relative z-10">
               <h2 className="font-serif text-2xl tracking-tight">New Project</h2>
               <p className="text-sm text-stone-light mt-1">
                 Give your project a name and address to get started.
@@ -458,7 +470,7 @@ export default function DashboardPage() {
                   value={projectName}
                   onChange={e => setProjectName(e.target.value)}
                   placeholder="e.g. Ponsonby Townhouses"
-                  className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+                  className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-[#B5281C] transition-colors"
                 />
               </div>
 
@@ -469,7 +481,7 @@ export default function DashboardPage() {
                   value={address}
                   onChange={e => setAddress(e.target.value)}
                   placeholder="e.g. 1 Manuka Street"
-                  className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+                  className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-[#B5281C] transition-colors"
                 />
               </div>
 
@@ -480,7 +492,7 @@ export default function DashboardPage() {
                   value={suburbCity}
                   onChange={e => setSuburbCity(e.target.value)}
                   placeholder="e.g. Miramar, Wellington, New Zealand"
-                  className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-terracotta transition-colors"
+                  className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-[#B5281C] transition-colors"
                 />
               </div>
 
@@ -492,14 +504,14 @@ export default function DashboardPage() {
                     setAddress("")
                     setSuburbCity("")
                   }}
-                  className="flex-1 h-14 text-sm font-medium border border-border text-foreground hover:bg-cream transition-all"
+                  className="flex-1 h-14 text-sm font-medium border border-border text-foreground hover:bg-[#FAF9F7] transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateProject}
                   disabled={!projectName.trim() || !address.trim() || !suburbCity.trim() || creating}
-                  className="flex-1 h-14 text-sm font-medium bg-ink text-paper hover:bg-ink-light disabled:opacity-40 transition-all"
+                  className="flex-1 h-14 text-sm font-medium bg-[#B5281C] text-[#FEFFEF] hover:bg-[#8C1E14] disabled:opacity-40 transition-all"
                 >
                   {creating ? "Creating..." : "Create Project"}
                 </button>

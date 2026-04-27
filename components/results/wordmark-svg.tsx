@@ -66,8 +66,15 @@ function computeUltrawideSpacing(text: string, fontSize: number, maxWidth: numbe
 }
 
 export function WordmarkSVG({ composition, color, headingFont }: WordmarkSVGProps) {
-  const { style, lines, punctuation, punctuationPosition, tracking, case: textCase, weight } = composition
+  const { lines, punctuation, punctuationPosition, tracking, case: textCase, weight } = composition
   const fill = color?.trim() ? color : "#171717"
+
+  // Silent composition guard — corrects AI-assigned styles that don't suit the name length
+  let style = composition.style
+  const primaryName = lines[0] || ""
+  if (style === "oversized-crop" && primaryName.length > 6) style = "inline-clean"
+  if (style === "ultrawide" && primaryName.length > 7) style = "inline-clean"
+  if ((style === "weight-contrast" || style === "mixed-weight-inline") && !lines[1]) style = "inline-clean"
   const fontFamily = `'${headingFont}', serif`
   const letterSpacing = letterSpacingFromTracking(tracking)
   const fontWeight = fontWeightFromWeight(weight)

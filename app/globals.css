@@ -11,128 +11,94 @@
 /*
   ATELIER STUDIO — Editorial Design System
   =========================================
-  Inspired by: Neometro, Time & Place, Base Design
-
   Philosophy:
-  - Bold typographic confidence (not safe, not flat)
-  - High-contrast color blocks (dark backgrounds with light text)
+  - Bold typographic confidence
+  - High-contrast color blocks
   - Square edges (architectural precision)
   - Generous white space
   - Editorial hierarchy
 */
 
 :root {
-  /*
-    COLOR PALETTE (5 colors only)
-    -----------------------------
-    1. Ink (Deep charcoal-black) — Primary dark tone
-    2. Stone (Warm mid-gray) — Muted text, borders
-    3. Cream (Warm off-white) — Cards, content areas
-    4. Paper (Pure white) — Primary background
-    5. Terracotta (Warm rust accent) — Action, energy
-  */
+  /* Brand Colours */
+  --mahogany: #B5281C;
+  --mahogany-dark: #8C1E14;
+  --pitch-black: #14110F;
+  --deep-blue: #12263A;
+  --ivory: #FEFFEF;
+  --off-white: #F8F8F8;
+  --warm-grey: #7A7268;
+  --light-grey: #E8E4DE;
 
-  /* Ink — Warm visible brown (not near-black) */
-  --ink: #3D2412;
-  --ink-light: #4A2E18;
-
-  /* Stone — Sophisticated gray */
-  --stone: #6B6B6B;
-  --stone-light: #9A9A9A;
-
-  /* Cream — Warm off-white for forms/content */
-  --cream: #F8F6F2;
-
-  /* Sand — Warm mid-tone between cream and espresso, for overlays */
-  --sand: #E5DDD5;
-
-  /* Paper — Clean white */
-  --paper: #FFFFFF;
-
-  /* Terracotta — Warm aged gold accent for active/focus/CTA */
-  --terracotta: #C9A84C;
-  --terracotta-dark: #A68B3D;
-
-  /* Semantic tokens mapped to palette */
-  --background: var(--paper);
-  --foreground: var(--ink);
-
-  --card: var(--cream);
-  --card-foreground: var(--ink);
-
-  --popover: var(--paper);
-  --popover-foreground: var(--ink);
-
-  --primary: var(--ink);
-  --primary-foreground: var(--paper);
-
-  --secondary: var(--cream);
-  --secondary-foreground: var(--ink);
-
-  --muted: var(--cream);
-  --muted-foreground: var(--stone);
-
-  --accent: var(--terracotta);
-  --accent-foreground: var(--paper);
-
-  --destructive: #B54A32;
-  --destructive-foreground: var(--paper);
-
-  --border: #E5E2DE;
-  --input: #E5E2DE;
-  --ring: var(--terracotta);
-
-  /* Focus/Active state color */
-  --focus: var(--terracotta);
-
-  /* Charts */
-  --chart-1: var(--terracotta);
-  --chart-2: var(--ink);
-  --chart-3: var(--stone);
-  --chart-4: #D4A574;
-  --chart-5: #8B7355;
-
-  /* Square edges — architectural precision */
+  /* Semantic tokens */
+  --background: #FAF9F7;
+  --foreground: #14110F;
+  --card: #FFFFFF;
+  --card-foreground: #14110F;
+  --popover: #FAF9F7;
+  --popover-foreground: #14110F;
+  --primary: #B5281C;
+  --primary-foreground: #FEFFEF;
+  --secondary: #F0EBE3;
+  --secondary-foreground: #14110F;
+  --muted: #E8E4DE;
+  --muted-foreground: #7A7268;
+  --accent: #B5281C;
+  --accent-foreground: #FEFFEF;
+  --destructive: #8C1E14;
+  --destructive-foreground: #FEFFEF;
+  --border: #E0DAD3;
+  --input: #E0DAD3;
+  --ring: #B5281C;
   --radius: 0px;
 
-  /* Sidebar */
-  --sidebar: var(--ink);
-  --sidebar-foreground: var(--paper);
-  --sidebar-primary: var(--paper);
-  --sidebar-primary-foreground: var(--ink);
-  --sidebar-accent: var(--ink-light);
-  --sidebar-accent-foreground: var(--paper);
-  --sidebar-border: var(--ink-light);
-  --sidebar-ring: var(--terracotta);
+  /* Surface tokens */
+  --surface-dark: #14110F;
+  --surface-navy: #12263A;
+  --surface-inverse: #14110F;
+  --surface-inverse-foreground: #FEFFEF;
 
-  /* Custom tokens for inverted sections */
-  --surface-inverse: var(--ink);
-  --surface-inverse-foreground: var(--paper);
+  /* Charts */
+  --chart-1: var(--mahogany);
+  --chart-2: var(--pitch-black);
+  --chart-3: var(--warm-grey);
+  --chart-4: var(--deep-blue);
+  --chart-5: var(--light-grey);
+
+  /* Sidebar */
+  --sidebar: var(--pitch-black);
+  --sidebar-foreground: var(--ivory);
+  --sidebar-primary: var(--ivory);
+  --sidebar-primary-foreground: var(--pitch-black);
+  --sidebar-accent: #1E1A17;
+  --sidebar-accent-foreground: var(--ivory);
+  --sidebar-border: #1E1A17;
+  --sidebar-ring: var(--mahogany);
 }
 
 .dark {
-  --background: var(--ink);
-  --foreground: var(--paper);
-  --card: var(--ink-light);
-  --card-foreground: var(--paper);
-  --popover: var(--ink);
-  --popover-foreground: var(--paper);
-  --primary: var(--paper);
-  --primary-foreground: var(--ink);
-  --secondary: var(--ink-light);
-  --secondary-foreground: var(--paper);
-  --muted: var(--ink-light);
-  --muted-foreground: var(--stone-light);
-  --accent: var(--terracotta);
-  --accent-foreground: var(--paper);
-  --border: #333333;
-  --input: #333333;
+  --background: var(--pitch-black);
+  --foreground: var(--ivory);
+  --card: #1E1A17;
+  --card-foreground: var(--ivory);
+  --popover: var(--pitch-black);
+  --popover-foreground: var(--ivory);
+  --primary: var(--mahogany);
+  --primary-foreground: var(--ivory);
+  --secondary: #1E1A17;
+  --secondary-foreground: var(--ivory);
+  --muted: #1E1A17;
+  --muted-foreground: var(--warm-grey);
+  --accent: var(--mahogany);
+  --accent-foreground: var(--ivory);
+  --border: #2A2520;
+  --input: #2A2520;
 }
 
 @theme inline {
   /* Typography — Editorial confidence */
   --font-sans: var(--font-inter), 'Inter', system-ui, sans-serif;
-  --font-serif: var(--font-instrument-serif), 'Instrument Serif', 'Times New Roman', serif;
+  --font-serif: var(--font-fraunces), 'Fraunces', 'Times New Roman', serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
 
   /* Color mappings */
@@ -178,17 +144,25 @@
   --color-sidebar-ring: var(--sidebar-ring);
 
   /* Custom palette tokens */
-  --color-ink: var(--ink);
-  --color-ink-light: var(--ink-light);
-  --color-stone: var(--stone);
-  --color-stone-light: var(--stone-light);
-  --color-cream: var(--cream);
-  --color-sand: var(--sand);
-  --color-paper: var(--paper);
-  --color-terracotta: var(--terracotta);
-  --color-terracotta-dark: var(--terracotta-dark);
+  --color-mahogany: var(--mahogany);
+  --color-mahogany-dark: var(--mahogany-dark);
+  --color-pitch-black: var(--pitch-black);
+  --color-deep-blue: var(--deep-blue);
+  --color-ivory: var(--ivory);
+  --color-off-white: var(--off-white);
+  --color-warm-grey: var(--warm-grey);
+  --color-light-grey: var(--light-grey);
+  --color-surface-dark: var(--surface-dark);
+  --color-surface-navy: var(--surface-navy);
   --color-surface-inverse: var(--surface-inverse);
   --color-surface-inverse-foreground: var(--surface-inverse-foreground);
+
+  /* Named semantic aliases used throughout components */
+  --color-paper: var(--ivory);          /* #FEFFEF — light cream, text on dark backgrounds */
+  --color-ink: var(--pitch-black);      /* #14110F — near black, text on light backgrounds */
+  --color-stone: var(--warm-grey);      /* #7A7268 — muted text on light backgrounds */
+  --color-stone-light: #B0A89E;         /* lighter warm grey, muted text on dark backgrounds */
+  --color-ink-light: #2A2520;           /* slightly lighter than ink, subtle borders on dark */
 }
 
 @layer base {
@@ -210,20 +184,21 @@
 
   /* Selection styling */
   ::selection {
-    background: var(--terracotta);
-    color: var(--paper);
+    background: var(--mahogany);
+    color: var(--ivory);
   }
 }
 
 @layer components {
   /* Inverted section utility */
   .surface-inverse {
-    @apply bg-ink text-paper;
+    background: var(--surface-inverse);
+    color: var(--surface-inverse-foreground);
   }
 
   /* Editorial divider */
   .divider-editorial {
-    @apply w-12 h-px bg-stone;
+    @apply w-12 h-px bg-warm-grey;
   }
 
   /* Step indicator active state */
@@ -233,17 +208,18 @@
 
   .step-active::after {
     content: '';
-    @apply absolute -bottom-px left-0 right-0 h-0.5 bg-ink;
+    @apply absolute -bottom-px left-0 right-0 h-0.5 bg-pitch-black;
   }
 
-  /* Section header — large display serif, terracotta (for PROJECT, PLACE, DIRECTION in review) */
+  /* Section header — large display serif, mahogany */
   .section-header {
-    @apply font-serif text-2xl text-terracotta tracking-tight;
+    @apply font-serif text-2xl tracking-tight;
+    color: var(--mahogany);
   }
 
-  /* Field label — 12px spaced caps, muted (for Location, Development Type, etc.) */
+  /* Field label — 12px spaced caps, muted */
   .field-label {
-    @apply text-[12px] tracking-[0.2em] uppercase font-medium text-stone;
+    @apply text-[12px] tracking-[0.2em] uppercase font-medium text-warm-grey;
   }
 
   /* Field value — display serif, 16-18px */
@@ -256,24 +232,10 @@
     @apply text-[11px] tracking-[0.25em] uppercase font-medium;
   }
 
-  /* Section label — 11px spaced caps, terracotta (for COLOUR PALETTE, TYPOGRAPHY, etc.) */
+  /* Section label — 11px spaced caps, mahogany accent */
   .section-label-accent {
-    @apply text-[11px] tracking-[0.25em] uppercase font-medium text-terracotta;
-  }
-
-  /* Grain texture overlay for dark headers */
-  .grain-texture {
-    @apply relative;
-  }
-
-  .grain-texture::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    opacity: 0.03;
-    pointer-events: none;
-    mix-blend-mode: overlay;
+    @apply text-[11px] tracking-[0.25em] uppercase font-medium;
+    color: var(--mahogany);
   }
 }
 

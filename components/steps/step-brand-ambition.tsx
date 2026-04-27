@@ -1,5 +1,6 @@
-"use client"
+﻿"use client"
 
+import { BriefStepHero } from "@/components/steps/brief-step-hero"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -58,23 +59,14 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
 
   return (
     <div className="animate-fade-up">
-      {/* Hero Section — with grain texture */}
-      <section className="bg-ink text-paper py-16 md:py-24 grain-texture">
-        <div className="mx-auto max-w-3xl px-6 relative z-10">
-          <div className="max-w-xl">
-            <p className="step-label text-stone-light mb-6">Step 03</p>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight mb-6 text-balance leading-[1.1]">
-              What direction speaks to you?
-            </h1>
-            <p className="text-lg text-stone-light leading-relaxed max-w-md">
-              Choose the brand territory that feels closest to your vision.
-            </p>
-          </div>
-        </div>
-      </section>
+      <BriefStepHero
+        step="Step 03"
+        title="What direction speaks to you?"
+        description="Choose the brand territory that feels closest to your vision."
+      />
 
-      {/* Form Section — warm off-white background */}
-      <section className="py-16 md:py-20 bg-cream">
+      {/* Form Section -- warm off-white background */}
+      <section className="py-16 md:py-20 bg-[#FAF9F7]">
         <div className="mx-auto max-w-4xl px-6">
           <div className="space-y-16">
             {/* Buyer Feeling */}
@@ -87,10 +79,10 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
                 placeholder="e.g. Like they finally cracked this suburb without compromising. Proud of the address without being pretentious about it. Like they made a smart, considered choice."
                 value={data.buyerFeeling}
                 onChange={(e) => onChange({ ...data, buyerFeeling: e.target.value })}
-                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
+                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-[#B5281C] transition-colors"
               />
               <p className="text-sm text-stone mt-2">
-                This is the most important field in the brief. Don&apos;t describe the development — describe the emotion. What should a buyer feel the moment they first hear the name?
+                This is the most important field in the brief. Don&apos;t describe the development -- describe the emotion. What should a buyer feel the moment they first hear the name?
               </p>
             </div>
 
@@ -104,10 +96,10 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
                 placeholder="e.g. Only 8 homes on a street of 200. Larger sections than any comparable project nearby. The only development in this suburb with a communal garden."
                 value={data.pointOfDifference}
                 onChange={(e) => onChange({ ...data, pointOfDifference: e.target.value })}
-                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
+                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-[#B5281C] transition-colors"
               />
               <p className="text-sm text-stone mt-2">
-                What would make someone choose this over the development on the next street? Be specific — &lsquo;better quality&rsquo; and &lsquo;great location&rsquo; don&apos;t count.
+                What would make someone choose this over the development on the next street? Be specific -- &lsquo;better quality&rsquo; and &lsquo;great location&rsquo; don&apos;t count.
               </p>
             </div>
 
@@ -117,7 +109,7 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
                 Choose a Direction
               </Label>
               <p className="text-sm text-stone -mt-3">
-                Choose the territory that feels closest to your vision. This is a creative starting point — the AI will develop it specifically for your project.
+                Choose the territory that feels closest to your vision. This is a creative starting point -- the AI will develop it specifically for your project.
               </p>
               <div className="grid gap-4">
                 {brandDirections.map((direction) => {
@@ -130,8 +122,8 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
                       className={`
                         relative text-left p-6 md:p-8 transition-all duration-300 border-2
                         ${isSelected
-                          ? "bg-ink text-paper border-ink"
-                          : "bg-paper border-border hover:border-terracotta"
+                          ? "bg-[#14110F] text-paper border-ink"
+                          : "bg-[#F8F8F8] border-border hover:border-[#B5281C]"
                         }
                       `}
                     >
@@ -153,7 +145,7 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
                         </div>
                         <div className={`flex-shrink-0 w-7 h-7 border-2 flex items-center justify-center transition-all ${
                           isSelected
-                            ? "border-paper bg-paper text-ink"
+                            ? "border-paper bg-[#F8F8F8] text-ink"
                             : "border-border"
                         }`}>
                           {isSelected && <Check className="w-4 h-4" />}
@@ -176,7 +168,7 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
                 placeholder="e.g. luxury, exclusive, premium, prestige, paradise, oasis, haven"
                 value={data.wordsToAvoid}
                 onChange={(e) => onChange({ ...data, wordsToAvoid: e.target.value })}
-                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors"
+                className="h-14 px-0 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-[#B5281C] transition-colors"
               />
               <p className="text-sm text-stone mt-2">
                 Adding words to avoid pushes the AI toward more unexpected, ownable naming. What terms feel overused or wrong for this project?
@@ -191,11 +183,11 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
               </Label>
               <Textarea
                 id="additionalInfo"
-                placeholder="e.g. We love the branding Time & Place did for Aura in Brisbane. The project has a strong architectural story — the façade uses raw concrete and brass detailing. The developer wants something that will still feel relevant in 20 years."
+                placeholder="e.g. We love the branding Time & Place did for Aura in Brisbane. The project has a strong architectural story -- the faÃ§ade uses raw concrete and brass detailing. The developer wants something that will still feel relevant in 20 years."
                 value={data.additionalInfo}
                 onChange={(e) => onChange({ ...data, additionalInfo: e.target.value })}
                 rows={4}
-                className="px-0 py-4 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors resize-none"
+                className="px-0 py-4 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-[#B5281C] transition-colors resize-none"
               />
               <p className="text-sm text-stone mt-2">
                 Brands you admire, architectural references, developer preferences, or anything else that gives us creative direction. The more context the better.
@@ -207,7 +199,7 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
               <Button
                 variant="ghost"
                 onClick={onPrevious}
-                className="h-14 px-6 text-base font-medium text-stone hover:text-foreground hover:bg-cream transition-all duration-200"
+                className="h-14 px-6 text-base font-medium text-stone hover:text-foreground hover:bg-[#FAF9F7] transition-all duration-200"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Previous
@@ -215,7 +207,7 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
               <Button
                 onClick={onNext}
                 disabled={!isValid}
-                className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light disabled:opacity-40 transition-all duration-200 group"
+                className="h-14 px-10 text-base font-medium bg-[#14110F] text-paper hover:bg-[#14110F]-light disabled:opacity-40 transition-all duration-200 group"
               >
                 Continue
                 <ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />

@@ -1,6 +1,7 @@
-"use client"
+﻿"use client"
 
 import { useRef, useState } from "react"
+import { BriefStepHero } from "@/components/steps/brief-step-hero"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -95,23 +96,14 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
 
   return (
     <div className="animate-fade-up">
-      {/* Hero Section — with grain texture */}
-      <section className="bg-ink text-paper py-16 md:py-24 grain-texture">
-        <div className="mx-auto max-w-3xl px-6 relative z-10">
-          <div className="max-w-xl">
-            <p className="step-label text-stone-light mb-6">Step 02</p>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight mb-6 text-balance leading-[1.1]">
-              What defines the place?
-            </h1>
-            <p className="text-lg text-stone-light leading-relaxed max-w-md">
-              The qualities that make this site unique will shape the brand identity.
-            </p>
-          </div>
-        </div>
-      </section>
+      <BriefStepHero
+        step="Step 02"
+        title="What defines the place?"
+        description="The qualities that make this site unique will shape the brand identity."
+      />
 
-      {/* Form Section — warm off-white background */}
-      <section className="py-16 md:py-20 bg-cream">
+      {/* Form Section -- warm off-white background */}
+      <section className="py-16 md:py-20 bg-[#FAF9F7]">
         <div className="mx-auto max-w-3xl px-6">
           <div className="space-y-16">
             {/* Site Qualities */}
@@ -121,7 +113,7 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                 <span className="text-stone-light font-normal ml-2 text-[11px] normal-case tracking-normal">(Select all that apply)</span>
               </Label>
               <p className="text-sm text-stone -mt-3">
-                Select the qualities that genuinely define this site — not aspirational ones. Authentic character produces better brands.
+                Select the qualities that genuinely define this site -- not aspirational ones. Authentic character produces better brands.
               </p>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {siteQualities.map((quality) => {
@@ -134,8 +126,8 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                       className={`
                         relative px-5 py-4 text-sm text-left transition-all duration-200 border flex items-center justify-between
                         ${isSelected
-                          ? "bg-ink text-paper border-ink"
-                          : "bg-paper border-border text-foreground hover:border-terracotta"
+                          ? "bg-[#14110F] text-paper border-ink"
+                          : "bg-[#F8F8F8] border-border text-foreground hover:border-[#B5281C]"
                         }
                       `}
                     >
@@ -158,7 +150,7 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                 value={data.siteContext}
                 onChange={(e) => onChange({ ...data, siteContext: e.target.value })}
                 rows={4}
-                className="px-0 py-4 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-terracotta transition-colors resize-none"
+                className="px-0 py-4 bg-transparent border-0 border-b-2 border-border rounded-none text-lg placeholder:text-stone-light focus:ring-0 focus:border-[#B5281C] transition-colors resize-none"
               />
               <p className="text-sm text-stone mt-2">
                 Describe this site to someone who has never been there. What would they notice first? What makes it feel different to other sites nearby? The more specific, the better.
@@ -171,7 +163,7 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                 Desired Tone / Feeling
               </Label>
               <p className="text-sm text-stone -mt-3">
-                Choose the tone that feels true to the product — not what you wish it was.
+                Choose the tone that feels true to the product -- not what you wish it was.
               </p>
               <div className="grid grid-cols-2 gap-3">
                 {tones.map((tone) => (
@@ -182,8 +174,8 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                     className={`
                       px-5 py-4 text-sm text-left transition-all duration-200 border
                       ${data.desiredTone === tone
-                        ? "bg-ink text-paper border-ink"
-                        : "bg-paper border-border text-foreground hover:border-terracotta"
+                        ? "bg-[#14110F] text-paper border-ink"
+                        : "bg-[#F8F8F8] border-border text-foreground hover:border-[#B5281C]"
                       }
                     `}
                   >
@@ -208,14 +200,14 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
               {/* Upload Zone */}
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-border bg-paper p-10 text-center cursor-pointer hover:border-terracotta transition-all duration-200"
+                className="border-2 border-dashed border-border bg-[#F8F8F8] p-10 text-center cursor-pointer hover:border-[#B5281C] transition-all duration-200"
               >
                 <Upload className="w-8 h-8 mx-auto mb-4 text-stone" />
                 <p className="text-sm text-foreground font-medium mb-1">
                   Click to upload or drag and drop
                 </p>
                 <p className="text-xs text-stone">
-                  Images and PDFs — max 10MB per file, 20MB total
+                  Images and PDFs -- max 10MB per file, 20MB total
                 </p>
                 <input
                   ref={fileInputRef}
@@ -249,7 +241,7 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                             <button
                               type="button"
                               onClick={() => removeAttachment(index)}
-                              className="absolute -top-2 -right-2 w-6 h-6 bg-ink text-paper flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute -top-2 -right-2 w-6 h-6 bg-[#14110F] text-paper flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               <X className="w-3 h-3" />
                             </button>
@@ -267,7 +259,7 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
                         return (
                           <div
                             key={index}
-                            className="flex items-center gap-2 px-4 py-2 bg-cream border border-border text-sm"
+                            className="flex items-center gap-2 px-4 py-2 bg-[#FAF9F7] border border-border text-sm"
                           >
                             <FileText className="w-4 h-4 text-stone" />
                             <span className="text-foreground truncate max-w-[200px]">{file.name}</span>
@@ -293,7 +285,7 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
               <Button
                 variant="ghost"
                 onClick={onPrevious}
-                className="h-14 px-6 text-base font-medium text-stone hover:text-foreground hover:bg-cream transition-all duration-200"
+                className="h-14 px-6 text-base font-medium text-stone hover:text-foreground hover:bg-[#FAF9F7] transition-all duration-200"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Previous
@@ -301,7 +293,7 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
               <Button
                 onClick={onNext}
                 disabled={!isValid}
-                className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light disabled:opacity-40 transition-all duration-200 group"
+                className="h-14 px-10 text-base font-medium bg-[#14110F] text-paper hover:bg-[#14110F]-light disabled:opacity-40 transition-all duration-200 group"
               >
                 Continue
                 <ArrowRight className="w-5 h-5 ml-3 transition-transform group-hover:translate-x-1" />

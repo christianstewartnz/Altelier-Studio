@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
@@ -112,8 +112,8 @@ export function RefinementModal({
   const [closing, setClosing] = useState(false)
   const [isApplying, setIsApplying] = useState(false)
 
-  // locationAdded=true → explicitly added; locationAdded=false → explicitly removed;
-  // locationAdded=undefined → AI-generated, fall back to whether lines[1] is populated
+  // locationAdded=true â†’ explicitly added; locationAdded=false â†’ explicitly removed;
+  // locationAdded=undefined â†’ AI-generated, fall back to whether lines[1] is populated
   const hasLocationInName = concept.locationAdded === true ||
     (concept.locationAdded !== false && !!concept.logoComposition.lines[1]?.trim())
 
@@ -303,7 +303,7 @@ export function RefinementModal({
           }
         }
       } catch {
-        // Non-fatal — apply with the visual changes even if rewrite fails
+        // Non-fatal -- apply with the visual changes even if rewrite fails
       } finally {
         setIsApplying(false)
       }
@@ -331,24 +331,24 @@ export function RefinementModal({
   function resultCardCls(selected: boolean) {
     return `p-7 border-2 cursor-pointer transition-all duration-200 ${
       selected
-        ? "border-terracotta bg-paper"
-        : "border-transparent bg-paper hover:border-terracotta/50 hover:-translate-y-0.5"
+        ? "border-[#B5281C] bg-[#F8F8F8]"
+        : "border-transparent bg-[#F8F8F8] hover:border-[#B5281C]/50 hover:-translate-y-0.5"
     }`
   }
 
   function selectedBadge(selected: boolean) {
     return selected
-      ? <span className="text-[10px] tracking-[0.18em] uppercase text-terracotta flex-shrink-0">Selected</span>
+      ? <span className="text-[10px] tracking-[0.18em] uppercase text-[#B5281C] flex-shrink-0">Selected</span>
       : null
   }
 
-  // ── SELECTION STATE — full-bleed split screen ─────────────────────────────
+  // â"€â"€ SELECTION STATE -- full-bleed split screen â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   if (!isLoading && !error && !refinementResults) {
     const panelTransition = { duration: closing ? 0.5 : 0.6, ease: "easeInOut" as const }
     return (
       <div className="fixed inset-0 z-50 flex overflow-hidden">
 
-        {/* LEFT: Color panel — slides in from the left */}
+        {/* LEFT: Color panel -- slides in from the left */}
         <motion.div
           initial={{ x: "-100%" }}
           animate={{ x: closing ? "-100%" : 0 }}
@@ -371,12 +371,12 @@ export function RefinementModal({
           </p>
         </motion.div>
 
-        {/* RIGHT: Refinement options — slides in from the right */}
+        {/* RIGHT: Refinement options -- slides in from the right */}
         <motion.div
           initial={{ x: "100%" }}
           animate={{ x: closing ? "100%" : 0 }}
           transition={panelTransition}
-          className="w-1/2 bg-ink text-paper flex flex-col overflow-hidden"
+          className="w-1/2 bg-[#14110F] text-paper flex flex-col overflow-hidden"
         >
           {/* Close */}
           <div className="flex justify-end px-8 pt-7 pb-2 flex-shrink-0">
@@ -391,7 +391,7 @@ export function RefinementModal({
 
           {/* Scrollable options */}
           <div className="flex-1 overflow-y-auto px-10 pt-2 pb-4">
-            <p className="text-[10px] tracking-[0.2em] uppercase text-terracotta mb-5">
+            <p className="text-[10px] tracking-[0.2em] uppercase text-[#B5281C] mb-5">
               {refinementsRemaining} refinement{refinementsRemaining !== 1 ? "s" : ""} remaining
             </p>
             <h2 className="font-serif text-3xl tracking-tight leading-snug mb-8">
@@ -415,7 +415,7 @@ export function RefinementModal({
                     >
                       <div className={`size-4 border flex items-center justify-center flex-shrink-0 transition-all ${
                         isSelected
-                          ? "border-terracotta bg-terracotta"
+                          ? "border-[#B5281C] bg-[#B5281C]"
                           : isDisabled
                           ? "border-stone-light/40"
                           : "border-stone-light group-hover:border-paper"
@@ -438,14 +438,14 @@ export function RefinementModal({
                       </div>
                     </div>
                     {isSelected && option.id === "add-location" && (
-                      <div className="py-4 border-b border-ink-light/60 bg-ink-light/30 -mx-10 px-10">
+                      <div className="py-4 border-b border-ink-light/60 bg-[#14110F]-light/30 -mx-10 px-10">
                         <p className="text-[11px] tracking-[0.1em] uppercase text-stone-light/60 mb-3">Use</p>
                         <div className="flex gap-2">
                           <button
                             onClick={e => { e.stopPropagation(); setLocationPreference("suburb") }}
                             className={`px-4 py-2 text-xs tracking-wide border transition-colors ${
                               locationPreference === "suburb"
-                                ? "border-terracotta bg-terracotta/20 text-paper"
+                                ? "border-[#B5281C] bg-[#B5281C]/20 text-paper"
                                 : "border-ink-light/60 text-stone-light hover:border-paper hover:text-paper"
                             }`}
                           >
@@ -455,7 +455,7 @@ export function RefinementModal({
                             onClick={e => { e.stopPropagation(); setLocationPreference("city") }}
                             className={`px-4 py-2 text-xs tracking-wide border transition-colors ${
                               locationPreference === "city"
-                                ? "border-terracotta bg-terracotta/20 text-paper"
+                                ? "border-[#B5281C] bg-[#B5281C]/20 text-paper"
                                 : "border-ink-light/60 text-stone-light hover:border-paper hover:text-paper"
                             }`}
                           >
@@ -465,7 +465,7 @@ export function RefinementModal({
                       </div>
                     )}
                     {isSelected && option.id !== "add-location" && (
-                      <div className="py-4 border-b border-ink-light/60 bg-ink-light/30 -mx-10 px-10">
+                      <div className="py-4 border-b border-ink-light/60 bg-[#14110F]-light/30 -mx-10 px-10">
                         <Textarea
                           placeholder={`What don't you like about the current ${option.label.toLowerCase()}? (optional)`}
                           value={contextInputs[option.id] || ""}
@@ -486,7 +486,7 @@ export function RefinementModal({
             <button
               onClick={handleRefine}
               disabled={selectedItems.length === 0}
-              className="w-full h-14 text-sm font-medium tracking-[0.12em] uppercase bg-paper text-ink hover:bg-cream disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
+              className="w-full h-14 text-sm font-medium tracking-[0.12em] uppercase bg-[#F8F8F8] text-ink hover:bg-[#FAF9F7] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
             >
               Refine Concept
             </button>
@@ -496,10 +496,10 @@ export function RefinementModal({
     )
   }
 
-  // ── LOADING STATE — full-screen bg-ink ────────────────────────────────────
+  // â"€â"€ LOADING STATE -- full-screen bg-[#14110F] â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-50 bg-ink grain-texture flex flex-col items-center justify-center">
+      <div className="fixed inset-0 z-50 bg-[#14110F] grain-texture flex flex-col items-center justify-center">
         <style>{`
           @keyframes refine-wave {
             0%, 100% { transform: translateY(0px); opacity: 0.3; }
@@ -518,25 +518,25 @@ export function RefinementModal({
               : "Generating alternatives..."}
           </p>
           <div className="flex items-center justify-center gap-2.5 mb-8">
-            <span className="block w-2 h-2 bg-terracotta"
+            <span className="block w-2 h-2 bg-[#B5281C]"
               style={{ animation: "refine-wave 1.2s ease-in-out infinite", animationDelay: "0s" }} />
-            <span className="block w-2 h-2 bg-terracotta"
+            <span className="block w-2 h-2 bg-[#B5281C]"
               style={{ animation: "refine-wave 1.2s ease-in-out infinite", animationDelay: "0.2s" }} />
-            <span className="block w-2 h-2 bg-terracotta"
+            <span className="block w-2 h-2 bg-[#B5281C]"
               style={{ animation: "refine-wave 1.2s ease-in-out infinite", animationDelay: "0.4s" }} />
           </div>
           <p className="text-[11px] tracking-[0.2em] uppercase text-stone-light">
-            Usually 15–20 seconds
+            Usually 15--20 seconds
           </p>
         </motion.div>
       </div>
     )
   }
 
-  // ── ERROR STATE ───────────────────────────────────────────────────────────
+  // â"€â"€ ERROR STATE â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   if (error) {
     return (
-      <div className="fixed inset-0 z-50 bg-ink grain-texture flex items-center justify-center px-8">
+      <div className="fixed inset-0 z-50 bg-[#14110F] grain-texture flex items-center justify-center px-8">
         <div className="w-full max-w-md">
           <p className="section-label-accent mb-3">Something went wrong</p>
           <h2 className="font-serif text-3xl tracking-tight text-paper mb-6 leading-snug">{error}</h2>
@@ -549,7 +549,7 @@ export function RefinementModal({
             </button>
             <button
               onClick={handleRefine}
-              className="flex-1 h-14 text-sm font-medium tracking-[0.08em] uppercase bg-paper text-ink hover:bg-cream transition-colors duration-200 cursor-pointer"
+              className="flex-1 h-14 text-sm font-medium tracking-[0.08em] uppercase bg-[#F8F8F8] text-ink hover:bg-[#FAF9F7] transition-colors duration-200 cursor-pointer"
             >
               Try Again
             </button>
@@ -559,9 +559,9 @@ export function RefinementModal({
     )
   }
 
-  // ── RESULTS STATE — full-screen bg-ink with grain ─────────────────────────
+  // â"€â"€ RESULTS STATE -- full-screen bg-[#14110F] with grain â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   return (
-    <div className="fixed inset-0 z-50 bg-ink grain-texture flex flex-col">
+    <div className="fixed inset-0 z-50 bg-[#14110F] grain-texture flex flex-col">
 
       {/* Sticky header */}
       <div className="flex-shrink-0 border-b border-ink-light px-8 py-6 flex items-start justify-between">
@@ -844,7 +844,7 @@ export function RefinementModal({
                   <div>
                     <div
                       onClick={() => selectKeepCurrent("add-location")}
-                      className={`cursor-pointer transition-all duration-200 border-2 ${keepCurrentItems.has("add-location") ? "border-terracotta" : "border-transparent hover:border-terracotta/50"}`}
+                      className={`cursor-pointer transition-all duration-200 border-2 ${keepCurrentItems.has("add-location") ? "border-[#B5281C]" : "border-transparent hover:border-[#B5281C]/50"}`}
                     >
                       <div
                         className="flex items-center justify-center p-6"
@@ -855,7 +855,7 @@ export function RefinementModal({
                         </div>
                       </div>
                     </div>
-                    <p className="text-[10px] tracking-[0.18em] uppercase text-terracotta mt-2 text-center">Current</p>
+                    <p className="text-[10px] tracking-[0.18em] uppercase text-[#B5281C] mt-2 text-center">Current</p>
                   </div>
 
                   {refinementResults.locationVariations.map((variation, i) => {
@@ -874,7 +874,7 @@ export function RefinementModal({
                       <div
                         key={i}
                         onClick={() => selectAlternative("add-location", variation)}
-                        className={`cursor-pointer transition-all duration-200 border-2 ${isSelected ? "border-terracotta" : "border-transparent hover:border-terracotta/50"}`}
+                        className={`cursor-pointer transition-all duration-200 border-2 ${isSelected ? "border-[#B5281C]" : "border-transparent hover:border-[#B5281C]/50"}`}
                       >
                         <div
                           className="flex items-center justify-center p-6"
@@ -899,7 +899,7 @@ export function RefinementModal({
                   <div>
                     <div
                       onClick={() => selectKeepCurrent("remove-location")}
-                      className={`cursor-pointer transition-all duration-200 border-2 ${keepCurrentItems.has("remove-location") ? "border-terracotta" : "border-transparent hover:border-terracotta/50"}`}
+                      className={`cursor-pointer transition-all duration-200 border-2 ${keepCurrentItems.has("remove-location") ? "border-[#B5281C]" : "border-transparent hover:border-[#B5281C]/50"}`}
                     >
                       <div
                         className="flex items-center justify-center p-6"
@@ -910,7 +910,7 @@ export function RefinementModal({
                         </div>
                       </div>
                     </div>
-                    <p className="text-[10px] tracking-[0.18em] uppercase text-terracotta mt-2 text-center">Current</p>
+                    <p className="text-[10px] tracking-[0.18em] uppercase text-[#B5281C] mt-2 text-center">Current</p>
                   </div>
 
                   {refinementResults.removeVariations.map((variation, i) => {
@@ -924,7 +924,7 @@ export function RefinementModal({
                       <div
                         key={i}
                         onClick={() => selectAlternative("remove-location", variation)}
-                        className={`cursor-pointer transition-all duration-200 border-2 ${isSelected ? "border-terracotta" : "border-transparent hover:border-terracotta/50"}`}
+                        className={`cursor-pointer transition-all duration-200 border-2 ${isSelected ? "border-[#B5281C]" : "border-transparent hover:border-[#B5281C]/50"}`}
                       >
                         <div
                           className="flex items-center justify-center p-6"
@@ -951,7 +951,7 @@ export function RefinementModal({
           <button
             onClick={handleApply}
             disabled={!allSelectionsComplete || isApplying}
-            className="w-full h-14 text-sm font-medium tracking-[0.12em] uppercase bg-paper text-ink hover:bg-cream disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
+            className="w-full h-14 text-sm font-medium tracking-[0.12em] uppercase bg-[#F8F8F8] text-ink hover:bg-[#FAF9F7] disabled:opacity-30 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
           >
             {isApplying ? "Updating concept..." : `Apply ${elementsLabel}`}
           </button>

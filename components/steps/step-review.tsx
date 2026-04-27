@@ -1,10 +1,11 @@
-"use client"
+﻿"use client"
 
 // TODO: Set DISABLE_PAYWALL_FOR_TESTING to false before deploying to production.
 const DISABLE_PAYWALL_FOR_TESTING = true
 
 import { useEffect, useRef } from "react"
 import Script from "next/script"
+import { BriefStepHero } from "@/components/steps/brief-step-hero"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Pencil, Sparkles } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
@@ -35,7 +36,7 @@ type StepReviewProps = {
   projectId: string
   userId?: string
   isPaid: boolean
-  // True when the user is on an unused free trial — we bypass the Fungies
+  // True when the user is on an unused free trial -- we bypass the Fungies
   // overlay and show the free Generate button. /api/generate atomically
   // consumes the trial server-side.
   isTrialEligible: boolean
@@ -93,7 +94,7 @@ export function StepReview({
 
     // Primary signal: the SDK's checkout-complete event.
     // NOTE: Fungies SDK v0.7.2 only dispatches this event if Initialize()
-    // has been called — ScanDOM() alone isn't enough. The Script's onLoad
+    // has been called -- ScanDOM() alone isn't enough. The Script's onLoad
     // below handles that.
     document.addEventListener("fungies:checkout:complete", redirectToSuccess)
 
@@ -144,20 +145,11 @@ export function StepReview({
 
   return (
     <div className="animate-fade-up">
-      {/* Hero Section — with grain texture */}
-      <section className="bg-ink text-paper py-16 md:py-24 grain-texture">
-        <div className="mx-auto max-w-3xl px-6 relative z-10">
-          <div className="max-w-xl">
-            <p className="step-label text-stone-light mb-6">Step 04</p>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl tracking-tight mb-6 text-balance leading-[1.1]">
-              Review your brief
-            </h1>
-            <p className="text-lg text-stone-light leading-relaxed max-w-md">
-              Before we generate concepts, take a moment to review.
-            </p>
-          </div>
-        </div>
-      </section>
+      <BriefStepHero
+        step="Step 04"
+        title="Review your brief"
+        description="Before we generate concepts, take a moment to review."
+      />
 
       {/* Brief Quality Score */}
       {(() => {
@@ -181,14 +173,14 @@ export function StepReview({
         const pct = Math.round((pts / 120) * 100)
         const label =
           pct <= 40
-            ? "Brief needs more detail — add more specifics for better results"
+            ? "Brief needs more detail -- add more specifics for better results"
             : pct <= 70
-              ? "Good brief — a few more details will improve your results"
+              ? "Good brief -- a few more details will improve your results"
               : pct <= 90
-                ? "Strong brief — you should get great results"
-                : "Excellent brief — your concepts will be highly specific to this project"
+                ? "Strong brief -- you should get great results"
+                : "Excellent brief -- your concepts will be highly specific to this project"
         return (
-          <section className="bg-cream border-b border-border">
+          <section className="bg-[#FAF9F7] border-b border-border">
             <div className="mx-auto max-w-3xl px-6 py-8">
               <div className="flex items-center justify-between mb-3">
                 <p className="section-label-accent">{label}</p>
@@ -196,7 +188,7 @@ export function StepReview({
               </div>
               <div className="h-1.5 bg-border w-full">
                 <div
-                  className="h-full bg-terracotta transition-all duration-500"
+                  className="h-full bg-[#B5281C] transition-all duration-500"
                   style={{ width: `${pct}%` }}
                 />
               </div>
@@ -205,8 +197,8 @@ export function StepReview({
         )
       })()}
 
-      {/* Review Section — warm off-white background */}
-      <section className="py-16 md:py-20 bg-cream">
+      {/* Review Section -- warm off-white background */}
+      <section className="py-16 md:py-20 bg-[#FAF9F7]">
         <div className="mx-auto max-w-3xl px-6">
           <div className="space-y-0">
             {/* Project Overview Section */}
@@ -282,7 +274,7 @@ export function StepReview({
                 </div>
                 <div className="pb-2">
                   <dt className="field-label mb-3">Site Context</dt>
-                  <dd className="border-l-2 border-terracotta/30 pl-4 font-serif text-[16px] italic text-stone leading-relaxed whitespace-pre-wrap">
+                  <dd className="border-l-2 border-[#B5281C]/30 pl-4 font-serif text-[16px] italic text-stone leading-relaxed whitespace-pre-wrap">
                     {siteCharacter.siteContext}
                   </dd>
                 </div>
@@ -325,7 +317,7 @@ export function StepReview({
                 {brandAmbition.buyerFeeling && (
                   <div className="pb-2">
                     <dt className="field-label mb-3">Buyer Feeling</dt>
-                    <dd className="border-l-2 border-terracotta/30 pl-4 font-serif text-[16px] italic text-stone leading-relaxed">
+                    <dd className="border-l-2 border-[#B5281C]/30 pl-4 font-serif text-[16px] italic text-stone leading-relaxed">
                       {brandAmbition.buyerFeeling}
                     </dd>
                   </div>
@@ -333,7 +325,7 @@ export function StepReview({
                 {brandAmbition.pointOfDifference && (
                   <div className="pb-2">
                     <dt className="field-label mb-3">Point of Difference</dt>
-                    <dd className="border-l-2 border-terracotta/30 pl-4 font-serif text-[16px] italic text-stone leading-relaxed">
+                    <dd className="border-l-2 border-[#B5281C]/30 pl-4 font-serif text-[16px] italic text-stone leading-relaxed">
                       {brandAmbition.pointOfDifference}
                     </dd>
                   </div>
@@ -364,7 +356,7 @@ export function StepReview({
               <Button
                 variant="ghost"
                 onClick={onPrevious}
-                className="h-14 px-6 text-base font-medium text-stone hover:text-foreground hover:bg-cream transition-all duration-200"
+                className="h-14 px-6 text-base font-medium text-stone hover:text-foreground hover:bg-[#FAF9F7] transition-all duration-200"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 Previous
@@ -372,7 +364,7 @@ export function StepReview({
               {isPaid || isTrialEligible || DISABLE_PAYWALL_FOR_TESTING ? (
                 <Button
                   onClick={onGenerate}
-                  className="h-14 px-10 text-base font-medium bg-terracotta text-paper hover:bg-terracotta-dark transition-all duration-200"
+                  className="h-14 px-10 text-base font-medium bg-[#B5281C] text-paper hover:bg-[#8C1E14] transition-all duration-200"
                 >
                   <Sparkles className="w-5 h-5 mr-3" />
                   Generate Brand Concepts
@@ -400,10 +392,10 @@ export function StepReview({
                     data-fungies-checkout-url={checkoutUrl}
                     data-fungies-mode="overlay"
                     data-fungies-custom-fields={customFields}
-                    className="h-14 px-10 text-base font-medium bg-terracotta text-paper hover:bg-terracotta-dark transition-all duration-200 flex items-center justify-center gap-3"
+                    className="h-14 px-10 text-base font-medium bg-[#B5281C] text-paper hover:bg-[#8C1E14] transition-all duration-200 flex items-center justify-center gap-3"
                   >
                     <Sparkles className="w-5 h-5" />
-                    Generate Brand Concepts — $429 NZD
+                    Generate Brand Concepts -- $429 NZD
                   </button>
                 </>
               )}

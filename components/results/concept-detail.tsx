@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import Script from "next/script"
@@ -6,7 +6,7 @@ import { ArrowLeft, Check, Download, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
-import { APP_NAME, APP_SUBTITLE } from "@/lib/config"
+import { Logo } from "@/components/logo"
 import { getContrastColor, getSortedColors } from "@/lib/color-utils"
 import type { BrandConcept } from "./results-overview"
 import { WordmarkSVG } from "./wordmark-svg"
@@ -61,7 +61,7 @@ function DownloadBrandPackageButton({
       if (detectedRef.current) return
       detectedRef.current = true
 
-      // Close the overlay immediately — no page reload needed.
+      // Close the overlay immediately -- no page reload needed.
       closeFungiesOverlay()
 
       // Poll paid_at until the webhook has written it (usually < 5 s).
@@ -87,7 +87,7 @@ function DownloadBrandPackageButton({
     // Fungies SDK fires a custom DOM event on the document.
     document.addEventListener("fungies:checkout:complete", onPaymentDetected)
 
-    // Fungies iframe also sends a postMessage — catch both shapes seen in the wild.
+    // Fungies iframe also sends a postMessage -- catch both shapes seen in the wild.
     function onWindowMessage(e: MessageEvent) {
       const d = e.data
       if (
@@ -135,14 +135,14 @@ function DownloadBrandPackageButton({
     }
   }
 
-  // ── Paid state — also bypasses for non-trial accounts ───────────────────────
+  // â"€â"€ Paid state -- also bypasses for non-trial accounts â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   if (isPaid || !isFreeTrial) {
     return (
       <div className="flex flex-col items-center gap-2">
         <button
           onClick={handleDownload}
           disabled={isLoading}
-          className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          className="h-14 px-10 text-base font-medium bg-[#14110F] text-paper hover:bg-[#14110F]-light transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <>
@@ -165,7 +165,7 @@ function DownloadBrandPackageButton({
     )
   }
 
-  // ── Unpaid state — Fungies checkout overlay ──────────────────────────────────
+  // â"€â"€ Unpaid state -- Fungies checkout overlay â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   const checkoutBaseUrl = isFreeTrial
     ? process.env.NEXT_PUBLIC_FUNGIES_TRIAL_OVERLAY_URL || ""
     : process.env.NEXT_PUBLIC_FUNGIES_OVERLAY_URL || ""
@@ -206,7 +206,7 @@ function DownloadBrandPackageButton({
         data-fungies-checkout-url={checkoutUrl}
         data-fungies-mode="overlay"
         data-fungies-custom-fields={customFields}
-        className="h-14 px-10 text-base font-medium bg-ink text-paper hover:bg-ink-light transition-all duration-200 flex items-center justify-center gap-2"
+        className="h-14 px-10 text-base font-medium bg-[#14110F] text-paper hover:bg-[#14110F]-light transition-all duration-200 flex items-center justify-center gap-2"
       >
         <Download className="w-5 h-5" />
         Purchase to Download (70% off $179)
@@ -375,11 +375,11 @@ export function ConceptDetail({
   const heroTextColor = currentConcept.wordmarkColor || getContrastColor(currentConcept.colors[0])
 
   return (
-    <div className="min-h-screen bg-cream" style={{ fontFamily: `'${bodyFont}', sans-serif` }}>
+    <div className="min-h-screen bg-[#FAF9F7]" style={{ fontFamily: `'${bodyFont}', sans-serif` }}>
 
-      {/* ── SCROLL-CONTROLLED HEADER ── */}
+      {/* â"€â"€ SCROLL-CONTROLLED HEADER â"€â"€ */}
       <header
-        className="fixed top-0 left-0 right-0 z-50 bg-ink text-paper grain-texture transition-opacity duration-300"
+        className="fixed top-0 left-0 right-0 z-50 bg-[#FAF9F7] text-[#14110F] border-b border-[#B5281C] transition-opacity duration-300"
         style={{
           opacity: headerVisible ? 1 : 0,
           pointerEvents: headerVisible ? "auto" : "none",
@@ -387,27 +387,24 @@ export function ConceptDetail({
       >
         <div className="mx-auto max-w-6xl px-6 relative z-10">
           <div className="flex items-center h-16 md:h-20">
-            <div className="flex items-baseline gap-2">
-              <span className="font-serif text-2xl md:text-3xl tracking-tight">{APP_NAME}</span>
-              <span className="text-[10px] tracking-[0.3em] uppercase text-stone-light font-medium">{APP_SUBTITLE}</span>
-            </div>
+            <Logo height={44} />
           </div>
         </div>
       </header>
 
-      {/* ── ALWAYS-VISIBLE BACK BUTTON — hidden when refinement modal is open ── */}
+      {/* â"€â"€ ALWAYS-VISIBLE BACK BUTTON -- hidden when refinement modal is open â"€â"€ */}
       {!showRefinement && (
         <button
           onClick={isConfirmed ? onGoToDashboard : handleBack}
           className="fixed top-0 right-0 z-[51] flex items-center gap-2 text-sm hover:opacity-70 transition-opacity h-16 md:h-20 px-6"
-          style={{ color: headerVisible ? "#A89880" : heroTextColor }}
+          style={{ color: headerVisible ? "#14110F" : heroTextColor }}
         >
           <ArrowLeft className="w-4 h-4" />
           {isConfirmed ? "Dashboard" : "All Concepts"}
         </button>
       )}
 
-      {/* ── HERO — primary colour fills screen ── */}
+      {/* â"€â"€ HERO -- primary colour fills screen â"€â"€ */}
       <section
         className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
         style={{ backgroundColor: currentConcept.colors[0] }}
@@ -417,7 +414,7 @@ export function ConceptDetail({
           style={{ backgroundColor: currentConcept.colors[0] }}
         />
 
-        {/* Content — fades out on exit, fades in on entry */}
+        {/* Content -- fades out on exit, fades in on entry */}
         <div
           className="animate-fade-in relative z-10 flex flex-col items-center text-center px-6 w-full max-w-4xl mx-auto pt-20 pb-20"
           style={{
@@ -446,8 +443,8 @@ export function ConceptDetail({
         </div>
       </section>
 
-      {/* ── BRAND RATIONALE ── */}
-      <section className="py-24 md:py-32 bg-cream">
+      {/* â"€â"€ BRAND RATIONALE â"€â"€ */}
+      <section className="py-24 md:py-32 bg-[#FAF9F7]">
         <div className="mx-auto max-w-4xl px-6">
           <p className="section-label-accent mb-12">Brand Rationale</p>
           <blockquote className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground leading-snug mb-12 text-balance" style={headingStyle}>
@@ -459,8 +456,8 @@ export function ConceptDetail({
         </div>
       </section>
 
-      {/* ── COLOUR PALETTE ── */}
-      <section className="py-24 md:py-32 bg-paper">
+      {/* â"€â"€ COLOUR PALETTE â"€â"€ */}
+      <section className="py-24 md:py-32 bg-[#F8F8F8]">
         <div className="mx-auto max-w-6xl px-6">
           <p className="section-label-accent mb-12">Colour Palette</p>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-6">
@@ -484,8 +481,8 @@ export function ConceptDetail({
         </div>
       </section>
 
-      {/* ── TYPOGRAPHY ── */}
-      <section className="py-24 md:py-32 bg-cream">
+      {/* â"€â"€ TYPOGRAPHY â"€â"€ */}
+      <section className="py-24 md:py-32 bg-[#FAF9F7]">
         <div className="mx-auto max-w-6xl px-6">
           <p className="section-label-accent mb-12">Typography</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-16">
@@ -496,7 +493,7 @@ export function ConceptDetail({
               >
                 {currentConcept.brandName}
               </p>
-              <p className="text-[12px] tracking-[0.15em] uppercase text-stone-light">{headingFont} — Heading</p>
+              <p className="text-[12px] tracking-[0.15em] uppercase text-stone-light">{headingFont} -- Heading</p>
             </div>
             <div>
               <p
@@ -505,14 +502,14 @@ export function ConceptDetail({
               >
                 {currentConcept.tagline}
               </p>
-              <p className="text-[12px] tracking-[0.15em] uppercase text-stone-light">{bodyFont} — Body</p>
+              <p className="text-[12px] tracking-[0.15em] uppercase text-stone-light">{bodyFont} -- Body</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── IDENTITY ── */}
-      <section className="py-24 md:py-32 bg-paper">
+      {/* â"€â"€ IDENTITY â"€â"€ */}
+      <section className="py-24 md:py-32 bg-[#F8F8F8]">
         <div className="mx-auto max-w-6xl px-6">
           <p className="section-label-accent mb-12">Identity</p>
           <div className="grid md:grid-cols-2 gap-8">
@@ -532,13 +529,13 @@ export function ConceptDetail({
         </div>
       </section>
 
-      {/* ── BRAND ATTRIBUTES ── */}
-      <section className="py-24 md:py-32 bg-cream">
+      {/* â"€â"€ BRAND ATTRIBUTES â"€â"€ */}
+      <section className="py-24 md:py-32 bg-[#FAF9F7]">
         <div className="mx-auto max-w-6xl px-6">
           <p className="section-label-accent mb-12">Brand Attributes</p>
           <div className="flex flex-wrap gap-4">
             {currentConcept.attributes.map((attr) => (
-              <div key={attr} className="px-6 py-4 border border-border bg-paper text-[11px] tracking-[0.2em] uppercase font-medium text-ink">
+              <div key={attr} className="px-6 py-4 border border-border bg-[#F8F8F8] text-[11px] tracking-[0.2em] uppercase font-medium text-ink">
                 {attr}
               </div>
             ))}
@@ -546,8 +543,8 @@ export function ConceptDetail({
         </div>
       </section>
 
-      {/* ── APPLICATIONS ── */}
-      <section className="py-20 md:py-28 bg-paper">
+      {/* â"€â"€ APPLICATIONS â"€â"€ */}
+      <section className="py-20 md:py-28 bg-[#F8F8F8]">
         <div className="mx-auto max-w-6xl px-6">
           <p className="section-label-accent mb-12">Applications</p>
           <div className="grid md:grid-cols-3 gap-6 md:gap-8">
@@ -673,13 +670,13 @@ export function ConceptDetail({
         </div>
       </section>
 
-      {/* ── VOICE SAMPLE ── */}
+      {/* â"€â"€ VOICE SAMPLE â"€â"€ */}
       {currentConcept.voiceSample?.trim() && (
-        <section className="pt-24 pb-44 md:pt-32 md:pb-56 bg-cream">
+        <section className="pt-24 pb-44 md:pt-32 md:pb-56 bg-[#FAF9F7]">
           <div className="mx-auto max-w-4xl px-6">
             <p className="section-label-accent mb-12">Voice Sample</p>
             <div className="relative pl-8 md:pl-12">
-              <span className="absolute left-0 top-0 font-serif text-6xl md:text-8xl text-terracotta leading-none">&ldquo;</span>
+              <span className="absolute left-0 top-0 font-serif text-6xl md:text-8xl text-[#B5281C] leading-none">&ldquo;</span>
               <blockquote className="font-serif italic text-xl md:text-2xl text-foreground/85 leading-relaxed">
                 {currentConcept.voiceSample}
               </blockquote>
@@ -688,9 +685,9 @@ export function ConceptDetail({
         </section>
       )}
 
-      {/* ── STICKY BOTTOM BAR ── */}
+      {/* â"€â"€ STICKY BOTTOM BAR â"€â"€ */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-paper border-t border-border transition-transform duration-500"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-[#F8F8F8] border-t border-border transition-transform duration-500"
         style={{ transform: barVisible ? "translateY(0)" : "translateY(100%)" }}
       >
         <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-center gap-3">
@@ -699,13 +696,13 @@ export function ConceptDetail({
                 <button
                   onClick={() => setShowRefinement(true)}
                   disabled={refinementsAvailable === 0}
-                  className="px-6 py-3 bg-transparent border border-ink text-ink text-[12px] tracking-[0.15em] uppercase font-medium transition-colors duration-200 hover:bg-ink hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-transparent border border-ink text-ink text-[12px] tracking-[0.15em] uppercase font-medium transition-colors duration-200 hover:bg-[#14110F] hover:text-paper disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Refine this concept
                 </button>
                 <button
                   onClick={() => setShowConfirmSelection(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-ink text-paper text-[12px] tracking-[0.15em] uppercase font-medium transition-colors duration-200 hover:bg-terracotta"
+                  className="flex items-center gap-2 px-6 py-3 bg-[#14110F] text-paper text-[12px] tracking-[0.15em] uppercase font-medium transition-colors duration-200 hover:bg-[#B5281C]"
                 >
                   <Check className="w-4 h-4" />
                   <span className="hidden md:inline">Select this concept</span>
@@ -725,7 +722,7 @@ export function ConceptDetail({
         </div>
       </div>
 
-      {/* ── REFINEMENT MODAL ── */}
+      {/* â"€â"€ REFINEMENT MODAL â"€â"€ */}
       {showRefinement && (
         <RefinementModal
           concept={currentConcept}
@@ -738,13 +735,13 @@ export function ConceptDetail({
         />
       )}
 
-      {/* ── CONFIRM SELECTION MODAL ── */}
+      {/* â"€â"€ CONFIRM SELECTION MODAL â"€â"€ */}
       {showConfirmSelection && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
           style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
         >
-          <div className="bg-cream p-8 w-full max-w-md border border-border">
+          <div className="bg-[#FAF9F7] p-8 w-full max-w-md border border-border">
             <h2 className="font-serif text-2xl text-foreground tracking-tight mb-3">
               Ready to commit?
             </h2>
@@ -754,12 +751,12 @@ export function ConceptDetail({
               your chosen direction before proceeding.
             </p>
             <div
-              className="flex items-start gap-3 p-4 bg-paper border border-border mb-6 cursor-pointer"
+              className="flex items-start gap-3 p-4 bg-[#F8F8F8] border border-border mb-6 cursor-pointer"
               onClick={() => setConfirmChecked(!confirmChecked)}
             >
               <div
                 className={`w-5 h-5 border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
-                  confirmChecked ? "border-ink bg-ink" : "border-border"
+                  confirmChecked ? "border-ink bg-[#14110F]" : "border-border"
                 }`}
               >
                 {confirmChecked && (
@@ -776,7 +773,7 @@ export function ConceptDetail({
             <div className="flex gap-3">
               <button
                 onClick={() => { setShowConfirmSelection(false); setConfirmChecked(false) }}
-                className="flex-1 h-14 text-sm font-medium border border-border hover:bg-paper transition-all"
+                className="flex-1 h-14 text-sm font-medium border border-border hover:bg-[#F8F8F8] transition-all"
               >
                 Go Back
               </button>
@@ -788,7 +785,7 @@ export function ConceptDetail({
                   onSelect(currentConcept)
                 }}
                 disabled={!confirmChecked}
-                className="flex-1 h-14 text-sm font-medium bg-ink text-paper hover:bg-ink-light disabled:opacity-40 transition-all"
+                className="flex-1 h-14 text-sm font-medium bg-[#14110F] text-paper hover:bg-[#14110F]-light disabled:opacity-40 transition-all"
               >
                 Confirm Selection
               </button>
@@ -797,13 +794,13 @@ export function ConceptDetail({
         </div>
       )}
 
-      {/* ── CONGRATULATIONS MODAL ── */}
+      {/* â"€â"€ CONGRATULATIONS MODAL â"€â"€ */}
       {showCongratulations && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-6"
           style={{ backgroundColor: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }}
         >
-          <div className="bg-cream p-8 w-full max-w-md border border-border relative">
+          <div className="bg-[#FAF9F7] p-8 w-full max-w-md border border-border relative">
             <button
               onClick={() => setShowCongratulations(false)}
               className="absolute top-4 right-4 text-stone hover:text-foreground transition-colors"
