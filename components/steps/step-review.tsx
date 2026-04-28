@@ -30,6 +30,7 @@ type StepReviewProps = {
   projectOverview: ProjectOverviewData
   siteCharacter: SiteCharacterData
   brandAmbition: BrandAmbitionData
+  currentStep: number
   onGoToStep: (step: number) => void
   onPrevious: () => void
   onGenerate: () => void
@@ -72,6 +73,7 @@ export function StepReview({
   projectOverview,
   siteCharacter,
   brandAmbition,
+  currentStep,
   onGoToStep,
   onPrevious,
   onGenerate,
@@ -149,6 +151,8 @@ export function StepReview({
         step="Step 04"
         title="Review your brief"
         description="Before we generate concepts, take a moment to review."
+        currentStep={currentStep}
+        onGoToStep={onGoToStep}
       />
 
       {/* Brief Quality Score */}

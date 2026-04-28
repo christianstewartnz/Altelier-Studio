@@ -645,9 +645,7 @@ export default function ProjectPage() {
         />
       )}
       <WorkflowHeader
-        currentStep={currentStep}
         projectName={projectName}
-        onGoToStep={handleGoToStep}
         onStartOver={handleStartOver}
         onOpenInstructions={() => setShowBriefInstructions(true)}
       />
@@ -658,6 +656,8 @@ export default function ProjectPage() {
               data={projectOverview}
               onChange={setProjectOverview}
               onNext={handleNext}
+              currentStep={currentStep}
+              onGoToStep={handleGoToStep}
             />
           )}
           {currentStep === 2 && (
@@ -666,6 +666,8 @@ export default function ProjectPage() {
               onChange={setSiteCharacter}
               onNext={handleNext}
               onPrevious={handlePrevious}
+              currentStep={currentStep}
+              onGoToStep={handleGoToStep}
             />
           )}
           {currentStep === 3 && (
@@ -674,6 +676,8 @@ export default function ProjectPage() {
               onChange={setBrandAmbition}
               onNext={handleNext}
               onPrevious={handlePrevious}
+              currentStep={currentStep}
+              onGoToStep={handleGoToStep}
             />
           )}
           {currentStep === 4 && (
@@ -681,6 +685,7 @@ export default function ProjectPage() {
               projectOverview={projectOverview}
               siteCharacter={siteCharacter}
               brandAmbition={brandAmbition}
+              currentStep={currentStep}
               onGoToStep={handleGoToStep}
               onPrevious={handlePrevious}
               onGenerate={handleGenerateNames}

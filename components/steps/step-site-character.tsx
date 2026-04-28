@@ -13,6 +13,8 @@ type StepSiteCharacterProps = {
   onChange: (data: SiteCharacterData) => void
   onNext: () => void
   onPrevious: () => void
+  currentStep: number
+  onGoToStep: (step: number) => void
 }
 
 const siteQualities = [
@@ -46,7 +48,7 @@ const tones = [
 const MAX_FILE_MB = 10
 const MAX_TOTAL_MB = 20
 
-export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSiteCharacterProps) {
+export function StepSiteCharacter({ data, onChange, onNext, onPrevious, currentStep, onGoToStep }: StepSiteCharacterProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
@@ -100,6 +102,8 @@ export function StepSiteCharacter({ data, onChange, onNext, onPrevious }: StepSi
         step="Step 02"
         title="What defines the place?"
         description="The qualities that make this site unique will shape the brand identity."
+        currentStep={currentStep}
+        onGoToStep={onGoToStep}
       />
 
       {/* Form Section -- warm off-white background */}

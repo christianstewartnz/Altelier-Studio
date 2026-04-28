@@ -13,6 +13,8 @@ type StepBrandAmbitionProps = {
   onChange: (data: BrandAmbitionData) => void
   onNext: () => void
   onPrevious: () => void
+  currentStep: number
+  onGoToStep: (step: number) => void
 }
 
 const brandDirections = [
@@ -54,7 +56,7 @@ const brandDirections = [
   }
 ]
 
-export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBrandAmbitionProps) {
+export function StepBrandAmbition({ data, onChange, onNext, onPrevious, currentStep, onGoToStep }: StepBrandAmbitionProps) {
   const isValid = data.direction && data.buyerFeeling && data.pointOfDifference
 
   return (
@@ -63,6 +65,8 @@ export function StepBrandAmbition({ data, onChange, onNext, onPrevious }: StepBr
         step="Step 03"
         title="What direction speaks to you?"
         description="Choose the brand territory that feels closest to your vision."
+        currentStep={currentStep}
+        onGoToStep={onGoToStep}
       />
 
       {/* Form Section -- warm off-white background */}

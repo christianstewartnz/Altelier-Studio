@@ -1111,44 +1111,6 @@ NAMING RULES:
 - Never use an existing suburb or street name unless the address
   itself IS the creative territory
 
-APPROVED NAME STRUCTURES:
-
-All names must fall into ONE of the following structures:
-
-1. Refined single word (rare, high bar)
-   - Must feel grounded and real, not abstract
-   - Example: "Aro", "Vela", "Elm", "Arden"
-
-2. Paired name (preferred)
-   - Word + soft qualifier
-   - Example: "Aro Residences", "Vela Apartments", "Arden Collective"
-
-3. Place-informed identity (use carefully)
-   - The place should add character, not act as a label
-   - Avoid defaulting to suburb + building type
-
-   Better examples:
-   - "Ponsonby Atelier"
-   - "Aro House"
-   - "Parnell Collection"
-
-   Weak examples (never acceptable):
-   - "Khandallah Apartments"
-   - "Miramar Residences"
-   - "Karori Living"
-
-CRITICAL:
-The place name should elevate the brand, not compensate for a weak core name.
-If the name only works because of the suburb being added, it is not strong enough.
-
-4. Invented but natural-sounding name
-   - Must feel like a real word, not constructed
-   - Example: "Velora", "Ardelle"
-
-CRITICAL:
-If using a single word, it must pass a much higher bar.
-If unsure, default to a two-word structure.
-
 STREET NUMBER AND ADDRESS-BASED NAMES:
 Using a street number or address as a brand name is only
 acceptable under two conditions — both must be true:
@@ -1173,7 +1135,8 @@ name is never sufficient.
 - Never use: Haven, Residence, Pinnacle, Park, Place, Living, One, The,
   Retreat, Sanctuary, Horizon, Vista, Aspect, Edge, Quarter, Gardens,
   Green, Rise, Ridge, Terrace, Lane, Grove, Manor, Estate, Collection,
-  Heights, Point, Road, Street, Valley, Hill, View, Beach
+  Heights, Point, Road, Street, Valley, Hill, View, Beach,
+  Belonging, Arrival, Held, Gathered, Found, Arden, Vesper
 
 MANDATORY NAME SELF-EVALUATION:
 NAME GENERATION PROCESS (CRITICAL):
@@ -1313,6 +1276,23 @@ oblique, layered, and surprising — not the first word
 that comes to mind when reading a feature of the brief.
 Ask yourself: is this the most obvious word that connects
 to this brief detail? If yes, go deeper.
+
+ABSTRACT EMOTION TRAP:
+The other common naming failure is stating an emotion
+directly as a name.
+
+These would be rejected:
+- "Belonging" — states the feeling directly, sounds like
+  a wellness brand
+- "Arrival" — states the feeling directly, not a place name
+- "Held" — abstract, sounds like a therapy practice
+- "Gathered" — abstract concept not a development name
+
+The emotion should be evoked through a concrete specific
+word — never stated directly.
+RIGHT: "Bield" evokes shelter and belonging through a
+specific archaic word
+WRONG: "Belonging" states the feeling outright
 
 INPUT PRIORITISATION:
 

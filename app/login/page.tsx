@@ -74,7 +74,7 @@ export default function LoginPage() {
         <div className="absolute inset-0" style={{ backgroundColor: '#12263A', opacity: 0.6 }} />
 
         {/* Wordmark */}
-        <Logo reversed height={48} className="relative z-10" />
+        <Logo reversed height={120} className="relative z-10" />
 
         {/* Editorial line -- hidden on mobile */}
         <div className="hidden md:block relative z-10">

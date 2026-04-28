@@ -26,7 +26,6 @@ function normLoc(s: string | null | undefined): string {
   return (s ?? "").trim().toLowerCase()
 }
 
-/** First integer in scale text, e.g. "9 townhouses" → "9". */
 function extractUnitCountFromBrief(scaleText: string | null | undefined): string {
   const t = (scaleText ?? "").trim()
   if (!t) return "Not specified"
@@ -37,11 +36,6 @@ function extractUnitCountFromBrief(scaleText: string | null | undefined): string
 const STREET_TYPE_SUFFIX =
   /\s+(Street|St\.?|Road|Rd\.?|Lane|Avenue|Ave\.?|Terrace|Tce\.?|Crescent|Cres\.?|Drive|Dr\.?|Place|Parade|Boulevard|Blvd\.?|Way|Court|Ct\.?|Close|Grove|Circuit|Cct\.?)\.?$/i
 
-/**
- * From the brief location line, derive optional street number and a short street name
- * (e.g. "147 Manuka Street, Miramar" → "147", "Manuka"). If the first segment looks
- * like suburb-only, street fields are not inferred.
- */
 function parseStreetFromLocation(location: string | null | undefined): {
   addressNumber: string
   streetName: string
@@ -62,13 +56,9 @@ function parseStreetFromLocation(location: string | null | undefined): {
     return { addressNumber: "Not specified", streetName: "Not specified" }
   }
 
-  const streetName =
-    streetStem.length > 0 ? streetStem : "Not specified"
+  const streetName = streetStem.length > 0 ? streetStem : "Not specified"
 
-  return {
-    addressNumber,
-    streetName,
-  }
+  return { addressNumber, streetName }
 }
 
 function buildTerritoryCPrompt(params: {
@@ -78,160 +68,67 @@ function buildTerritoryCPrompt(params: {
 }): string {
   const { streetName, addressNumber, unitCount } = params
   return `
-You are a senior brand strategist generating name options
-for a residential property development.
+You are a senior brand strategist at a top property branding agency.
+Your job is to generate 3 conventional, place-based development names
+for a residential project. These names must feel like real addresses —
+the kind a developer would confidently put on a hoarding.
 
-Your assigned creative territory is: WARM & SPECIFIC
+YOUR TERRITORY: CONVENTIONAL & PLACE-BASED
 
-TERRITORY C CREATIVE SOURCE — CONVENTIONAL PLACE-BASED NAMING:
+This territory produces clear, immediately understood names.
+No invented words. No abstract concepts. No emotional language.
+Just considered place-based names that buyers recognise as real addresses.
 
-This territory produces clear, conventional names that
-buyers immediately understand. You are generating 3
-place-based names using the project's actual street,
-suburb, or directly adjacent physical features.
+PROJECT GEOGRAPHY AVAILABLE TO YOU:
+- Project street name: ${streetName}
+- Project address number: ${addressNumber}  
+- Project unit count: ${unitCount}
+- Suburb and city: from the brief
 
-This is the only territory that uses geographic references.
-Territories A and B never use place names — that is
-your exclusive creative domain here.
+WHAT YOU MUST USE:
+Only the project's own street name, suburb name, or address number.
+Never neighbouring streets. Never adjacent suburbs. Never nearby 
+landmarks unless they are physically on or directly adjacent to 
+the actual site.
 
-WHAT TO USE:
-- The project's actual street name
-- The project's suburb name
-- A physical feature directly on or immediately
-  adjacent to the actual project site — only if
-  it can be directly experienced from the site itself
+HOW TO BUILD THE NAME:
+Lead with whichever element is most distinctive — the street name 
+is usually stronger than the suburb. Pair it with a suffix that 
+fits the project scale exactly.
 
-WHAT NEVER TO USE:
-- Street names in the same suburb that are not
-  the project's own street
-- Neighbouring or adjacent suburbs
-- Nearby waterways, reserves, or landmarks not
-  directly connected to the project site
-- Any geographic reference requiring leaving the
-  site to encounter
+SCALE RULES — apply strictly:
+1-4 homes: No suffix. Place name stands alone. "Manuka" not "Manuka Close"
+5-15 homes: Light suffix only. Terrace, Row, Common, Nine (if unit count fits)
+16-40 homes: Mid suffix. Quarter, Gardens, Common, Place
+40+ homes: Larger suffix. Village, Park, Estate, Gardens
 
-ADDITIONAL CREATIVE TOOLS — STREET AND NUMBER:
+CREATIVE USE OF ADDRESS AND UNIT COUNT:
+Use these as creative tools when the combination feels inevitable — 
+not as a default formula.
+- "9 Manuka" works if 9 is the unit count and Manuka is the street — 
+  two real facts that combine into a considered address
+- "Manuka Nine" — same principle, flows differently
+- "43 Common" — works if 43 is the address number and Common fits scale
+- Never combine suburb + unit count. "Khandallah Nine" is lazy —  
+  the suburb and the number have no relationship.
 
-You have access to three additional naming elements 
-beyond the suburb name:
+QUALITY TEST FOR EVERY NAME:
+Read it aloud as an address. Does it sound like somewhere real?
+Would a developer sign off on this for a hoarding without hesitation?
+If there is any doubt — it is not good enough.
 
-1. PROJECT STREET NAME: ${streetName}
-   The actual street this development sits on.
-   This is often more specific and ownable than 
-   the suburb name and should be considered first.
+STILL BANNED:
+Residences, Houses, Homes, Properties, Living, Development, 
+Complex, Units, Apartments, Townhomes, Townhouses, Collective,
+Society, Community, Lodge, Retreat, Haven, Manor.
 
-2. PROJECT ADDRESS NUMBER: ${addressNumber}
-   The street number of the development.
-   Can be used creatively when the number itself 
-   feels considered — not every number works.
-
-3. PROJECT UNIT COUNT: ${unitCount}
-   The number of homes in this development.
-   Can be used creatively when the count adds 
-   meaning — "Nine" feels considered for 9 homes,
-   less so for 47 homes.
-
-HOW TO USE THESE CREATIVELY:
-These are tools not formulas. Use them when they 
-produce something genuinely considered — not as 
-a default pattern.
-
-Examples of considered use:
-- Street name alone: "Manuka" if the street name 
-  is distinctive enough to stand alone
-- Street name + number: "9 Manuka" or "Manuka Nine" 
-  if both elements add meaning
-- Address number + meaningful word: "43 Common" 
-  if the combination feels like a real address
-- Street name + light suffix: "Manuka Common", 
-  "Manuka Terrace" following the scale rules
-- Suburb + street element: "Miramar at Manuka" 
-  if the suburb needs the street to be specific
-
-Examples of uncreative use to avoid:
-- Suburb + unit count: "Miramar Nine" — lazy formula,
-  the suburb and the number have no creative relationship
-- Street + generic suffix: "Manuka Residences" — banned suffix
-- Address number alone: "147" — too abstract without context
-
-CREATIVITY TEST:
-Before using any number or street name, ask: 
-does this combination feel discovered or assembled? 
-A considered address name feels inevitable — 
-"9 Manuka" feels like it was always going to be 
-called that. "Miramar Nine" feels like someone 
-filled in a template.
-
-SCALE RULES STILL APPLY:
-Apply the existing scale-appropriate suffix rules 
-to any street name combinations — the same way 
-you would with suburb names.
-
-Generate 3 conventional names using any combination 
-of suburb, street name, address number, and unit 
-count — but only when the combination feels 
-genuinely considered. If the street name is more 
-distinctive than the suburb, lead with the street. 
-If the address number adds creative meaning, use it. 
-If neither adds anything — use the suburb name alone 
-with a considered suffix.
-
-SCALE-APPROPRIATE SUFFIX RULES:
-The suffix must be proportionate to the project scale.
-Read the brief carefully for unit count or scale description.
-
-1-4 homes: No suffix. The place name stands alone.
-  Good: "Madras" — Bad: "Madras Terrace"
-
-5-15 homes: Light suffix only.
-  Acceptable: Terrace, Row, Nine (if unit count),
-  Common, Close
-  Good: "Madras Terrace", "Vesper Nine"
-  Bad: "Madras Village", "Madras Estate"
-
-16-40 homes: Mid-weight suffix acceptable.
-  Acceptable: Quarter, Gardens, Common, Place
-  Good: "Madras Quarter", "Khandallah Gardens"
-  Bad: "Madras Village", "Madras Estate"
-
-40+ homes: Larger suffix acceptable.
-  Acceptable: Village, Park, Estate, Gardens
-  Good: "Madras Village", "Khandallah Park"
-
-QUALITY STANDARDS:
-Even conventional names must meet these standards:
-- The combination must sound like a real considered
-  address — not a placeholder or template
-- The suffix must genuinely fit the project type
-  and scale — never inflate a small project
-- "Madras Terrace" sounds considered
-- "Madras Residences" sounds like a placeholder — banned
-- "Madras Houses" sounds like a description — banned
-- The place reference must be the project's own
-  geography — not borrowed from nearby streets
-
-STILL BANNED even in conventional naming:
-- Residences, Houses, Homes, Properties, Living,
-  Development, Complex, Units, Apartments, Townhomes,
-  Townhouses (as suffix)
-
-Generate exactly 3 conventional place-based names
-following these rules. Each must feel like a real,
-considered address that a developer would be proud
-to put on a hoarding.
-
-Your job is to generate exactly 3 name options for this
-specific project brief that belong to this territory.
-
-${NAMING_RULES}
-
-Return ONLY this JSON:
+Return ONLY this JSON — no markdown, no explanation:
 {
   "territory": "warm",
   "names": [
-    { "name": "Name1", "rationale": "One specific sentence explaining why this name belongs to this project." },
-    { "name": "Name2", "rationale": "One specific sentence explaining why this name belongs to this project." },
-    { "name": "Name3", "rationale": "One specific sentence explaining why this name belongs to this project." }
+    { "name": "Name1", "rationale": "One sentence: what specific geographic element this uses and why it works for this project." },
+    { "name": "Name2", "rationale": "One sentence: what specific geographic element this uses and why it works for this project." },
+    { "name": "Name3", "rationale": "One sentence: what specific geographic element this uses and why it works for this project." }
   ]
 }
 `
@@ -316,417 +213,205 @@ async function fetchSelectedConceptConflicts(
       projects: Array.isArray(row.projects) ? row.projects[0] : row.projects,
     }))
 }
+
 const NAMES_MODEL = "claude-opus-4-7"
 
+// --------------------------------------------------------
+// SHARED NAMING QUALITY RULES
+// Applied to all three territories
+// --------------------------------------------------------
 const NAMING_RULES = `
-NAMING RULES:
-- 1-2 words maximum
-- Default to two words unless a single-word name is exceptionally strong
-- Must feel specific and ownable
-- Must emerge from the assigned creative territory — not from generic
-  property naming conventions
-- Te Reo Māori only when there is a direct, specific, genuine connection
-  to a physical or historical truth of this exact site — never as
-  cultural decoration
-- Never use an existing suburb or street name unless the address
-  itself IS the creative territory
+CORE NAMING RULES:
 
-APPROVED NAME STRUCTURES:
+LENGTH: 1-2 words maximum.
 
-All names must fall into ONE of the following structures:
+SPECIFICITY: The name must connect to something true and specific 
+about this exact project. If the connection could apply to 100 other 
+developments — reject it.
 
-1. Refined single word (rare, high bar)
-   - Must feel grounded and real, not abstract
-   - Example: "Aro", "Vela", "Elm", "Arden"
+THE DINNER PARTY TEST: Would a proud homeowner say this address 
+confidently at a dinner party, to their bank, and to their friends? 
+Any hesitation means the name fails.
 
-2. Paired name (preferred)
-   - Word + soft qualifier
-   - Example: "Aro Residences", "Vela Apartments", "Arden Collective"
+THE BILLBOARD TEST: Does this sound like a name that exists today 
+on a real development hoarding in Auckland, Sydney, or Melbourne? 
+Would a conservative but design-aware developer approve it without 
+hesitation?
 
-3. Place-informed identity (use carefully)
-   - The place should add character, not act as a label
-   - Avoid defaulting to suburb + building type
+THE AGENCY TEST: Could this name belong to a creative agency, 
+a café, a wellness brand, or a fashion label? If yes — reject it.
+Property development names occupy a specific category. They must 
+feel like addresses, not brand experiments.
 
-   Better examples:
-   - "Ponsonby Atelier"
-   - "Aro House"
-   - "Parnell Collection"
+SELF-EVALUATION PROCESS:
+1. Generate 9 candidate names
+2. Test each against all three tests above
+3. Select the 3 strongest
+4. For each finalist, complete: "[Name] is the right name for this 
+   specific project because [specific reason tied to this brief]"
+   The answer must be project-specific — not generic.
+5. If you cannot complete that sentence specifically — reject the name
 
-   Weak examples (never acceptable):
-   - "Khandallah Apartments"
-   - "Miramar Residences"
-   - "Karori Living"
+PHONETICS: Prefer names that flow naturally when spoken aloud.
+Soft vowel sounds. 2-3 syllables. Avoid harsh industrial sounds.
 
-CRITICAL:
-The place name should elevate the brand, not compensate for a weak core name.
-If the name only works because of the suburb being added, it is not strong enough.
+NEVER USE THESE WORDS (banned completely):
+Haven, Residence, Residences, Pinnacle, Park, Place, Living, One, 
+The, Retreat, Sanctuary, Horizon, Vista, Aspect, Edge, Quarter, 
+Gardens, Green, Rise, Ridge, Terrace, Lane, Grove, Manor, Estate, 
+Collection, Heights, Point, Road, Street, Valley, Hill, View, Beach,
+Collective, Society, Community, Co, Cooperative, Commune, Club, 
+Crew, Guild, Tribe, House, Houses, Rows, Row, Mark, Way, End, 
+Side, Close, Court, Mews, Gate, Yard, Works, Lodge, Complex,
+Units, Apartments, Townhomes, Townhouses, Homes, Properties,
+Development, Living
 
-4. Invented but natural-sounding name
-   - Must feel like a real word, not constructed
-   - Example: "Velora", "Ardelle"
+BANNED SUFFIX PATTERNS: -side, -scape, -haus, -co, -works, 
+-yard, -field, -wood, -gate, -ton
 
-CRITICAL:
-If using a single word, it must pass a much higher bar.
-If unsure, default to a two-word structure.
+BANNED NAMES (overused — never generate these):
+Datum, Hush, Laurel, Allotment, Gather, Reach, Crest, Brine, 
+Facet, Solen, Solana, Lumis, Lumen, Aura, Stratum, Fascia, 
+Contour, Nook, Covert, Brim, Fold, Arden, Vesper, Belonging,
+Covert, Held, Axis, Form, Shift, Base, Frame, Beam
 
-STREET NUMBER AND ADDRESS-BASED NAMES:
-Using a street number or address as a brand name is only
-acceptable under two conditions — both must be true:
+PATTERN WARNINGS — these are shallow and always rejected:
+- Direct feature translation: elevated site → "Heights", 
+  quiet street → "Hush", communal garden → "Allotment"
+- Synonym substitution: Edge → Verge, Height → Rise
+- Architectural extraction: Facade → Fascia, Roof → Brim
+- Abstract emotion stated directly: "Belonging", "Arrival", 
+  "Held", "Gathered" — these are concepts not names
+- Sun/light brief → sol, solen, lumen, aura, lumis — banned
+- Water brief → aqua, mare, tide, wave, bay — banned  
+- Elevation brief → peak, crest, rise, ridge, summit — banned
 
-1. The street itself is iconic and widely recognised —
-   a street name that carries cultural weight, prestige,
-   or strong local identity in its own right.
-   Examples where this works: Ponsonby Road, Queen Street,
-   Parnell Road, Oxford Terrace, Lambton Quay.
-   Examples where this does not work: a residential side
-   street, a new subdivision road, any street that requires
-   local knowledge to appreciate.
-
-2. The actual street number from the project brief must
-   be used — never invent a number. If the brief does not
-   include a street number, do not use a number-based name.
-
-If both conditions are not met, do not use an address-based
-approach. The street number alone without an iconic street
-name is never sufficient.
-
-- Never use: Haven, Residence, Pinnacle, Park, Place, Living, One, The,
-  Retreat, Sanctuary, Horizon, Vista, Aspect, Edge, Quarter, Gardens,
-  Green, Rise, Ridge, Terrace, Lane, Grove, Manor, Estate, Collection,
-  Heights, Point, Road, Street, Valley, Hill, View, Beach, Collective,
-  Society, Community, Co, Cooperative, Commune, Club, Crew, Guild, Tribe
-
-Banned as standalone names or suffixes: Collective, Society, Community, Co,
-Cooperative, Commune, Club, Crew, Guild, Tribe.
-
-These words belong to lifestyle brands, food cooperatives, and co-working
-spaces — never to residential property developments. A buyer would never
-proudly say these at a dinner party.
-
-MANDATORY NAME SELF-EVALUATION:
-NAME GENERATION PROCESS (CRITICAL):
-1. Generate 9 candidate names that follow all rules
-2. Critically evaluate each against:
-   - Real-world believability
-   - Distinctiveness
-   - Fit to this specific territory
-3. Select ONLY the 3 strongest names
-4. Discard the rest completely
-
-Before finalising each name, complete this sentence
-internally: "[Name] is the right name for this specific
-project because [specific reason tied to this brief]."
-
-The answer must be specific to this project — not generic.
-"Hush is right because the street is quiet" fails —
-that could apply to any quiet street anywhere.
-"Schist is right because it is the actual geological
-material found in Queenstown's landscape" passes —
-it is specific, ownable, and rewards recognition.
-
-If you cannot complete the sentence specifically,
-the name is not good enough. Generate a different one.
-
-Then apply the buyer test: would a proud homeowner
-say this address confidently at a dinner party,
-to their bank, and to their friends? If there is
-any hesitation, the name fails.
-
-Both tests must be passed before a name is used.
-
-REAL-WORLD BELIEVABILITY TEST (CRITICAL):
-
-Before finalising the name, test it against real-world developer behaviour:
-
-- Does this sound like a name that could realistically exist on a billboard in Sydney, Melbourne, or Auckland today?
-- Would a conservative but design-aware developer feel confident approving this?
-- Does it feel like a property development, not a fashion label, tech startup, or art project?
-
-If the name feels too abstract, too conceptual, or disconnected from property branding norms, it must be rejected.
-
-Names like "Brim", "Covert", "Facet", "Axis" often fail this test —
-they sound like brand experiments, not real developments.
-
-The name must balance:
-- Distinctiveness
-- AND category familiarity
-
-If it leans too far toward abstraction, reject it.
-
-LOCATION IN NAMING:
-Including the suburb or city name in the brand name is
-acceptable when it genuinely strengthens the brand —
-when the location itself is a selling point or adds
-specificity that makes the name more ownable.
-Use your creative judgement. Do not force it in,
-but do not avoid it either.
-A location addition works when the place name has
-heritage, weight, or recognition that elevates the
-brand. It does not work when it is simply appended
-to compensate for a weak core name.
-
-FORBIDDEN NAMING BEHAVIOUR:
-
-Do NOT generate names by:
-- Synonym substitution (Edge → Verge, Height → Rise)
-- Architectural element extraction (Facade → Facia, Roof → Brim)
-- Direct feature translation (Elevated → Verandah, Close to shops → Central)
-
-These are shallow transformations and result in weak names.
-
-Instead:
-- Move one level UP (emotion, identity, lifestyle)
-- Or one level SIDEWAYS (cultural, linguistic, material reference)
-
-PHONETIC DIRECTION (IMPORTANT):
-
-Prefer names with:
-- Soft vowel sounds (A, E, O)
-- Flowing, elegant pronunciation
-- 2–3 syllables
-- European / Latin influence where appropriate
-
-Avoid:
-- Harsh, abrupt, or overly technical words
-- Words that feel industrial or construction-related
-
-Examples of preferred feel:
-"Aro", "Vela", "Elara", "Arden", "Sora", "Luma"
-
-The name should sound natural when spoken aloud in a sales context
-
-NAMES THAT WILL ALWAYS BE REJECTED:
-- [Nature thing] + [place word]: PearTree, OakRidge, ElmGrove
-- [Adjective] + [generic noun]: BrightHomes, FreshLiving, ClearView
-- Any word that could be a scented candle, a cafe, or a wellness retreat
-- Any name a generic developer could have come up with without reading this brief
-
-REJECT NAMES THAT FEEL LIKE:
-
-- Construction terminology: Facia, Brim, Beam, Frame
-- Vague abstract nouns: Axis, Form, Shift, Base
-- Overly conceptual branding: Covert, Oblique, Liminal
-- Anything that sounds like a design studio, fashion label, or tech startup
-
-If the name could plausibly be a creative agency, it is not acceptable.
-
-- NEVER use suffix patterns like -side, -scape, -haus, -co, -works,
-  -yard, -field, -wood, -gate — these are the most overused patterns
-  in property naming and signal lazy thinking.
-
-NAMES THAT ARE BANNED FROM OVERUSE:
-The following names have appeared too frequently in previous
-generations and must never be used: Solen, Solana, Lumis,
-Lumen, Aura, Crest, Apex, Stratum, Fascia, Contour, Facet,
-Datum, Nook, Hush, Laurel, Allotment, Gather, Reach, Brine,
-Covert, Brim, Fold, Arden.
-Add any name that feels like it belongs on this list —
-if it feels like something you've seen before on a
-development, it probably has been.
-
-PATTERN-MATCH WARNING:
-Names derived from the most obvious single feature of the brief
-are not acceptable. The connection must be oblique and layered —
-not the first word that comes to mind when reading a brief feature.
-
-If the brief mentions sun, light, or brightness — do NOT use
-sol, solar, soleil, solen, sola, lumen, lumis, luma, aura, or
-any sun- or light-derived word as the primary name.
-
-If the brief mentions water, a river, or coastal proximity —
-do NOT use aqua, mare, stream, tide, wave, bay, or any
-water-derived word as the primary name.
-
-If the brief mentions elevation or views — do NOT use
-peak, crest, rise, ridge, heights, summit, or any
-elevation-derived word as the primary name.
-
-Ask yourself: is this the most obvious word that connects
-to this brief feature? If yes — go deeper.
-
-THE LITERAL CONNECTION TRAP:
-The most common naming failure is a name that has a
-connection to the brief but the connection is too direct.
-
-These names would be rejected:
-- Quiet street in the brief → "Hush" (too literal, sounds like
-  a beauty brand)
-- Hedge-lined street → "Laurel" (too literal, sounds like
-  a retirement village)
-- Communal garden → "Allotment" (too literal, sounds like
-  a vegetable patch)
-- East-facing site → "East Gilt" (too literal and
-  geographically generic)
-
-The connection between the brief and the name should be
-oblique, layered, and surprising — not the first word
-that comes to mind when reading a feature of the brief.
-Ask yourself: is this the most obvious word that connects
-to this brief detail? If yes, go deeper.
-
-TWO-WORD NAME QUALITY TEST:
-Both words in a two-word name must carry equal creative weight.
-A strong anchor word paired with a weak descriptor suffix is
-not acceptable — the second word must add genuine meaning,
-not just qualify the first.
-
-These suffixes are banned as the second word:
-House, Rows, Lane, Mark, Six, Place, Way, End, Point, Side,
-View, Rise, Park, Close, Court, Mews, Gate, Yard, Works,
-Collective, Society, Community, Co, Cooperative, Commune, Club, Crew,
-Guild, Tribe.
-
-If the name is two words, ask: does the second word add
-something the first word cannot do alone? If the answer is no —
-use the first word only or find a genuinely different second word.
-
-INPUT PRIORITISATION:
-
-Not all details in the brief are equally important.
-
-Ignore:
-- Generic phrases like "close to shops", "elevated site", "great location"
-- Functional descriptions that could apply to any development
-
-Focus only on:
-- Distinctive physical truths
-- Emotional positioning of the buyer
-- Architectural intent
-
-If a detail could apply to 1000 other developments, it must NOT influence the name.
-
-TERRITORY SEPARATION — MANDATORY:
-Each territory has an exclusive creative source.
-Geographic and place-based naming belongs only to
-Territory C. Territories A and B must never use
-place names, street names, suburb names, or any
-geographic reference. This separation ensures the
-9 names cover genuinely different creative ground
-rather than converging on the same approach.
+The connection between brief and name must be oblique and 
+layered — not the first word that comes to mind.
 `
 
+// --------------------------------------------------------
+// TERRITORY A — REFINED & CONSIDERED
+// Source: Concrete words that carry emotional weight
+// --------------------------------------------------------
 const TERRITORY_A_PROMPT = `
-You are a senior brand strategist generating name options
-for a residential property development.
+You are a senior brand strategist at a top property branding agency.
+Your job is to generate 3 considered, refined development names.
 
-Your assigned creative territory is: REFINED & CONSIDERED
+YOUR TERRITORY: REFINED & CONSIDERED
 
-This territory is defined by:
-- Quiet confidence and understatement
-- Names that feel discovered not invented
-- Heritage-aware without being old-fashioned
-- Rewards buyer curiosity — there is a story behind the name
-- Appeals to buyers who value considered, specific choices over obvious ones
+These names feel discovered not invented. They have a story behind 
+them that rewards curiosity. They are specific enough to be ownable 
+yet warm enough to feel human. A buyer would say this address at a 
+dinner party and feel quietly proud.
 
-PRIMARY CREATIVE SOURCE FOR THIS TERRITORY:
-You must approach naming from emotional or experiential truth.
-The name should capture how the buyer feels, what the place
-means to them, or what the act of owning this home represents.
-Geographic landmarks, suburb names, and physical site features
-are NOT the primary creative source for this territory.
-Ask: what does living here mean? What does this address say
-about who the buyer is? Start there — not from the map.
+THE CREATIVE APPROACH FOR THIS TERRITORY:
 
-Your job is to generate exactly 3 name options for this
-specific project brief that belong to this territory.
+Use concrete words that carry emotional weight — not abstract 
+emotions stated directly.
 
-TERRITORY A CREATIVE SOURCE — EMOTIONAL & EXPERIENTIAL ONLY:
+The difference:
+WRONG — "Belonging" (abstract emotion, sounds like a wellness brand)
+WRONG — "Arrival" (abstract concept, not a place name)  
+WRONG — "Held" (abstract, sounds like a therapy practice)
+RIGHT — "Bield" (Scottish for sheltered place — concrete word, 
+  emotional resonance, specific to an elevated tucked-away site)
+RIGHT — "Suncroft" (croft = enclosed field, sun = warmth — 
+  two concrete words that evoke a feeling without stating it)
+RIGHT — "Encore" (a moment of return — concrete cultural 
+  reference applied to the experience of coming home)
 
-This territory explores naming from emotional truth,
-experiential resonance, and what the act of owning
-this home means to the buyer.
+The name should evoke a feeling through a specific concrete word — 
+never by stating the feeling directly.
 
-NEVER use in this territory:
-- Place names, suburb names, street names
-- Geographic features: streams, hills, reserves, landmarks
-- Local references of any kind
-- The project address or surrounding area
+CREATIVE SOURCES FOR THIS TERRITORY:
+- Words from other languages (Latin, French, Māori, Norse, Italian) 
+  that carry precise meaning relevant to this site
+- Archaic English words that feel discovered rather than invented
+- Cultural or historical references specific to this location
+- Material or craft words that evoke quality and care
+- Words that describe a physical quality obliquely 
 
-Names in this territory should feel like they could
-belong to this project anywhere — their power comes
-from emotional precision, not geographic anchoring.
-That job belongs exclusively to Territory C.
-
-Ask: what does it feel like to own this home?
-What is the buyer arriving at? What are they
-leaving behind? What does this address mean
-to them at a dinner party?
+NEVER USE IN THIS TERRITORY:
+- Abstract emotions: Belonging, Arrival, Held, Gathered, Found
+- Place names, suburb names, street names, geographic features
+- Words that sound like wellness brands, cafés, or creative agencies
+- The project address or surrounding geography (that belongs to Territory C)
 
 ${NAMING_RULES}
 
-Return ONLY this JSON:
+Return ONLY this JSON — no markdown, no explanation:
 {
   "territory": "refined",
   "names": [
-    { "name": "Name1", "rationale": "One specific sentence explaining why this name belongs to this project." },
-    { "name": "Name2", "rationale": "One specific sentence explaining why this name belongs to this project." },
-    { "name": "Name3", "rationale": "One specific sentence explaining why this name belongs to this project." }
+    { "name": "Name1", "rationale": "One sentence: the specific word origin or reference and why it connects to this project." },
+    { "name": "Name2", "rationale": "One sentence: the specific word origin or reference and why it connects to this project." },
+    { "name": "Name3", "rationale": "One sentence: the specific word origin or reference and why it connects to this project." }
   ]
 }
 `
 
+// --------------------------------------------------------
+// TERRITORY B — BOLD & INVENTED
+// Source: Invented words rooted in site truth
+// --------------------------------------------------------
 const TERRITORY_B_PROMPT = `
-You are a senior brand strategist generating name options
-for a residential property development.
+You are a senior brand strategist at a top property branding agency.
+Your job is to generate 3 bold, invented development names.
 
-Your assigned creative territory is: BOLD & DISTINCTIVE
+YOUR TERRITORY: BOLD & INVENTED
 
-This territory is defined by:
-- Confident, graphic, makes an immediate statement
-- Short and completely ownable — one word that owns its space
-- High contrast visual world — the name suggests bold typography
-- Appeals to buyers who want an address that stands out
-- The name is unexpected but feels inevitable once explained
+These are words that didn't exist before this project. They feel 
+confident and graphic — short, ownable, with strong consonants or 
+vowels. They make a statement. A buyer would recognise this as 
+a distinctive address, not a generic one.
 
-PRIMARY CREATIVE SOURCE FOR THIS TERRITORY:
-You must approach naming from invented, unexpected, or
-linguistically creative territory. Think: invented words,
-unexpected word combinations, or words from other languages
-that carry precise relevant meaning when understood.
-Place names, geographic landmarks, suburb names, and physical
-site features are NOT acceptable for this territory.
-The name must feel like it was created, not found on a map.
-Ask: what word could only exist for this project?
+THE CREATIVE APPROACH FOR THIS TERRITORY:
 
-Invented words must be rooted in something physically, culturally, or emotionally true about this specific site and brief. The rationale for an invented name must reference the project — not the typography or letterforms of the word itself.
-This passes: an invented word whose sound, rhythm, or root connects to a physical truth of the site (a geological material, a topographic quality, a cultural reference specific to this location).
-This fails: an invented word chosen because its letterforms look good typographically, with no connection to the brief.
-Typography is a design decision made later. The name must earn its place through meaning and connection to the project — not through how it looks on a page. If you cannot complete the sentence '[Name] connects to this project because [specific brief reference]' — the name is not good enough. Find a different invention.
+Invent words that are rooted in something physically or culturally 
+true about this specific site. The invention must earn its place 
+through connection to the project — not through how it looks 
+typographically.
 
-Your job is to generate exactly 3 name options for this
-specific project brief that belong to this territory.
+The test: complete this sentence:
+"[Name] connects to this project because [specific brief reference]"
+If you cannot answer that specifically — the name fails.
 
-TERRITORY B CREATIVE SOURCE — INVENTED & LINGUISTIC ONLY:
+WHAT MAKES A GOOD INVENTED NAME:
+- A root from another language (Latin, Greek, Norse, Māori, Italian, 
+  French) that connects precisely to a physical truth of this site
+- A sound or rhythm that mirrors something about the place 
+  (geological, topographic, cultural)
+- Short: 2-3 syllables, flows naturally when spoken aloud
+- Feels like it could be a real word in a language you don't know
 
-This territory explores naming through invention,
-linguistic creativity, and unexpected word construction.
-Names must be rooted in something true about the site
-but expressed through invention not geography.
+EXAMPLES OF THE QUALITY LEVEL:
+- "Korren" — hard consonants mirror schist ridgeline geology of 
+  Arrowtown, feels carved and specific to alpine terrain
+- "Oryn" — from Latin 'orior' (to rise, to begin) — connects to 
+  an elevated site where first home buyers begin a new chapter
+- "Velda" — Old Norse 'veldr' (to rule, to hold dominion) — for 
+  a commanding elevated position with valley views
 
-NEVER use in this territory:
-- Place names, suburb names, street names
-- Geographic features of any kind
-- Local landmarks or cultural references tied to location
-- The project address or surrounding area
+WHAT MAKES A WEAK INVENTED NAME:
+- Chosen for letterform aesthetics with no site connection
+- Sounds like a tech startup, perfume, or fashion label
+- Could belong to any development anywhere
 
-Names in this territory should feel invented and ownable —
-words that didn't exist before this project needed them.
-Geographic naming belongs exclusively to Territory C.
-
-Ask: what invented word captures the physical or
-emotional character of this site without naming it?
-What sound, rhythm, or linguistic root connects
-to something true about this project?
+NEVER USE IN THIS TERRITORY:
+- Place names, suburb names, street names, geographic features
+- Abstract emotions stated directly
+- Names that sound like creative agencies or lifestyle brands
 
 ${NAMING_RULES}
 
-Return ONLY this JSON:
+Return ONLY this JSON — no markdown, no explanation:
 {
   "territory": "bold",
   "names": [
-    { "name": "Name1", "rationale": "One specific sentence explaining why this name belongs to this project." },
-    { "name": "Name2", "rationale": "One specific sentence explaining why this name belongs to this project." },
-    { "name": "Name3", "rationale": "One specific sentence explaining why this name belongs to this project." }
+    { "name": "Name1", "rationale": "One sentence: the linguistic root or physical connection and why it belongs to this specific project." },
+    { "name": "Name2", "rationale": "One sentence: the linguistic root or physical connection and why it belongs to this specific project." },
+    { "name": "Name3", "rationale": "One sentence: the linguistic root or physical connection and why it belongs to this specific project." }
   ]
 }
 `

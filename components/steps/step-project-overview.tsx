@@ -11,6 +11,8 @@ type StepProjectOverviewProps = {
   data: ProjectOverviewData
   onChange: (data: ProjectOverviewData) => void
   onNext: () => void
+  currentStep: number
+  onGoToStep: (step: number) => void
 }
 
 const developmentTypes = [
@@ -43,7 +45,7 @@ const pricePositionings = [
   "Ultra Luxury"
 ]
 
-export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverviewProps) {
+export function StepProjectOverview({ data, onChange, onNext, currentStep, onGoToStep }: StepProjectOverviewProps) {
   const isValid =
     data.location &&
     data.developmentType &&
@@ -58,6 +60,8 @@ export function StepProjectOverview({ data, onChange, onNext }: StepProjectOverv
         step="Step 01"
         title="Tell us about your project"
         description="The foundation for a distinctive brand direction starts here."
+        currentStep={currentStep}
+        onGoToStep={onGoToStep}
       />
 
       {/* Form Section -- warm off-white background */}

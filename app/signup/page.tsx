@@ -72,7 +72,7 @@ function SignupForm() {
         <div className="relative text-[#FEFFEF] md:w-1/2 flex flex-col items-start justify-between px-10 py-12 md:px-16 md:py-20 md:sticky md:top-0 md:h-screen overflow-hidden">
           <img src="/images/auth-building.avif" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[75%_0%]" />
           <div className="absolute inset-0" style={{ backgroundColor: '#12263A', opacity: 0.6 }} />
-          <Logo reversed height={48} className="relative z-10" />
+          <Logo reversed height={120} className="relative z-10" />
           <div className="hidden md:block relative z-10">
             <p className="font-serif text-4xl lg:text-5xl xl:text-6xl tracking-tight text-balance leading-[1.1] mb-6">
               Your brand starts here.
@@ -115,7 +115,7 @@ function SignupForm() {
       <div className="relative text-[#FEFFEF] md:w-1/2 flex flex-col items-start justify-between px-10 py-12 md:px-16 md:py-20 md:sticky md:top-0 md:h-screen overflow-hidden">
         <img src="/images/auth-building.avif" alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover object-[75%_0%]" />
         <div className="absolute inset-0" style={{ backgroundColor: '#12263A', opacity: 0.6 }} />
-        <Logo reversed height={48} className="relative z-10" />
+        <Logo reversed height={120} className="relative z-10" />
         <div className="hidden md:block relative z-10">
           <p className="font-serif text-4xl lg:text-5xl xl:text-6xl tracking-tight text-balance leading-[1.1] mb-6">
             Your brand starts here.
