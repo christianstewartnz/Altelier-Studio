@@ -6,14 +6,23 @@ import { ArrowLeft, Check, Download, Loader2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { createClient } from "@/lib/supabase/client"
-import { Logo } from "@/components/logo"
-import { getContrastColor, getSortedColors } from "@/lib/color-utils"
+import { AppHeader } from "@/components/app-header"
+import { getContrastColor, getLuminance, getSortedColors } from "@/lib/color-utils"
 import type { BrandConcept } from "./results-overview"
 import { WordmarkSVG } from "./wordmark-svg"
 import { RefinementModal } from "./refinement-modal"
 
 // Close the Fungies overlay without a page reload.
 // Tries the SDK method first; falls back to removing the iframe from the DOM.
+function hexWithAlpha(hex: string, alpha: number): string {
+  const c = hex.replace("#", "")
+  if (c.length < 6) return hex
+  const a = Math.min(255, Math.max(0, Math.round(alpha * 255)))
+    .toString(16)
+    .padStart(2, "0")
+  return `#${c.slice(0, 6)}${a}`
+}
+
 function closeFungiesOverlay() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -308,7 +317,18 @@ export function ConceptDetail({
   const sortedColors = getSortedColors(currentConcept.colors)
   const darkestColor = sortedColors[0]
   const lightestColor = sortedColors[sortedColors.length - 1]
-  const secondLightestColor = sortedColors[sortedColors.length - 2]
+  const palette = currentConcept.colors
+  const brochureCoverBg =
+    palette.length > 4
+      ? getLuminance(palette[1]!) >= getLuminance(palette[4]!) ? palette[1]! : palette[4]!
+      : palette.length > 1
+        ? palette[1]!
+        : lightestColor
+  const brochureMutedLabelColor =
+    sortedColors.length > 2 ? sortedColors[Math.floor(sortedColors.length / 2)]! : sortedColors[1] ?? darkestColor
+  const websiteHeroImageBg = palette.length > 3 ? palette[3]! : palette.length > 2 ? palette[2]! : palette[0]!
+  const wordmark = currentConcept.wordmarkColor || getContrastColor(currentConcept.colors[0])
+  const bodyStyle: React.CSSProperties = { fontFamily: `'${bodyFont}', sans-serif` }
   const APARTMENT_IMAGE = "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80"
 
   useEffect(() => {
@@ -377,29 +397,25 @@ export function ConceptDetail({
   return (
     <div className="min-h-screen bg-[#FAF9F7]" style={{ fontFamily: `'${bodyFont}', sans-serif` }}>
 
-      {/* â"€â"€ SCROLL-CONTROLLED HEADER â"€â"€ */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50 bg-[#FAF9F7] text-[#14110F] border-b border-[#B5281C] transition-opacity duration-300"
+      <AppHeader
+        position="fixed"
+        className="transition-opacity duration-300"
         style={{
           opacity: headerVisible ? 1 : 0,
           pointerEvents: headerVisible ? "auto" : "none",
         }}
-      >
-        <div className="mx-auto max-w-6xl px-6 relative z-10">
-          <div className="flex items-center h-16 md:h-20">
-            <Logo height={44} />
-          </div>
-        </div>
-      </header>
+        breadcrumbs={[{ label: "Explore" }]}
+      />
 
-      {/* â"€â"€ ALWAYS-VISIBLE BACK BUTTON -- hidden when refinement modal is open â"€â"€ */}
+      {/* Always-visible nav -- above header z-index so it stays clickable when header is visible */}
       {!showRefinement && (
         <button
+          type="button"
           onClick={isConfirmed ? onGoToDashboard : handleBack}
-          className="fixed top-0 right-0 z-[51] flex items-center gap-2 text-sm hover:opacity-70 transition-opacity h-16 md:h-20 px-6"
-          style={{ color: headerVisible ? "#14110F" : heroTextColor }}
+          className="fixed top-0 z-[9998] flex min-h-[74px] items-center gap-2 text-sm transition-colors hover:text-[#B5281C] right-4 sm:right-6 lg:right-10"
+          style={{ color: headerVisible ? "#4E473F" : heroTextColor }}
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="h-4 w-4 shrink-0" />
           {isConfirmed ? "Dashboard" : "All Concepts"}
         </button>
       )}
@@ -552,13 +568,13 @@ export function ConceptDetail({
             <div className="group">
               <div
                 className="aspect-[3/4] overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
-                style={{ backgroundColor: lightestColor }}
+                style={{ backgroundColor: brochureCoverBg }}
               >
                 <div className="flex items-center justify-center p-6 flex-shrink-0" style={{ height: '30%' }}>
                   <WordmarkSVG
                     composition={currentConcept.logoComposition}
-                    color={getContrastColor(lightestColor)}
-                    headingFont={currentConcept.fonts.heading}
+                    color={wordmark}
+                    headingFont={headingFont}
                   />
                 </div>
                 <div className="mx-4 overflow-hidden flex-shrink-0" style={{ height: '35%' }}>
@@ -567,13 +583,20 @@ export function ConceptDetail({
                 <div className="flex flex-col items-center justify-center p-4 flex-1">
                   <p
                     className="text-xs tracking-[0.2em] uppercase mb-2"
-                    style={{ color: getContrastColor(lightestColor), fontFamily: 'Inter, sans-serif', opacity: 0.7 }}
+                    style={{
+                      ...bodyStyle,
+                      color: brochureMutedLabelColor,
+                      opacity: 0.85,
+                    }}
                   >
                     For Sale
                   </p>
                   <p
                     className="text-sm text-center italic leading-snug"
-                    style={{ color: getContrastColor(lightestColor), fontFamily: `'${currentConcept.fonts.body}', sans-serif` }}
+                    style={{
+                      ...bodyStyle,
+                      color: darkestColor,
+                    }}
                   >
                     {currentConcept.tagline}
                   </p>
@@ -586,20 +609,20 @@ export function ConceptDetail({
             <div className="group">
               <div
                 className="aspect-[3/4] overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
-                style={{ backgroundColor: darkestColor }}
+                style={{ backgroundColor: palette[0] }}
               >
                 <div className="p-5 flex-shrink-0" style={{ height: '35%' }}>
                   <p
                     className="text-xs tracking-[0.25em] uppercase mb-3"
-                    style={{ color: getContrastColor(darkestColor), fontFamily: 'Inter, sans-serif', opacity: 0.7 }}
+                    style={{ ...bodyStyle, color: wordmark }}
                   >
                     Now Selling
                   </p>
                   <div style={{ width: '80%' }}>
                     <WordmarkSVG
                       composition={currentConcept.logoComposition}
-                      color={getContrastColor(darkestColor)}
-                      headingFont={currentConcept.fonts.heading}
+                      color={wordmark}
+                      headingFont={headingFont}
                     />
                   </div>
                 </div>
@@ -609,13 +632,13 @@ export function ConceptDetail({
                 <div className="p-5 flex-1 flex flex-col justify-end">
                   <p
                     className="text-base font-medium mb-1"
-                    style={{ color: getContrastColor(darkestColor), fontFamily: `'${currentConcept.fonts.heading}', serif` }}
+                    style={{ ...headingStyle, color: wordmark }}
                   >
                     {currentConcept.brandName}
                   </p>
                   <p
                     className="text-xs italic"
-                    style={{ color: getContrastColor(darkestColor), fontFamily: `'${currentConcept.fonts.body}', sans-serif`, opacity: 0.8 }}
+                    style={{ ...bodyStyle, color: wordmark, opacity: 0.75 }}
                   >
                     {currentConcept.tagline}
                   </p>
@@ -626,39 +649,49 @@ export function ConceptDetail({
 
             {/* Website Hero */}
             <div className="group">
-              <div
-                className="aspect-[3/4] overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]"
-                style={{ backgroundColor: secondLightestColor }}
-              >
+              <div className="aspect-[3/4] overflow-hidden flex flex-col transition-transform duration-300 group-hover:scale-[1.02]">
                 <div
                   className="flex items-center justify-between px-4 py-3 flex-shrink-0"
-                  style={{ backgroundColor: darkestColor, borderBottom: `1px solid ${getContrastColor(darkestColor)}20` }}
+                  style={{
+                    backgroundColor: palette[0],
+                    borderBottom: `1px solid ${hexWithAlpha(wordmark, 0.25)}`,
+                  }}
                 >
                   <div style={{ width: '45%' }}>
                     <WordmarkSVG
                       composition={currentConcept.logoComposition}
-                      color={getContrastColor(darkestColor)}
-                      headingFont={currentConcept.fonts.heading}
+                      color={wordmark}
+                      headingFont={headingFont}
                     />
                   </div>
                   <div className="flex gap-3">
-                    <span className="text-[9px] tracking-wide" style={{ color: getContrastColor(darkestColor), fontFamily: 'Inter, sans-serif', opacity: 0.7 }}>Floor Plans</span>
-                    <span className="text-[9px] tracking-wide" style={{ color: getContrastColor(darkestColor), fontFamily: 'Inter, sans-serif', opacity: 0.7 }}>Price List</span>
+                    <span className="text-[9px] tracking-wide" style={{ ...bodyStyle, color: wordmark }}>
+                      Floor Plans
+                    </span>
+                    <span className="text-[9px] tracking-wide" style={{ ...bodyStyle, color: wordmark }}>
+                      Price List
+                    </span>
                   </div>
                 </div>
-                <div className="mx-4 mt-4 overflow-hidden flex-shrink-0" style={{ height: '40%' }}>
+                <div
+                  className="mx-4 mt-4 overflow-hidden flex-shrink-0"
+                  style={{ height: '40%', backgroundColor: websiteHeroImageBg }}
+                >
                   <img src={APARTMENT_IMAGE} alt="Development preview" className="w-full h-full object-cover" />
                 </div>
-                <div className="p-4 flex-1 flex flex-col justify-center">
+                <div
+                  className="p-4 flex-1 flex flex-col justify-center"
+                  style={{ backgroundColor: lightestColor }}
+                >
                   <p
                     className="text-base font-medium mb-1"
-                    style={{ color: getContrastColor(secondLightestColor), fontFamily: `'${currentConcept.fonts.heading}', serif` }}
+                    style={{ ...headingStyle, color: darkestColor }}
                   >
                     {currentConcept.brandName}
                   </p>
                   <p
                     className="text-xs italic"
-                    style={{ color: getContrastColor(secondLightestColor), fontFamily: `'${currentConcept.fonts.body}', sans-serif`, opacity: 0.8 }}
+                    style={{ ...bodyStyle, color: darkestColor, opacity: 0.9 }}
                   >
                     {currentConcept.tagline}
                   </p>

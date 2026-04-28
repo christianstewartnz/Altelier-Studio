@@ -8,6 +8,41 @@ import { WordmarkSVG } from "@/components/results/wordmark-svg"
 import { getContrastColor, isLightColor } from "@/lib/color-utils"
 import { AppHeader } from "@/components/app-header"
 
+/** Case-insensitive match on the city field → Australia; otherwise New Zealand. */
+const AUSTRALIAN_CITIES = new Set(
+  [
+    "Sydney",
+    "Melbourne",
+    "Brisbane",
+    "Perth",
+    "Adelaide",
+    "Gold Coast",
+    "Canberra",
+    "Hobart",
+    "Darwin",
+    "Newcastle",
+    "Wollongong",
+    "Geelong",
+    "Townsville",
+    "Cairns",
+    "Toowoomba",
+    "Ballarat",
+    "Bendigo",
+    "Launceston",
+    "Mackay",
+    "Rockhampton",
+    "Bunbury",
+    "Mandurah",
+    "Sunshine Coast",
+    "Central Coast",
+  ].map(c => c.toLowerCase())
+)
+
+function countryFromCity(city: string): "Australia" | "New Zealand" {
+  const key = city.trim().toLowerCase()
+  return AUSTRALIAN_CITIES.has(key) ? "Australia" : "New Zealand"
+}
+
 type Project = {
   id: string
   project_name: string
@@ -30,7 +65,8 @@ export default function DashboardPage() {
   const [showNewProject, setShowNewProject] = useState(false)
   const [projectName, setProjectName] = useState("")
   const [address, setAddress] = useState("")
-  const [suburbCity, setSuburbCity] = useState("")
+  const [suburb, setSuburb] = useState("")
+  const [city, setCity] = useState("")
   const [creating, setCreating] = useState(false)
   const [user, setUser] = useState<any>(null)
   const [search, setSearch] = useState("")
@@ -91,11 +127,16 @@ export default function DashboardPage() {
   }
 
   async function handleCreateProject() {
-    if (!projectName.trim() || !address.trim() || !suburbCity.trim()) return
+    if (!projectName.trim() || !address.trim() || !suburb.trim() || !city.trim()) return
     setCreating(true)
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+
+    const suburbTrim = suburb.trim()
+    const cityTrim = city.trim()
+    const suburbCityCombined = `${suburbTrim}, ${cityTrim}`
+    const country = countryFromCity(cityTrim)
 
     const { data: project, error } = await supabase
       .from("projects")
@@ -104,8 +145,11 @@ export default function DashboardPage() {
         project_name: projectName.trim(),
         address: address.trim(),
         street_address: address.trim(),
-        suburb_city: suburbCity.trim(),
-        location: suburbCity.trim(),
+        suburb: suburbTrim,
+        city: cityTrim,
+        country,
+        suburb_city: suburbCityCombined,
+        location: suburbCityCombined,
         status: "draft"
       })
       .select()
@@ -121,7 +165,8 @@ export default function DashboardPage() {
     setShowNewProject(false)
     setProjectName("")
     setAddress("")
-    setSuburbCity("")
+    setSuburb("")
+    setCity("")
 
     const { data: updatedProjects } = await supabase
       .from("projects")
@@ -486,12 +531,23 @@ export default function DashboardPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="field-label">Suburb & City</label>
+                <label className="field-label">Suburb</label>
                 <input
                   type="text"
-                  value={suburbCity}
-                  onChange={e => setSuburbCity(e.target.value)}
-                  placeholder="e.g. Miramar, Wellington, New Zealand"
+                  value={suburb}
+                  onChange={e => setSuburb(e.target.value)}
+                  placeholder="e.g. Ponsonby"
+                  className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-[#B5281C] transition-colors"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="field-label">City</label>
+                <input
+                  type="text"
+                  value={city}
+                  onChange={e => setCity(e.target.value)}
+                  placeholder="e.g. Auckland"
                   className="w-full h-14 px-0 bg-transparent border-0 border-b-2 border-border text-base placeholder:text-stone-light focus:outline-none focus:border-[#B5281C] transition-colors"
                 />
               </div>
@@ -502,7 +558,8 @@ export default function DashboardPage() {
                     setShowNewProject(false)
                     setProjectName("")
                     setAddress("")
-                    setSuburbCity("")
+                    setSuburb("")
+                    setCity("")
                   }}
                   className="flex-1 h-14 text-sm font-medium border border-border text-foreground hover:bg-[#FAF9F7] transition-all"
                 >
@@ -510,7 +567,7 @@ export default function DashboardPage() {
                 </button>
                 <button
                   onClick={handleCreateProject}
-                  disabled={!projectName.trim() || !address.trim() || !suburbCity.trim() || creating}
+                  disabled={!projectName.trim() || !address.trim() || !suburb.trim() || !city.trim() || creating}
                   className="flex-1 h-14 text-sm font-medium bg-[#B5281C] text-[#FEFFEF] hover:bg-[#8C1E14] disabled:opacity-40 transition-all"
                 >
                   {creating ? "Creating..." : "Create Project"}

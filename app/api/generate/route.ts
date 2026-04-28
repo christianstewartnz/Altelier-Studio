@@ -16,60 +16,223 @@ const STAGE_2_MODEL = process.env.AI_MODEL_TIER === 'production'
   ? 'claude-opus-4-6'
   : 'claude-sonnet-4-6'
 
-const EDITORIAL_LUXURY = [
-  "Cormorant Garamond", "Playfair Display", "Bodoni Moda", "Italiana",
-  "Cinzel", "Gloock", "Fraunces", "IM Fell English", "DM Serif Display", "Cormorant"
-]
+const COLOUR_REGISTERS = ["Light", "Dark", "Bold"] as const
+type ColourRegister = (typeof COLOUR_REGISTERS)[number]
 
-const CONTEMPORARY_ARCHITECTURAL = [
-  "Montserrat", "Raleway", "Josefin Sans", "Urbanist", "Syne",
-  "Space Grotesk", "Red Hat Display", "Mulish", "Jost", "Didact Gothic", "Tenor Sans"
-]
+const TYPOGRAPHIC_REGISTERS = [
+  "Editorial Serif",
+  "Contemporary Sans",
+  "Expressive Display",
+] as const
+type TypographicRegister = (typeof TYPOGRAPHIC_REGISTERS)[number]
 
-const WARM_EXPRESSIVE = [
-  "Work Sans", "Outfit", "Bebas Neue", "Big Shoulders Display", "Lora",
-  "Libre Baskerville", "Yeseva One", "Rozha One", "Barlow Condensed",
-  "Figtree", "Fraunces", "Zilla Slab"
-]
+const COMPOSITION_FAMILY_REGISTERS = ["Single Line", "Stacked", "Contrast"] as const
+type CompositionFamilyRegister = (typeof COMPOSITION_FAMILY_REGISTERS)[number]
 
-const BOLD_EXPRESSIVE = [
-  "oversized-crop",
-  "weight-contrast",
-  "mixed-weight-inline",
-  "scale-contrast"
-]
+const TYPOGRAPHIC_REGISTER_FONTS: Record<TypographicRegister, readonly string[]> = {
+  "Editorial Serif": [
+    "Fraunces",
+    "Bodoni Moda",
+    "Italiana",
+    "Gloock",
+    "IM Fell English",
+    "Cinzel",
+    "Cardo",
+    "Unna",
+    "DM Serif Display",
+  ],
+  "Contemporary Sans": [
+    "Syne",
+    "Space Grotesk",
+    "Josefin Sans",
+    "Raleway",
+    "Urbanist",
+    "Jost",
+    "Red Hat Display",
+    "Mulish",
+    "Didact Gothic",
+  ],
+  "Expressive Display": [
+    "Yeseva One",
+    "Rozha One",
+    "Playfair Display",
+    "Bebas Neue",
+    "Big Shoulders Display",
+    "Barlow Condensed",
+    "Zilla Slab",
+  ],
+}
 
-const ARCHITECTURAL_STRUCTURED = [
-  "ultrawide",
-  "stacked-weighted",
-  "left-editorial",
-  "stacked-punctuation"
-]
+const COMPOSITION_FAMILY_POOLS: Record<CompositionFamilyRegister, readonly string[]> = {
+  "Single Line": ["inline-clean", "inline-ruled", "ultrawide", "oversized-crop"],
+  Stacked: ["stacked-weighted", "stacked-ruled", "left-editorial", "offset-subtitle"],
+  Contrast: ["weight-contrast", "mixed-weight-inline", "scale-contrast"],
+}
 
-const REFINED_ELEGANT = [
-  "inline-clean",
-  "inline-ruled",
-  "offset-subtitle",
-  "stacked-ruled"
-]
+const CHOSEN_NAME_COLOUR_REGISTER_TEXT: Record<ColourRegister, string> = {
+  Light: `COLOUR REGISTER INSTRUCTION:
+COLOUR REGISTER ASSIGNED: Light
+
+Light register: colors[0] must be a light background colour
+— high lightness. It should read immediately as a light,
+considered surface. Derive the specific colour from the
+brief, the name, and the creative territory. Do not default
+to white or off-white — find a colour that belongs to this
+brand world specifically.`,
+
+  Dark: `COLOUR REGISTER INSTRUCTION:
+COLOUR REGISTER ASSIGNED: Dark
+
+Dark register: colors[0] must be a dark background colour
+— low lightness. It should read immediately as a dramatic, confident
+dark surface. Derive the specific colour from the
+brief, the name, and the creative territory. Do not default
+to near-black — find a dark colour that belongs to this
+brand world specifically.`,
+
+  Bold: `COLOUR REGISTER INSTRUCTION:
+COLOUR REGISTER ASSIGNED: Bold
+
+Bold register: colors[0] must be a mid-tone colour with
+genuine saturation and visual presence — neither light
+nor dark. It should make an immediate statement. Derive
+the specific colour from the brief, the name, and the
+creative territory. This colour should feel brave and
+considered — not a safe neutral.`,
+}
+
+const CHOSEN_NAME_TYPOGRAPHIC_REGISTER_TEXT: Record<TypographicRegister, string> = {
+  "Editorial Serif": `TYPOGRAPHIC REGISTER INSTRUCTION:
+TYPOGRAPHIC REGISTER ASSIGNED: Editorial Serif
+
+Editorial Serif register: heading font must be chosen
+from this list only — Fraunces, Bodoni Moda, Italiana,
+Gloock, IM Fell English, Cinzel, Cardo, Unna, DM Serif Display.
+Choose the font from this list that best suits this
+specific concept's territory and name character.`,
+
+  "Contemporary Sans": `TYPOGRAPHIC REGISTER INSTRUCTION:
+TYPOGRAPHIC REGISTER ASSIGNED: Contemporary Sans
+
+Contemporary Sans register: heading font must be chosen
+from this list only — Syne, Space Grotesk, Josefin Sans,
+Raleway, Urbanist, Jost, Red Hat Display, Mulish, Didact Gothic.
+Choose the font from this list that best suits this
+specific concept's territory and name character.`,
+
+  "Expressive Display": `TYPOGRAPHIC REGISTER INSTRUCTION:
+TYPOGRAPHIC REGISTER ASSIGNED: Expressive Display
+
+Expressive Display register: heading font must be chosen
+from this list only — Yeseva One, Rozha One, Playfair Display,
+Bebas Neue, Big Shoulders Display, Barlow Condensed, Zilla Slab.
+Choose the font from this list that best suits this
+specific concept's territory and name character.`,
+}
+
+const CHOSEN_NAME_COMPOSITION_FAMILY_TEXT: Record<CompositionFamilyRegister, string> = {
+  "Single Line": `COMPOSITION FAMILY REGISTER INSTRUCTION:
+COMPOSITION FAMILY ASSIGNED: Single Line
+
+Single Line family: logo composition style must be chosen
+from — inline-clean, inline-ruled, ultrawide, oversized-crop.
+Apply all existing character length rules:
+oversized-crop only for names 3-6 characters.
+ultrawide only for names 3-7 characters.`,
+
+  Stacked: `COMPOSITION FAMILY REGISTER INSTRUCTION:
+COMPOSITION FAMILY ASSIGNED: Stacked
+
+Stacked family: logo composition style must be chosen
+from — stacked-weighted, stacked-ruled, left-editorial,
+offset-subtitle.
+The name splits across two lines or uses a subtitle treatment.`,
+
+  Contrast: `COMPOSITION FAMILY REGISTER INSTRUCTION:
+COMPOSITION FAMILY ASSIGNED: Contrast
+
+Contrast family: logo composition style must be chosen
+from — weight-contrast, mixed-weight-inline, scale-contrast.
+Requires two meaningful elements — use lines[1] as a
+subtitle, location, or meaningful second word if the
+name is a single word.`,
+}
+
+/** Fisher–Yates shuffle using Math.random(). */
+function shuffleArray<T>(arr: T[]): T[] {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function pickRandom<T>(items: readonly T[]): T {
+  return items[Math.floor(Math.random() * items.length)]!
+}
+
+type SessionConceptRegisters = {
+  colourRegister: ColourRegister
+  typographicRegister: TypographicRegister
+  compositionFamilyRegister: CompositionFamilyRegister
+  headingFont: string
+  compositionStyle: string
+}
+
+type SessionRegisterAssignment = Pick<
+  SessionConceptRegisters,
+  "colourRegister" | "typographicRegister" | "compositionFamilyRegister"
+>
 
 function pickSessionStyles(): {
+  bySlot: Record<"A" | "B" | "C", SessionConceptRegisters>
+  registerAssignments: Record<"A" | "B" | "C", SessionRegisterAssignment>
   bold: string
   architectural: string
   refined: string
   sessionFonts: { editorial: string; contemporary: string; expressive: string }
 } {
-  const shuffle = (arr: string[]) =>
-    [...arr].sort(() => Math.random() - 0.5)
-  return {
-    bold: shuffle(BOLD_EXPRESSIVE)[0],
-    architectural: shuffle(ARCHITECTURAL_STRUCTURED)[0],
-    refined: shuffle(REFINED_ELEGANT)[0],
-    sessionFonts: {
-      editorial: shuffle(EDITORIAL_LUXURY)[0],
-      contemporary: shuffle(CONTEMPORARY_ARCHITECTURAL)[0],
-      expressive: shuffle(WARM_EXPRESSIVE)[0],
+  const colourOrder = shuffleArray([...COLOUR_REGISTERS])
+  const typoOrder = shuffleArray([...TYPOGRAPHIC_REGISTERS])
+  const familyOrder = shuffleArray([...COMPOSITION_FAMILY_REGISTERS])
+
+  const slots = ["A", "B", "C"] as const
+  const bySlot = {} as Record<"A" | "B" | "C", SessionConceptRegisters>
+  const registerAssignments = {} as Record<"A" | "B" | "C", SessionRegisterAssignment>
+
+  for (let i = 0; i < 3; i++) {
+    const slot = slots[i]!
+    const colourRegister = colourOrder[i]!
+    const typographicRegister = typoOrder[i]!
+    const compositionFamilyRegister = familyOrder[i]!
+    const headingFont = pickRandom(TYPOGRAPHIC_REGISTER_FONTS[typographicRegister])
+    const compositionStyle = pickRandom(COMPOSITION_FAMILY_POOLS[compositionFamilyRegister])
+    bySlot[slot] = {
+      colourRegister,
+      typographicRegister,
+      compositionFamilyRegister,
+      headingFont,
+      compositionStyle,
     }
+    registerAssignments[slot] = {
+      colourRegister,
+      typographicRegister,
+      compositionFamilyRegister,
+    }
+  }
+
+  return {
+    bySlot,
+    registerAssignments,
+    bold: bySlot.A.compositionStyle,
+    architectural: bySlot.B.compositionStyle,
+    refined: bySlot.C.compositionStyle,
+    sessionFonts: {
+      editorial: bySlot.A.headingFont,
+      contemporary: bySlot.B.headingFont,
+      expressive: bySlot.C.headingFont,
+    },
   }
 }
 
@@ -269,13 +432,44 @@ BRAND AMBITION
     // --------------------------------------------------------
     if (chosenName) {
       const sessionStyles = pickSessionStyles()
-      const { sessionFonts } = sessionStyles
+      const { sessionFonts, bySlot } = sessionStyles
 
       const delay = (ms: number) => new Promise(res => setTimeout(res, ms))
       const [concept1, concept2, concept3] = await Promise.all([
-        generateConceptFromChosenName(userBrief, chosenName, "A", sessionStyles.bold, sessionFonts.editorial, "Editorial/Luxury"),
-        delay(800).then(() => generateConceptFromChosenName(userBrief, chosenName, "B", sessionStyles.architectural, sessionFonts.contemporary, "Contemporary/Architectural")),
-        delay(1600).then(() => generateConceptFromChosenName(userBrief, chosenName, "C", sessionStyles.refined, sessionFonts.expressive, "Warm/Expressive")),
+        generateConceptFromChosenName(
+          userBrief,
+          chosenName,
+          "A",
+          bySlot.A.colourRegister,
+          bySlot.A.typographicRegister,
+          bySlot.A.compositionFamilyRegister,
+          bySlot.A.compositionStyle,
+          sessionFonts.editorial
+        ),
+        delay(800).then(() =>
+          generateConceptFromChosenName(
+            userBrief,
+            chosenName,
+            "B",
+            bySlot.B.colourRegister,
+            bySlot.B.typographicRegister,
+            bySlot.B.compositionFamilyRegister,
+            bySlot.B.compositionStyle,
+            sessionFonts.contemporary
+          )
+        ),
+        delay(1600).then(() =>
+          generateConceptFromChosenName(
+            userBrief,
+            chosenName,
+            "C",
+            bySlot.C.colourRegister,
+            bySlot.C.typographicRegister,
+            bySlot.C.compositionFamilyRegister,
+            bySlot.C.compositionStyle,
+            sessionFonts.expressive
+          )
+        ),
       ])
 
       const deduped = await deduplicateConceptTaglines([concept1, concept2, concept3])
@@ -289,7 +483,7 @@ BRAND AMBITION
     // Fast call to identify three distinct creative territories
     // --------------------------------------------------------
     const sessionStyles = pickSessionStyles()
-    const { sessionFonts } = sessionStyles
+    const { sessionFonts, bySlot } = sessionStyles
 
     // Build attachment content blocks for Stage 1 only
     const MAX_FILE_SIZE = 10 * 1024 * 1024
@@ -337,7 +531,7 @@ BRAND AMBITION
       }
     }
 
-    const strategyText = `Here is the project brief:\n\n${userBrief}\n\nCOMPOSITION STYLES AVAILABLE THIS SESSION:\nYou have exactly three composition styles to work with across the three concepts. Assign one to each territory based on which fits best with that territory's character.\n\nBold/Expressive style available: ${sessionStyles.bold}\nArchitectural/Structured style available: ${sessionStyles.architectural}\nRefined/Elegant style available: ${sessionStyles.refined}\n\nEach territory must be assigned a different style from this list. All three must be used exactly once.\nInclude the assigned style in each territory object as the assignedStyle field.\n\nIdentify three distinct creative territories and assign one composition style to each. Return only valid JSON, no markdown, no explanation.`
+    const strategyText = `Here is the project brief:\n\n${userBrief}\n\nSESSION VISUAL REGISTERS (fixed per concept slot — Stage 2 will enforce):\nConcept A: colour=${bySlot.A.colourRegister}, typography=${bySlot.A.typographicRegister}, composition family=${bySlot.A.compositionFamilyRegister}\nConcept B: colour=${bySlot.B.colourRegister}, typography=${bySlot.B.typographicRegister}, composition family=${bySlot.B.compositionFamilyRegister}\nConcept C: colour=${bySlot.C.colourRegister}, typography=${bySlot.C.typographicRegister}, composition family=${bySlot.C.compositionFamilyRegister}\n\nCOMPOSITION STYLES AVAILABLE THIS SESSION:\nThree composition styles are locked to slots A/B/C (one Single Line family, one Stacked, one Contrast — see below). Craft each territory so it is a strong creative match for its slot’s locked registers and composition style.\n\nConcept A territory → composition style: ${sessionStyles.bold} (${bySlot.A.compositionFamilyRegister})\nConcept B territory → composition style: ${sessionStyles.architectural} (${bySlot.B.compositionFamilyRegister})\nConcept C territory → composition style: ${sessionStyles.refined} (${bySlot.C.compositionFamilyRegister})\n\nTerritory order maps to concepts: first territory in your array becomes Concept A, second becomes B, third becomes C. Each territory must be assigned the composition style that matches its slot (A/B/C) as listed above. Include that exact string in each territory object as the assignedStyle field.\n\nIdentify three distinct creative territories. Return only valid JSON, no markdown, no explanation.`
 
     const strategyContent = attachmentBlocks.length > 0
       ? [...attachmentBlocks, { type: "text" as const, text: strategyText }]
@@ -370,25 +564,44 @@ BRAND AMBITION
     // --------------------------------------------------------
     // STAGE 2 — THREE SEQUENTIAL CREATIVE CALLS
     // Each call develops one territory into a full concept.
-    // Sequential execution lets us pass each concept's actual
-    // composition style to the next, guaranteeing variety.
+    // Register diversity is fixed by slot; composition family
+    // per slot replaces ad-hoc style-avoidance between calls.
     // --------------------------------------------------------
 
     const concept1 = await generateConcept(
-      userBrief, territories[0], [], "A", [],
-      sessionFonts.editorial, "Editorial/Luxury"
+      userBrief,
+      territories[0],
+      [],
+      "A",
+      sessionFonts.editorial,
+      bySlot.A.typographicRegister,
+      bySlot.A.colourRegister,
+      bySlot.A.compositionFamilyRegister,
+      bySlot.A.compositionStyle
     )
 
     const concept2 = await generateConcept(
-      userBrief, territories[1], [territories[0]], "B",
-      [concept1.logoComposition.style],
-      sessionFonts.contemporary, "Contemporary/Architectural"
+      userBrief,
+      territories[1],
+      [territories[0]],
+      "B",
+      sessionFonts.contemporary,
+      bySlot.B.typographicRegister,
+      bySlot.B.colourRegister,
+      bySlot.B.compositionFamilyRegister,
+      bySlot.B.compositionStyle
     )
 
     const concept3 = await generateConcept(
-      userBrief, territories[2], [territories[0], territories[1]], "C",
-      [concept1.logoComposition.style, concept2.logoComposition.style],
-      sessionFonts.expressive, "Warm/Expressive"
+      userBrief,
+      territories[2],
+      [territories[0], territories[1]],
+      "C",
+      sessionFonts.expressive,
+      bySlot.C.typographicRegister,
+      bySlot.C.colourRegister,
+      bySlot.C.compositionFamilyRegister,
+      bySlot.C.compositionStyle
     )
 
     const deduped = await deduplicateConceptTaglines([concept1, concept2, concept3])
@@ -413,9 +626,11 @@ async function generateConcept(
   territory: Territory,
   otherTerritories: Territory[],
   slot: "A" | "B" | "C",
-  usedStyles: string[],
   assignedHeadingFont: string,
-  fontGroupName: string
+  typographicRegister: TypographicRegister,
+  colourRegister: ColourRegister,
+  compositionFamilyRegister: CompositionFamilyRegister,
+  assignedCompositionStyle: string
 ): Promise<BrandConceptOutput> {
   const avoidanceInstructions = otherTerritories.length > 0
     ? `
@@ -429,16 +644,6 @@ Concept ${i + 1} visual territory: ${t.visualTerritory}
 
 Do not use similar colour families, font styles, or 
 composition approaches to any of the above.
-    `
-    : ""
-
-  const styleAvoidance = usedStyles.length > 0
-    ? `
-COMPOSITION STYLES ALREADY USED IN THIS SESSION:
-${usedStyles.join(", ")}
-
-You MUST choose a different composition style from all of the above.
-Using the same style as another concept is not acceptable.
     `
     : ""
 
@@ -461,20 +666,23 @@ TERRITORY RATIONALE: ${territory.rationale}
 NAMING DIRECTION: ${territory.namingDirection}
 VISUAL TERRITORY: ${territory.visualTerritory}
 
-ASSIGNED COMPOSITION STYLE: ${territory.assignedStyle}
+${CHOSEN_NAME_COLOUR_REGISTER_TEXT[colourRegister]}
 
-You must use this composition style. It has been 
-selected to ensure variety across the three concepts 
-in this session. Your creative job is to make it 
-feel completely true to this concept through your 
+${CHOSEN_NAME_TYPOGRAPHIC_REGISTER_TEXT[typographicRegister]}
+
+${CHOSEN_NAME_COMPOSITION_FAMILY_TEXT[compositionFamilyRegister]}
+
+ASSIGNED COMPOSITION STYLE: ${assignedCompositionStyle}
+
+The session has locked your logo to this exact composition style, within the
+composition family and rules above. You must use this style. Your creative
+job is to make it feel completely true to this concept through your
 choices of weight, tracking, and case.
 
 ASSIGNED HEADING FONT: ${assignedHeadingFont}
-FONT PERSONALITY GROUP: ${fontGroupName}
 
-You must use ${assignedHeadingFont} as the heading font. It has been 
-assigned to ensure typographic variety across the three concepts 
-in this session. Your creative job is to make it feel completely 
+You must use ${assignedHeadingFont} as the heading font (it is the choice from the typographic
+register's list for this session). Your creative job is to make it feel completely
 true to this concept through your weight, tracking, and case choices.
 
 For the body font: choose freely from any category that pairs well 
@@ -518,8 +726,6 @@ ultrawide, oversized-crop):
 
 ${avoidanceInstructions}
 
-${styleAvoidance}
-
 Develop this territory into a complete brand concept.
 Return only valid JSON, no markdown, no explanation.
         `
@@ -548,9 +754,11 @@ async function generateConceptFromChosenName(
   brief: string,
   chosenName: { name: string; rationale: string; territory: string },
   slot: "A" | "B" | "C",
-  assignedStyle: string,
-  assignedHeadingFont: string,
-  fontGroupName: string
+  colourRegister: ColourRegister,
+  typographicRegister: TypographicRegister,
+  compositionFamilyRegister: CompositionFamilyRegister,
+  assignedCompositionStyle: string,
+  assignedHeadingFont: string
 ): Promise<BrandConceptOutput> {
   const conceptRoleInstructions = {
     A: `Concept A — Most faithful: Build the visual world that most authentically expresses this name's territory and rationale. The palette, fonts, and composition should feel like the most natural home for this name.
@@ -565,6 +773,23 @@ COLOUR DIRECTION — CONCEPT B: The primary colour family must be completely dif
 
 COLOUR DIRECTION — CONCEPT C: The primary colour family must be completely different from both Concept A and Concept B. Shade variations of the same hue family do not count as different. Before finalising the palette, ask: why does this specific colour world belong to this name? If you cannot answer that question specifically — choose differently. This palette should feel surprising but inevitable — the most unexpected interpretation that still makes visual sense for this name.`,
   }
+
+  const brandNameUsage = compositionFamilyRegister === "Contrast"
+    ? `BRAND NAME USAGE — IMPORTANT:
+The brand name has been chosen by the developer. Use it exactly on lines[0] for the
+primary wordmark — the spelling and wording of the chosen name must not change.
+Because COMPOSITION FAMILY is Contrast, follow the Contrast family lines rules above: if
+the name is a single word, set lines[1] to a short subtitle, location, or meaningful
+second line (a design line, not a new brand name). If the name is two words, split
+across lines per the assigned composition style. Do not invent a second brand name.`
+    : `BRAND NAME USAGE — IMPORTANT:
+The brand name has been chosen by the developer as a standalone name.
+Use it exactly as provided — do not append the suburb, city, or any
+location name to the brand name in the logo composition.
+lines[0] should contain only the chosen brand name.
+lines[1] should be empty string unless the chosen name itself is two words.
+The developer can choose to add a location via the refinement system
+later if they wish. Do not make that decision for them at generation time.`
 
   const response = await client.messages.create({
     model: STAGE_2_MODEL,
@@ -590,20 +815,23 @@ CONCEPT ROLE: ${slot}
 
 ${conceptRoleInstructions[slot]}
 
-ASSIGNED COMPOSITION STYLE: ${assignedStyle}
+${CHOSEN_NAME_COLOUR_REGISTER_TEXT[colourRegister]}
 
-You must use this composition style. It has been
-selected to ensure variety across the three concepts
-in this session. Your creative job is to make it
-feel completely true to this concept through your
+${CHOSEN_NAME_TYPOGRAPHIC_REGISTER_TEXT[typographicRegister]}
+
+${CHOSEN_NAME_COMPOSITION_FAMILY_TEXT[compositionFamilyRegister]}
+
+ASSIGNED COMPOSITION STYLE: ${assignedCompositionStyle}
+
+The session has locked your logo to this exact composition style, within the
+composition family and rules above. You must use this style. Your creative
+job is to make it feel completely true to this concept through your
 choices of weight, tracking, and case.
 
 ASSIGNED HEADING FONT: ${assignedHeadingFont}
-FONT PERSONALITY GROUP: ${fontGroupName}
 
-You must use ${assignedHeadingFont} as the heading font. It has been
-assigned to ensure typographic variety across the three concepts
-in this session. Your creative job is to make it feel completely
+You must use ${assignedHeadingFont} as the heading font (it is the choice from the typographic
+register's list for this session). Your creative job is to make it feel completely
 true to this concept through your weight, tracking, and case choices.
 
 For the body font: choose freely from any category that pairs well
@@ -645,14 +873,7 @@ ultrawide, oversized-crop):
 - lines[0] = the brand name
 - lines[1] = empty string ""
 
-BRAND NAME USAGE — IMPORTANT:
-The brand name has been chosen by the developer as a standalone name.
-Use it exactly as provided — do not append the suburb, city, or any
-location name to the brand name in the logo composition.
-lines[0] should contain only the chosen brand name.
-lines[1] should be empty string unless the chosen name itself is two words.
-The developer can choose to add a location via the refinement system
-later if they wish. Do not make that decision for them at generation time.
+${brandNameUsage}
 
 Develop this territory into a complete brand concept.
 Return only valid JSON, no markdown, no explanation.
@@ -717,8 +938,10 @@ You are a senior creative strategist at a world-class
 property branding agency. Your job is to read a project 
 brief and identify three genuinely distinct creative 
 territories that could each support a compelling brand 
-identity. You will also assign a composition style to 
-each territory.
+identity. Composition style, colour register, and 
+typographic register are fixed per slot (A/B/C) in the 
+user message — you copy the exact assignedStyle for 
+each array position.
 
 A creative territory is not a name — it is a strategic 
 platform. A lens through which the project's identity 
@@ -746,14 +969,11 @@ THE THREE TERRITORIES MUST BE GENUINELY DIFFERENT:
   single evocative word, another a cultural reference,
   another a physical truth
 
-HEADING FONT DIVERSITY:
-The three composition styles you assign must suggest
-clearly different typographic personalities. When the
-concept calls develop these territories, each must
-end up with a different heading font. Flag in your
-territory rationale if a territory strongly suggests
-a specific typographic category so the concept
-calls can be diverse.
+REGISTER DIVERSITY (FIXED BY SYSTEM):
+Colour register, typographic register, and composition family
+register are already locked per concept slot (A/B/C) and listed
+in the user message. Your territories will receive those registers
+automatically in Stage 2 — do not substitute different registers.
 
 TERRITORY SOURCES TO CONSIDER:
 - A specific physical truth about this exact site
@@ -780,26 +1000,16 @@ specific site sits on land historically used for X
 and the word Y captures that precisely."
 
 COMPOSITION STYLE ASSIGNMENT:
-You will be given three composition styles — one 
-bold/expressive, one architectural/structured, one 
-refined/elegant. Assign one to each territory based 
-on which style best matches that territory's 
-emotional character and visual world.
+You will be given exactly three predetermined composition styles
+(one Single Line family, one Stacked family, one Contrast family),
+locked to concept slots A, B, and C in order. The first object in
+your array is Concept A and MUST use the composition style given for
+slot A; the second is Concept B with slot B's style; the third is
+Concept C with slot C's style. Copy the assignedStyle string from
+the user message exactly — do not invent a different style name.
 
-Assignment guidance:
-- Bold/expressive styles suit territories that are 
-  confident, urban, graphic, or make a strong 
-  singular statement
-- Architectural/structured styles suit territories 
-  that are precise, considered, minimal, or have 
-  a strong geometric or material character
-- Refined/elegant styles suit territories that are 
-  quiet, heritage-influenced, warm, or human in tone
-
-The assignment should feel like a natural creative 
-match. If none of the three styles feels perfect 
-for a territory, assign the closest fit and the 
-concept call will adapt it creatively.
+Craft three territories such that each one is a strong creative fit
+for its locked composition style and register set.
 
 Return a JSON array of exactly 3 territory objects:
 
@@ -815,9 +1025,8 @@ Return a JSON array of exactly 3 territory objects:
     "visualTerritory": "One sentence describing the 
       visual world this territory suggests — colour 
       family, typographic personality, overall feeling",
-    "assignedStyle": "The composition style assigned 
-      to this territory from the three available 
-      session styles"
+    "assignedStyle": "Exact composition style string 
+      for this territory's slot (A/B/C) from the user message"
   }
 ]
 
@@ -1148,17 +1357,58 @@ brand applications. It can be any colour — dark, light, or
 mid-tone — but it must create a considered brand impression 
 when used as a background.
 
-You must also specify a wordmarkColor — the text colour that 
-sits on top of colors[0]. This must be readable but should be 
-a considered and intentional design decision, not just maximum 
-contrast. 
+You must also specify a wordmarkColor — the text colour that
+sits on top of colors[0].
 
-The wordmark colour should be chosen to reinforce the
-brand personality — not default to maximum contrast.
-It can be any colour from the palette or a complementary
-colour that creates the right brand impression. Consider
-what colour combination feels true to this specific concept's
-emotional world.
+WORDMARK COLOUR — CREATIVE DECISION NOT A CONTRAST DECISION:
+
+Before choosing a wordmark colour, reject the first
+answer that comes to mind. It is almost certainly
+pure white or pure black. That is the default for
+someone who has not thought about it.
+
+The wordmark colour should be the most considered
+and unexpected choice that still reads clearly on
+the primary background. Think like a brand designer
+who has spent time with this palette.
+
+APPROACH BY COLOUR REGISTER:
+
+Light backgrounds — the wordmark does not need to be
+black. Consider:
+- A deep colour from the palette that creates
+  considered contrast without being pure black
+- A dark navy, dark forest, deep burgundy, or
+  dark slate as the wordmark colour
+- A brand accent colour if it reads with sufficient
+  contrast — deep teal on pale cream, dark rust on
+  pale stone, deep navy on blush
+- Pure black only as a last resort
+
+Dark backgrounds — the wordmark does not need to be
+white. Consider:
+- A warm tone from the palette — warm sand, pale gold,
+  warm brass, dusty rose, ivory — rather than pure white
+- A brand accent colour if it creates an interesting
+  brand moment — gold on navy, copper on charcoal,
+  sage on dark forest
+- Pure white only as a last resort
+
+Bold mid-tone backgrounds — maximum creative freedom:
+- Complementary colour tension often works here —
+  deep navy on terracotta, dark forest on burnt orange,
+  deep burgundy on warm gold
+- A light tone from the palette rather than white
+- A dark tone from the palette rather than black
+- The wordmark colour on a bold background should
+  feel like a deliberate design decision that someone
+  would notice and appreciate
+
+THE TEST: Would a brand designer look at this wordmark
+colour choice and think 'that is considered'? Or would
+they think 'that is just the obvious choice'?
+
+If it is the obvious choice — try again.
 
 COLOUR STRATEGY (CRITICAL):
 

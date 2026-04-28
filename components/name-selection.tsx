@@ -2,7 +2,8 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Logo } from "@/components/logo"
+import { ArrowLeft } from "lucide-react"
+import { AppHeader } from "@/components/app-header"
 
 type NameOption = {
   name: string
@@ -23,20 +24,19 @@ export function NameSelection({ projectName, names, onNameSelected, isGenerating
 
   return (
     <div className="min-h-screen bg-[#FAF9F7]">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#14110F] text-paper">
-        <div className="mx-auto max-w-6xl px-6 relative z-10">
-          <div className="flex items-center justify-between h-16 md:h-20">
-            <Logo reversed height={44} />
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="text-sm text-stone-light hover:opacity-70 transition-opacity"
-            >
-              â† Dashboard
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        breadcrumbs={[{ label: "Names" }]}
+        actions={(
+          <button
+            type="button"
+            onClick={() => router.push("/dashboard")}
+            className="flex items-center gap-2 text-sm text-[#4E473F] transition-colors hover:text-[#B5281C]"
+          >
+            <ArrowLeft className="h-4 w-4 shrink-0" />
+            Dashboard
+          </button>
+        )}
+      />
 
       {/* Hero */}
       <section className="py-12 md:py-16 px-6">

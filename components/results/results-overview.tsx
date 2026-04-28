@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 import { ArrowLeft, ArrowRight } from "lucide-react"
-import { Logo } from "@/components/logo"
+import { AppHeader } from "@/components/app-header"
 import { getContrastColor } from "@/lib/color-utils"
 import { WordmarkSVG } from "./wordmark-svg"
 import { InstructionsOverlay } from "./instructions-overlay"
@@ -261,38 +261,25 @@ export function ResultsOverview({
         />
       )}
 
-      {/* Scroll-controlled header */}
-      <header
-        className="fixed top-0 left-0 right-0 z-50 bg-[#FAF9F7] text-[#14110F] border-b border-[#B5281C] transition-opacity duration-300"
+      {/* Scroll-controlled header (same shell as dashboard); opacity unchanged */}
+      <AppHeader
+        position="fixed"
+        className="transition-opacity duration-300"
         style={{
           opacity: headerVisible ? 1 : 0,
           pointerEvents: headerVisible ? "auto" : "none",
         }}
-      >
-        <div className="mx-auto max-w-[1600px] px-6 relative z-10">
-          <div className="flex items-center h-16 md:h-20">
-            <Logo height={44} />
-          </div>
-        </div>
-      </header>
+        breadcrumbs={[{ label: "Concepts" }]}
+      />
 
-      {/* Always-visible Dashboard button -- portal ensures fixed positioning is never broken by ancestor transforms */}
+      {/* Always-visible Dashboard -- portal avoids transform/stacking issues; spacing matches AppHeader lg:px-10 */}
       {mounted && createPortal(
         <button
+          type="button"
           onClick={onStartOver}
-          className="flex items-center gap-2 text-sm hover:opacity-70 transition-colors duration-300"
-          style={{
-            position: "fixed",
-            top: 0,
-            right: 0,
-            zIndex: 9998,
-            height: "80px",
-            paddingLeft: "24px",
-            paddingRight: "24px",
-            color: "#14110F",
-          }}
+          className="fixed top-0 z-[9998] flex min-h-[74px] items-center gap-2 text-sm text-[#4E473F] transition-colors hover:text-[#B5281C] right-4 sm:right-6 lg:right-10"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="h-4 w-4 shrink-0" />
           Dashboard
         </button>,
         document.body

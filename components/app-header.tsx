@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 import Link from "next/link"
 import { ChevronRight } from "lucide-react"
 import { Logo } from "@/components/logo"
@@ -15,6 +15,9 @@ type AppHeaderProps = {
   children?: ReactNode
   logoHref?: string
   className?: string
+  /** Default sticky (dashboard); use fixed for overlays / scroll-fading headers */
+  position?: "sticky" | "fixed"
+  style?: CSSProperties
 }
 
 export function AppHeader({
@@ -24,10 +27,18 @@ export function AppHeader({
   children,
   logoHref = "/dashboard",
   className = "",
+  position = "sticky",
+  style,
 }: AppHeaderProps) {
+  const positionClasses =
+    position === "fixed"
+      ? "fixed top-0 left-0 right-0 z-[70]"
+      : "sticky top-0 z-[70]"
+
   return (
     <header
-      className={`sticky top-0 z-[70] border-t-2 border-t-[#B5281C] border-b border-[#E6DED6] bg-[#FAF9F7]/95 backdrop-blur supports-[backdrop-filter]:bg-[#FAF9F7]/90 ${className}`}
+      className={`${positionClasses} border-t-2 border-t-[#B5281C] border-b border-[#E6DED6] bg-[#FAF9F7]/95 backdrop-blur supports-[backdrop-filter]:bg-[#FAF9F7]/90 ${className}`}
+      style={style}
     >
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 lg:px-10">
         <div className="grid min-h-[74px] grid-cols-[auto_1fr_auto] items-center gap-4 sm:gap-6">

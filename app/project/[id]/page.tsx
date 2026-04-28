@@ -19,6 +19,23 @@ import type {
   BrandAmbitionData 
 } from "@/app/page"
 
+/** Brief Step 1 location: full 'Suburb, City, Country' when all DB parts exist; else legacy suburb_city/location. */
+function initialBriefLocationFromProject(project: {
+  suburb?: string | null
+  city?: string | null
+  country?: string | null
+  suburb_city?: string | null
+  location?: string | null
+}): string {
+  const suburb = (project.suburb ?? "").trim()
+  const city = (project.city ?? "").trim()
+  const country = (project.country ?? "").trim()
+  if (suburb && city && country) {
+    return `${suburb}, ${city}, ${country}`
+  }
+  return project.suburb_city || project.location || ""
+}
+
 export default function ProjectPage() {
   const params = useParams()
   const router = useRouter()
@@ -121,10 +138,10 @@ export default function ProjectPage() {
         }
       }
 
-      // Pre-fill location from suburb_city
+      // Pre-fill location: structured suburb/city/country when complete, else legacy fields
       setProjectOverview(prev => ({
         ...prev,
-        location: project.suburb_city || project.location || "",
+        location: initialBriefLocationFromProject(project),
         developmentType: project.development_type || "",
         numberOfHomes: project.number_of_homes || "",
         targetMarket: (() => {

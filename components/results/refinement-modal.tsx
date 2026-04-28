@@ -279,7 +279,6 @@ export function RefinementModal({
           const rewritten = await res.json()
           if (trigger === "name") {
             if (rewritten.rationale) updatedConcept.rationale = rewritten.rationale
-            if (rewritten.tagline) updatedConcept.tagline = rewritten.tagline
             if (rewritten.voiceSample) updatedConcept.voiceSample = rewritten.voiceSample
           } else {
             if (rewritten.voiceSample) updatedConcept.voiceSample = rewritten.voiceSample

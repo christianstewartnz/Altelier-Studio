@@ -85,20 +85,18 @@ export async function POST(request: Request) {
       .trim()
     const territories = JSON.parse(cleanedStrategy) as Territory[]
 
-    const concept1 = await generateConcept(userBrief(brief), territories[0], [], "A", [])
+    const concept1 = await generateConcept(userBrief(brief), territories[0], [], "A")
     const concept2 = await generateConcept(
       userBrief(brief),
       territories[1],
       [territories[0]],
-      "B",
-      [concept1.logoComposition.style]
+      "B"
     )
     const concept3 = await generateConcept(
       userBrief(brief),
       territories[2],
       [territories[0], territories[1]],
-      "C",
-      [concept1.logoComposition.style, concept2.logoComposition.style]
+      "C"
     )
 
     const concepts = [concept1, concept2, concept3].map((c, i) => ({
@@ -121,8 +119,7 @@ async function generateConcept(
   brief: string,
   territory: Territory,
   otherTerritories: Territory[],
-  slot: "A" | "B" | "C",
-  usedStyles: string[]
+  slot: "A" | "B" | "C"
 ): Promise<BrandConceptOutput> {
   const avoidanceInstructions =
     otherTerritories.length > 0
@@ -134,17 +131,6 @@ Your concept must be completely different from all of them.
 ${otherTerritories.map((t, i) => `Concept ${i + 1} visual territory: ${t.visualTerritory}`).join("\n")}
 
 Do not use similar colour families, font styles, or composition approaches to any of the above.
-    `
-      : ""
-
-  const styleAvoidance =
-    usedStyles.length > 0
-      ? `
-COMPOSITION STYLES ALREADY USED IN THIS SESSION:
-${usedStyles.join(", ")}
-
-You MUST choose a different composition style from all of the above.
-Using the same style as another concept is not acceptable.
     `
       : ""
 
@@ -172,8 +158,6 @@ ASSIGNED COMPOSITION STYLE: ${territory.assignedStyle}
 You must use this composition style. It has been selected to ensure variety across the three concepts in this session. Your creative job is to make it feel completely true to this concept through your choices of font, weight, tracking, and case.
 
 ${avoidanceInstructions}
-
-${styleAvoidance}
 
 Develop this territory into a complete brand concept.
 Return only valid JSON, no markdown, no explanation.

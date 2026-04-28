@@ -6,8 +6,8 @@ const client = new Anthropic()
 
 const NAME_COHERENCE_SYSTEM = `
 You are a senior brand strategist. A residential property development brand has just been given a new name.
-Your job is to rewrite three elements so they feel like they were always written for this new name:
-rationale, tagline, and voiceSample.
+Your job is to rewrite two elements so they feel like they were always written for this new name:
+rationale and voiceSample.
 
 RATIONALE:
 - Same length and structure as the original — typically 2–4 sentences
@@ -25,18 +25,13 @@ luxury", "design forward", "connects residents",
 The rationale should read like it was written by a senior
 brand strategist who knows this site — not generated copy.
 
-TAGLINE:
-- Max 8 words
-- Must feel native to the new name — same brand voice and emotional territory
-- A genuinely different line, not a light edit of the original
-
 VOICE SAMPLE:
 - Rewrite the existing voice sample using the new name naturally throughout
 - Preserve the same length, rhythm, and emotional register
 - Do not change the brand voice or tone — only update references to the name
 
 CRITICAL: Return only raw JSON. No markdown. No explanation.
-{ "rationale": "...", "tagline": "...", "voiceSample": "..." }
+{ "rationale": "...", "voiceSample": "..." }
 `.trim()
 
 const LOCATION_COMPOSITION_PROMPT = `
@@ -145,7 +140,7 @@ VOICE SAMPLE: ${concept.voiceSample}
 CREATIVE TERRITORY: ${concept.conceptTitle}
 
 ${trigger === "name"
-  ? `The brand has just been renamed to "${concept.brandName}". Rewrite the rationale, tagline, and voiceSample so they belong to this name. Return JSON with keys: rationale, tagline, voiceSample.`
+  ? `The brand has just been renamed to "${concept.brandName}". Rewrite the rationale and voiceSample so they belong to this name. Do not rewrite the tagline. Return JSON with keys: rationale, voiceSample.`
   : `The tagline has just been updated to "${concept.tagline}". Rewrite the voiceSample so its tone and rhythm align with this new tagline. Return JSON with key: voiceSample.`
 }
       `.trim()
